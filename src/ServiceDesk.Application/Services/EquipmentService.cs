@@ -37,14 +37,8 @@ public class EquipmentService : IEquipmentService
                     .Any(t => t.AssignedEngineerId == currentUserId &&
                               t.ServicePointId == e.ServicePointId)),
 
-            // Клиент — оборудование точек, для которых он создавал заявки
-            UserRole.Client =>
-                query.Where(e => _db.Tickets
-                    .Any(t => t.CreatedByUserId == currentUserId &&
-                              t.ServicePointId == e.ServicePointId)),
-
-            // Менеджер клиента — оборудование точек своей организации
-            UserRole.ManagerClient =>
+            // Клиент / Менеджер клиента — оборудование точек своей организации
+            UserRole.Client or UserRole.ManagerClient =>
                 query.Where(e => e.ServicePoint.ClientId ==
                     _db.Users.Where(u => u.Id == currentUserId)
                         .Select(u => u.ClientId).FirstOrDefault()),
