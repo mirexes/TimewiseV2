@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using ServiceDesk.Core.DTOs.Reports;
 using ServiceDesk.Core.Enums;
 using ServiceDesk.Core.Interfaces.Services;
+using ServiceDesk.Web.Extensions;
 using ServiceDesk.Web.Filters;
 
 namespace ServiceDesk.Web.Controllers;
@@ -22,7 +23,7 @@ public class ReportsController : Controller
     [HttpGet]
     public async Task<IActionResult> Dashboard()
     {
-        var stats = await _reportService.GetDashboardStatsAsync();
+        var stats = await _reportService.GetDashboardStatsAsync(User.GetUserId(), User.GetRole());
         return View(stats);
     }
 
