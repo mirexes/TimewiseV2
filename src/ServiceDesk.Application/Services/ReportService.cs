@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using ServiceDesk.Application.Helpers;
 using ServiceDesk.Core.DTOs.Reports;
+using ServiceDesk.Core.Entities;
 using ServiceDesk.Core.Enums;
 using ServiceDesk.Core.Interfaces.Services;
 using ServiceDesk.Infrastructure.Data;
@@ -18,16 +20,42 @@ public class ReportService : IReportService
         _db = db;
     }
 
-    public async Task<DashboardStatsDto> GetDashboardStatsAsync()
+    /// <summary>
+    /// Возвращает базовый запрос заявок, отфильтрованный по роли пользователя
+    /// </summary>
+    private IQueryable<Ticket> GetTicketsForUser(int currentUserId, UserRole currentUserRole)
     {
+        var query = _db.Tickets.AsQueryable();
+
+        if (PermissionChecker.CanViewAllTickets(currentUserRole))
+            return query;
+
+        return currentUserRole switch
+        {
+            UserRole.Technician or UserRole.Engineer =>
+                query.Where(t => t.AssignedEngineerId == currentUserId),
+            UserRole.Client =>
+                query.Where(t => t.CreatedByUserId == currentUserId),
+            UserRole.ManagerClient =>
+                query.Where(t => t.ServicePoint.ClientId ==
+                    _db.Users.Where(u => u.Id == currentUserId)
+                        .Select(u => u.ClientId).FirstOrDefault()),
+            _ => query
+        };
+    }
+
+    public async Task<DashboardStatsDto> GetDashboardStatsAsync(int currentUserId, UserRole currentUserRole)
+    {
+        var tickets = GetTicketsForUser(currentUserId, currentUserRole);
+
         var stats = new DashboardStatsDto
         {
-            TotalTickets = await _db.Tickets.CountAsync(),
-            NewTickets = await _db.Tickets.CountAsync(t => t.Status == TicketStatus.New),
-            InProgressTickets = await _db.Tickets.CountAsync(t => t.Status == TicketStatus.InProgress),
-            CompletedTickets = await _db.Tickets.CountAsync(t =>
+            TotalTickets = await tickets.CountAsync(),
+            NewTickets = await tickets.CountAsync(t => t.Status == TicketStatus.New),
+            InProgressTickets = await tickets.CountAsync(t => t.Status == TicketStatus.InProgress),
+            CompletedTickets = await tickets.CountAsync(t =>
                 t.Status == TicketStatus.Completed || t.Status == TicketStatus.CompletedRemotely),
-            OverdueTickets = await _db.Tickets.CountAsync(t =>
+            OverdueTickets = await tickets.CountAsync(t =>
                 t.Deadline.HasValue && t.Deadline < DateTime.UtcNow &&
                 t.Status != TicketStatus.Completed && t.Status != TicketStatus.CompletedRemotely &&
                 t.Status != TicketStatus.Cancelled),
@@ -39,7 +67,7 @@ public class ReportService : IReportService
         };
 
         // Заявки по статусам для графика
-        var statusGroups = await _db.Tickets
+        var statusGroups = await tickets
             .GroupBy(t => t.Status)
             .Select(g => new { Status = g.Key, Count = g.Count() })
             .ToListAsync();
@@ -49,7 +77,7 @@ public class ReportService : IReportService
 
         // Заявки за последние 30 дней
         var from = DateTime.UtcNow.AddDays(-30);
-        var dailyGroups = await _db.Tickets
+        var dailyGroups = await tickets
             .Where(t => t.CreatedAt >= from)
             .GroupBy(t => t.CreatedAt.Date)
             .Select(g => new { Date = g.Key, Count = g.Count() })

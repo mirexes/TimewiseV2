@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using ServiceDesk.Core.Interfaces.Services;
+using ServiceDesk.Web.Extensions;
 using ServiceDesk.Web.Filters;
 
 namespace ServiceDesk.Web.Controllers;
@@ -23,7 +24,7 @@ public class HomeController : Controller
         if (!User.Identity?.IsAuthenticated ?? true)
             return RedirectToAction("Login", "Account");
 
-        var stats = await _reportService.GetDashboardStatsAsync();
+        var stats = await _reportService.GetDashboardStatsAsync(User.GetUserId(), User.GetRole());
         return View(stats);
     }
 

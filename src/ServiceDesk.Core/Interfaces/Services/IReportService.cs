@@ -1,4 +1,5 @@
 using ServiceDesk.Core.DTOs.Reports;
+using ServiceDesk.Core.Enums;
 
 namespace ServiceDesk.Core.Interfaces.Services;
 
@@ -7,6 +8,6 @@ namespace ServiceDesk.Core.Interfaces.Services;
 /// </summary>
 public interface IReportService
 {
-    Task<DashboardStatsDto> GetDashboardStatsAsync();
+    Task<DashboardStatsDto> GetDashboardStatsAsync(int currentUserId, UserRole currentUserRole);
     Task<IEnumerable<EngineerStatsDto>> GetEngineerStatsAsync(ReportFilterDto filter);
 }
