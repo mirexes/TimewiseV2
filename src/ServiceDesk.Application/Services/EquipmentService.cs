@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using ServiceDesk.Application.Helpers;
 using ServiceDesk.Application.Mapping;
 using ServiceDesk.Core.DTOs.Equipment;
 using ServiceDesk.Core.Enums;
@@ -19,23 +20,64 @@ public class EquipmentService : IEquipmentService
         _db = db;
     }
 
-    public async Task<IEnumerable<EquipmentDto>> GetAllAsync()
+    /// <summary>
+    /// Применяет фильтрацию оборудования по роли пользователя
+    /// </summary>
+    private IQueryable<Core.Entities.Equipment> ApplyRoleFilter(
+        IQueryable<Core.Entities.Equipment> query, int currentUserId, UserRole currentUserRole)
     {
-        var items = await _db.Equipment
+        if (PermissionChecker.CanViewAllTickets(currentUserRole))
+            return query;
+
+        return currentUserRole switch
+        {
+            // Техник/Инженер — оборудование точек, на которых у них есть заявки
+            UserRole.Technician or UserRole.Engineer =>
+                query.Where(e => _db.Tickets
+                    .Any(t => t.AssignedEngineerId == currentUserId &&
+                              t.ServicePointId == e.ServicePointId)),
+
+            // Клиент — оборудование точек, для которых он создавал заявки
+            UserRole.Client =>
+                query.Where(e => _db.Tickets
+                    .Any(t => t.CreatedByUserId == currentUserId &&
+                              t.ServicePointId == e.ServicePointId)),
+
+            // Менеджер клиента — оборудование точек своей организации
+            UserRole.ManagerClient =>
+                query.Where(e => e.ServicePoint.ClientId ==
+                    _db.Users.Where(u => u.Id == currentUserId)
+                        .Select(u => u.ClientId).FirstOrDefault()),
+
+            _ => query
+        };
+    }
+
+    public async Task<IEnumerable<EquipmentDto>> GetAllAsync(int currentUserId, UserRole currentUserRole)
+    {
+        var query = _db.Equipment
             .Include(e => e.ServicePoint)
             .Where(e => e.IsActive)
+            .AsQueryable();
+
+        query = ApplyRoleFilter(query, currentUserId, currentUserRole);
+
+        var items = await query
             .OrderBy(e => e.Model)
             .ToListAsync();
 
         return items.Select(e => e.ToDto());
     }
 
-    public async Task<EquipmentDto?> GetByIdAsync(int id)
+    public async Task<EquipmentDto?> GetByIdAsync(int id, int currentUserId, UserRole currentUserRole)
     {
-        var equipment = await _db.Equipment
+        var query = _db.Equipment
             .Include(e => e.ServicePoint)
-            .FirstOrDefaultAsync(e => e.Id == id);
+            .Where(e => e.Id == id);
 
+        query = ApplyRoleFilter(query, currentUserId, currentUserRole);
+
+        var equipment = await query.FirstOrDefaultAsync();
         return equipment?.ToDto();
     }
 
