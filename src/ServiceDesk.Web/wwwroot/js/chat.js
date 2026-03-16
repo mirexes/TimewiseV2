@@ -51,9 +51,34 @@ function renderMessages(messages) {
             hour: '2-digit', minute: '2-digit'
         });
 
+        var attachmentsHtml = '';
+        if (msg.attachments && msg.attachments.length > 0) {
+            attachmentsHtml = '<div class="chat-attachments d-flex flex-wrap gap-2 mt-1">' +
+                msg.attachments.map(function (att) {
+                    var isImage = att.fileName.match(/\.(jpg|jpeg|png|gif|webp|bmp)$/i);
+                    var isVideo = att.fileName.match(/\.(mp4|webm|mov|avi)$/i);
+
+                    if (isImage) {
+                        return '<a href="' + escapeHtml(att.filePath) + '" target="_blank">' +
+                            '<img src="' + escapeHtml(att.filePath) + '" alt="' + escapeHtml(att.fileName) + '" ' +
+                            'class="chat-attachment-img rounded" style="max-width:200px;max-height:150px;object-fit:cover;cursor:pointer;" />' +
+                            '</a>';
+                    } else if (isVideo) {
+                        return '<video src="' + escapeHtml(att.filePath) + '" controls ' +
+                            'class="rounded" style="max-width:250px;max-height:180px;"></video>';
+                    } else {
+                        return '<a href="' + escapeHtml(att.filePath) + '" target="_blank" class="btn btn-sm btn-outline-secondary">' +
+                            '<i class="bi bi-paperclip"></i> ' + escapeHtml(att.fileName) +
+                            '</a>';
+                    }
+                }).join('') +
+                '</div>';
+        }
+
         return '<div class="chat-message">' +
             '<div class="sender">' + escapeHtml(msg.senderName) + '</div>' +
             '<div>' + escapeHtml(msg.text) + '</div>' +
+            attachmentsHtml +
             '<div class="time">' + time + '</div>' +
             '</div>';
     }).join('');

@@ -15,17 +15,20 @@ public class TicketsController : Controller
 {
     private readonly ITicketService _ticketService;
     private readonly IClientService _clientService;
+    private readonly IChatService _chatService;
     private readonly IWebHostEnvironment _env;
     private readonly IConfiguration _config;
 
     public TicketsController(
         ITicketService ticketService,
         IClientService clientService,
+        IChatService chatService,
         IWebHostEnvironment env,
         IConfiguration config)
     {
         _ticketService = ticketService;
         _clientService = clientService;
+        _chatService = chatService;
         _env = env;
         _config = config;
     }
@@ -109,7 +112,13 @@ public class TicketsController : Controller
             }
 
             if (savedFiles.Count > 0)
+            {
                 await _ticketService.SaveAttachmentsAsync(id, savedFiles);
+
+                // Создаём сообщение в чате с вложениями
+                await _chatService.AddMessageWithAttachmentsAsync(
+                    id, User.GetUserId(), "Прикреплённые файлы при создании заявки", savedFiles);
+            }
         }
 
         return RedirectToAction(nameof(Details), new { id });
