@@ -142,6 +142,22 @@ CREATE TABLE IF NOT EXISTS Tickets (
 ) ENGINE=InnoDB COMMENT='Заявки на обслуживание';
 
 -- ============================================================
+-- 6а. Вложения заявок (фото/видео при создании)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS TicketAttachments (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    FileName VARCHAR(500) NOT NULL COMMENT 'Имя файла',
+    FilePath VARCHAR(500) NOT NULL COMMENT 'Путь на сервере',
+    ContentType VARCHAR(100) NOT NULL COMMENT 'MIME-тип',
+    FileSize BIGINT NOT NULL DEFAULT 0 COMMENT 'Размер в байтах',
+    TicketId INT NOT NULL,
+    CreatedAt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    UpdatedAt DATETIME(6) NULL,
+    INDEX idx_ta_ticket (TicketId),
+    CONSTRAINT fk_ta_ticket FOREIGN KEY (TicketId) REFERENCES Tickets(Id) ON DELETE CASCADE
+) ENGINE=InnoDB COMMENT='Вложения заявок (фото/видео)';
+
+-- ============================================================
 -- 7. Запчасти (модуль неактивен, таблицы подготовлены)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS SpareParts (
