@@ -29,7 +29,8 @@ public class TicketsApiController : ControllerBase
     [HttpGet("filter")]
     public async Task<IActionResult> Filter([FromQuery] TicketFilterDto filter, int page = 1)
     {
-        var result = await _ticketService.GetTicketsAsync(filter, page, 20);
+        var result = await _ticketService.GetTicketsAsync(
+            filter, page, 20, User.GetUserId(), User.GetRole());
         return Ok(result);
     }
 }

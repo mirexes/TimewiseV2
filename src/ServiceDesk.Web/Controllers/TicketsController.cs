@@ -25,7 +25,8 @@ public class TicketsController : Controller
     [HttpGet]
     public async Task<IActionResult> Index([FromQuery] TicketFilterDto filter, int page = 1)
     {
-        var result = await _ticketService.GetTicketsAsync(filter, page, pageSize: 20);
+        var result = await _ticketService.GetTicketsAsync(
+            filter, page, pageSize: 20, User.GetUserId(), User.GetRole());
         ViewBag.Filter = filter;
         return View(result);
     }
@@ -33,7 +34,7 @@ public class TicketsController : Controller
     [HttpGet]
     public async Task<IActionResult> Details(int id)
     {
-        var ticket = await _ticketService.GetByIdAsync(id);
+        var ticket = await _ticketService.GetByIdAsync(id, User.GetUserId(), User.GetRole());
         if (ticket is null) return NotFound();
         return View(ticket);
     }

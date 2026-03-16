@@ -27,12 +27,35 @@ public class TicketService : ITicketService
     }
 
     public async Task<PagedResultDto<TicketListDto>> GetTicketsAsync(
-        TicketFilterDto filter, int page, int pageSize)
+        TicketFilterDto filter, int page, int pageSize, int currentUserId, UserRole currentUserRole)
     {
         var query = _db.Tickets
             .Include(t => t.ServicePoint)
             .Include(t => t.AssignedEngineer)
             .AsQueryable();
+
+        // Фильтрация по роли — ограничиваем видимость заявок
+        if (!PermissionChecker.CanViewAllTickets(currentUserRole))
+        {
+            query = currentUserRole switch
+            {
+                // Техник и Инженер видят только назначенные на них заявки
+                UserRole.Technician or UserRole.Engineer =>
+                    query.Where(t => t.AssignedEngineerId == currentUserId),
+
+                // Клиент видит только свои заявки
+                UserRole.Client =>
+                    query.Where(t => t.CreatedByUserId == currentUserId),
+
+                // Менеджер клиента видит заявки точек своей организации
+                UserRole.ManagerClient =>
+                    query.Where(t => t.ServicePoint.ClientId ==
+                        _db.Users.Where(u => u.Id == currentUserId)
+                            .Select(u => u.ClientId).FirstOrDefault()),
+
+                _ => query
+            };
+        }
 
         // Фильтрация
         if (filter.Status.HasValue)
@@ -80,7 +103,7 @@ public class TicketService : ITicketService
             items.Select(t => t.ToListDto()), totalCount, page, pageSize);
     }
 
-    public async Task<TicketDetailDto?> GetByIdAsync(int id)
+    public async Task<TicketDetailDto?> GetByIdAsync(int id, int currentUserId, UserRole currentUserRole)
     {
         var ticket = await _db.Tickets
             .Include(t => t.ServicePoint)
@@ -90,6 +113,25 @@ public class TicketService : ITicketService
             .FirstOrDefaultAsync(t => t.Id == id);
 
         if (ticket is null) return null;
+
+        // Проверка доступа к конкретной заявке
+        if (!PermissionChecker.CanViewAllTickets(currentUserRole))
+        {
+            var hasAccess = currentUserRole switch
+            {
+                UserRole.Technician or UserRole.Engineer =>
+                    ticket.AssignedEngineerId == currentUserId,
+                UserRole.Client =>
+                    ticket.CreatedByUserId == currentUserId,
+                UserRole.ManagerClient =>
+                    ticket.ServicePoint?.ClientId ==
+                        await _db.Users.Where(u => u.Id == currentUserId)
+                            .Select(u => u.ClientId).FirstOrDefaultAsync(),
+                _ => false
+            };
+
+            if (!hasAccess) return null;
+        }
 
         var dto = ticket.ToDetailDto();
         dto.AllowedTransitions = TicketStatusTransitions.GetAllowedTransitions(ticket.Status);
