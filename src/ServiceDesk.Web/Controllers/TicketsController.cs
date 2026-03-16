@@ -41,7 +41,7 @@ public class TicketsController : Controller
 
     [HttpGet]
     [RoleAuthorize(UserRole.Engineer, UserRole.ChiefEngineer, UserRole.Logist,
-        UserRole.ManagerTimewise, UserRole.ManagerClient, UserRole.Moderator)]
+        UserRole.ManagerTimewise, UserRole.ManagerClient, UserRole.Moderator, UserRole.Client)]
     public async Task<IActionResult> Create()
     {
         ViewBag.ServicePoints = await _clientService.GetServicePointsForSelectAsync();
@@ -51,7 +51,7 @@ public class TicketsController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [RoleAuthorize(UserRole.Engineer, UserRole.ChiefEngineer, UserRole.Logist,
-        UserRole.ManagerTimewise, UserRole.ManagerClient, UserRole.Moderator)]
+        UserRole.ManagerTimewise, UserRole.ManagerClient, UserRole.Moderator, UserRole.Client)]
     public async Task<IActionResult> Create(CreateTicketDto dto)
     {
         if (!ModelState.IsValid)
