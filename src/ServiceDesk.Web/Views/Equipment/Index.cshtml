@@ -1,0 +1,47 @@
+@model IEnumerable<EquipmentDto>
+@{
+    ViewData["Title"] = "Оборудование";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <span class="text-muted">Всего: @Model.Count()</span>
+    <a href="/Equipment/Create" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg"></i> Добавить
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-cpu fs-1"></i>
+        <p class="mt-2">Оборудование не найдено</p>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var eq in Model)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100" onclick="location.href='/Equipment/Details/@eq.Id'"
+                     style="cursor: pointer;">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="bi bi-cpu"></i> @eq.Model
+                        </h6>
+                        <p class="text-muted small mb-1">S/N: @eq.SerialNumber</p>
+                        <p class="text-muted small mb-0">
+                            <i class="bi bi-geo-alt"></i> @eq.ServicePointAddress
+                        </p>
+                        @if (eq.InstalledAt.HasValue)
+                        {
+                            <small class="text-muted">
+                                Установлено: @eq.InstalledAt.Value.ToString("dd.MM.yyyy")
+                            </small>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
