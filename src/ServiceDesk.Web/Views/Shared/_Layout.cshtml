@@ -2,7 +2,7 @@
 <html lang="ru" data-theme="light" data-bs-theme="light">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>@ViewData["Title"] — ServiceDesk</title>
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#0d6efd" />
@@ -22,6 +22,9 @@
 </head>
 <body>
     <div class="app-wrapper d-flex">
+        <!-- Оверлей для сайдбара (мобильная версия) -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
         <!-- Сайдбар (для авторизованных) -->
         @if (User.Identity?.IsAuthenticated ?? false)
         {
@@ -67,6 +70,12 @@
                 @RenderBody()
             </main>
         </div>
+
+        <!-- Нижняя навигация (мобильная, для авторизованных) -->
+        @if (User.Identity?.IsAuthenticated ?? false)
+        {
+            @await Html.PartialAsync("_BottomNav")
+        }
     </div>
 
     <!-- Bootstrap JS -->

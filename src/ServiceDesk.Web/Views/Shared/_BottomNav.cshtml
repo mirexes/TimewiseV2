@@ -1,0 +1,35 @@
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var userRole = User.GetRole();
+    var showClients = userRole is UserRole.ChiefEngineer or UserRole.Logist
+        or UserRole.ManagerTimewise or UserRole.Moderator;
+    var showReports = userRole is UserRole.ChiefEngineer
+        or UserRole.ManagerTimewise or UserRole.Moderator;
+    var showUsers = userRole == UserRole.Moderator;
+}
+
+<nav class="bottom-nav d-md-none" id="bottomNav">
+    <a class="bottom-nav-item @(currentController == "Home" ? "active" : "")" href="/">
+        <i class="bi bi-speedometer2"></i>
+        <span>Главная</span>
+    </a>
+    <a class="bottom-nav-item @(currentController == "Tickets" ? "active" : "")" href="/Tickets">
+        <i class="bi bi-ticket-detailed"></i>
+        <span>Заявки</span>
+    </a>
+    <a class="bottom-nav-item @(currentController == "Equipment" ? "active" : "")" href="/Equipment">
+        <i class="bi bi-cpu"></i>
+        <span>Оборудование</span>
+    </a>
+    @if (showClients)
+    {
+        <a class="bottom-nav-item @(currentController == "Clients" ? "active" : "")" href="/Clients">
+            <i class="bi bi-building"></i>
+            <span>Клиенты</span>
+        </a>
+    }
+    <button class="bottom-nav-item" onclick="toggleSidebar()" type="button">
+        <i class="bi bi-three-dots"></i>
+        <span>Ещё</span>
+    </button>
+</nav>

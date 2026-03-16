@@ -3,18 +3,29 @@
 // Переключение сайдбара (мобильная версия)
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
-    sidebar.classList.toggle('show');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (!sidebar) return;
+
+    const isOpen = sidebar.classList.toggle('show');
+    if (overlay) {
+        overlay.classList.toggle('show', isOpen);
+    }
+    // Блокируем скролл фона при открытом сайдбаре
+    document.body.style.overflow = isOpen ? 'hidden' : '';
 }
 
-// Закрытие сайдбара при клике вне его (мобильная версия)
-document.addEventListener('click', function (e) {
+// Закрытие сайдбара при клике по ссылке внутри (мобильная версия)
+document.addEventListener('DOMContentLoaded', function () {
     const sidebar = document.getElementById('sidebar');
-    const toggle = document.querySelector('.sidebar-toggle');
-
-    if (sidebar && sidebar.classList.contains('show') &&
-        !sidebar.contains(e.target) &&
-        (!toggle || !toggle.contains(e.target))) {
-        sidebar.classList.remove('show');
+    if (sidebar) {
+        sidebar.addEventListener('click', function (e) {
+            if (e.target.closest('.nav-link')) {
+                sidebar.classList.remove('show');
+                var overlay = document.getElementById('sidebarOverlay');
+                if (overlay) overlay.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+        });
     }
 });
 
