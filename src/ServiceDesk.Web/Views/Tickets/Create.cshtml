@@ -56,9 +56,11 @@
 
                         <!-- Блок карты (скрыт по умолчанию) -->
                         <div id="mapContainer" class="mt-2" style="display: none;">
-                            <div class="mb-2">
+                            <div class="mb-2 position-relative">
                                 <input type="text" id="addressSearch" class="form-control"
-                                       placeholder="Введите адрес для поиска..." />
+                                       placeholder="Введите адрес для поиска..." autocomplete="off" />
+                                <div id="suggestList" class="list-group position-absolute w-100 shadow"
+                                     style="z-index: 1050; display: none; max-height: 250px; overflow-y: auto;"></div>
                             </div>
                             <div id="yandexMap" style="width: 100%; height: 350px; border-radius: 8px;"></div>
                             <div id="selectedAddress" class="mt-2 text-muted small" style="display: none;">
