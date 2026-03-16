@@ -169,6 +169,10 @@ body {
     box-shadow: var(--shadow-md);
 }
 
+.main-content.no-sidebar {
+    margin-left: 0;
+}
+
 /* === Мобильная адаптация === */
 @media (max-width: 767.98px) {
     .sidebar {
