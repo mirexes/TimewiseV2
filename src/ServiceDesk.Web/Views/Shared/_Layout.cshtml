@@ -29,7 +29,7 @@
         }
 
         <!-- Основной контент -->
-        <div class="main-content flex-grow-1">
+        <div class="main-content flex-grow-1 @(!(User.Identity?.IsAuthenticated ?? false) ? "no-sidebar" : "")">
             <!-- Верхняя панель -->
             @if (User.Identity?.IsAuthenticated ?? false)
             {
