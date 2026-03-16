@@ -1,5 +1,6 @@
 using ServiceDesk.Core.DTOs.Common;
 using ServiceDesk.Core.DTOs.Tickets;
+using ServiceDesk.Core.Enums;
 
 namespace ServiceDesk.Core.Interfaces.Services;
 
@@ -8,8 +9,9 @@ namespace ServiceDesk.Core.Interfaces.Services;
 /// </summary>
 public interface ITicketService
 {
-    Task<PagedResultDto<TicketListDto>> GetTicketsAsync(TicketFilterDto filter, int page, int pageSize);
-    Task<TicketDetailDto?> GetByIdAsync(int id);
+    Task<PagedResultDto<TicketListDto>> GetTicketsAsync(
+        TicketFilterDto filter, int page, int pageSize, int currentUserId, UserRole currentUserRole);
+    Task<TicketDetailDto?> GetByIdAsync(int id, int currentUserId, UserRole currentUserRole);
     Task<int> CreateAsync(CreateTicketDto dto, int currentUserId);
     Task UpdateStatusAsync(UpdateTicketStatusDto dto, int currentUserId);
     Task AssignEngineerAsync(int ticketId, int engineerId, int currentUserId);
