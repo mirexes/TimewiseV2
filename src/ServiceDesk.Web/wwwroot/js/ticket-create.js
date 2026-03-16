@@ -85,22 +85,60 @@
             reverseGeocode(coords);
         });
 
-        // Поиск по адресу
+        // Поиск по адресу с подсказками
         var searchInput = document.getElementById('addressSearch');
-        if (searchInput) {
-            var suggestView = new ymaps.SuggestView('addressSearch');
+        var suggestList = document.getElementById('suggestList');
+        if (searchInput && suggestList) {
+            var suggestTimeout = null;
+
+            searchInput.addEventListener('input', function () {
+                clearTimeout(suggestTimeout);
+                var query = searchInput.value.trim();
+                if (query.length < 3) {
+                    suggestList.style.display = 'none';
+                    suggestList.innerHTML = '';
+                    return;
+                }
+                // Задержка 300мс перед запросом подсказок
+                suggestTimeout = setTimeout(function () {
+                    ymaps.suggest(query).then(function (items) {
+                        suggestList.innerHTML = '';
+                        if (!items || items.length === 0) {
+                            suggestList.style.display = 'none';
+                            return;
+                        }
+                        items.forEach(function (item) {
+                            var btn = document.createElement('button');
+                            btn.type = 'button';
+                            btn.className = 'list-group-item list-group-item-action small';
+                            btn.textContent = item.displayName;
+                            btn.addEventListener('click', function () {
+                                searchInput.value = item.value;
+                                suggestList.style.display = 'none';
+                                suggestList.innerHTML = '';
+                                geocodeAddress(item.value);
+                            });
+                            suggestList.appendChild(btn);
+                        });
+                        suggestList.style.display = 'block';
+                    });
+                }, 300);
+            });
 
             searchInput.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
+                    suggestList.style.display = 'none';
+                    suggestList.innerHTML = '';
                     geocodeAddress(searchInput.value);
                 }
             });
 
-            // При выборе подсказки — геокодируем
-            suggestView.events.add('select', function (e) {
-                var selectedValue = e.get('item').value;
-                geocodeAddress(selectedValue);
+            // Скрываем подсказки при клике вне
+            document.addEventListener('click', function (e) {
+                if (!searchInput.contains(e.target) && !suggestList.contains(e.target)) {
+                    suggestList.style.display = 'none';
+                }
             });
         }
     }
