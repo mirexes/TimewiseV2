@@ -147,15 +147,33 @@
     </div>
 </div>
 
-<!-- Модальное окно для просмотра вложений -->
+<!-- Модальное окно-галерея для просмотра вложений -->
 <div class="modal fade" id="attachmentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header py-2">
                 <h6 class="modal-title" id="attachmentModalTitle"></h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                <div class="ms-auto d-flex align-items-center gap-2">
+                    <small class="text-muted" id="attachmentCounter"></small>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                </div>
             </div>
-            <div class="modal-body text-center p-2" id="attachmentModalBody"></div>
+            <div class="modal-body text-center p-2 position-relative" id="attachmentModalBody">
+                <!-- Кнопка «Назад» -->
+                <button type="button" id="galleryPrev"
+                        class="btn btn-light rounded-circle position-absolute top-50 start-0 translate-middle-y ms-2 shadow-sm"
+                        style="width:40px;height:40px;z-index:10;" onclick="galleryNav(-1)">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <!-- Контент вложения -->
+                <div id="galleryContent"></div>
+                <!-- Кнопка «Вперёд» -->
+                <button type="button" id="galleryNext"
+                        class="btn btn-light rounded-circle position-absolute top-50 end-0 translate-middle-y me-2 shadow-sm"
+                        style="width:40px;height:40px;z-index:10;" onclick="galleryNav(1)">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
         </div>
     </div>
 </div>
