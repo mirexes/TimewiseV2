@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ServiceDesk.Core.DTOs.Equipment;
 using ServiceDesk.Core.Interfaces.Services;
+using ServiceDesk.Web.Extensions;
 using ServiceDesk.Web.Filters;
 
 namespace ServiceDesk.Web.Controllers;
@@ -23,14 +24,14 @@ public class EquipmentController : Controller
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        var items = await _equipmentService.GetAllAsync();
+        var items = await _equipmentService.GetAllAsync(User.GetUserId(), User.GetRole());
         return View(items);
     }
 
     [HttpGet]
     public async Task<IActionResult> Details(int id)
     {
-        var equipment = await _equipmentService.GetByIdAsync(id);
+        var equipment = await _equipmentService.GetByIdAsync(id, User.GetUserId(), User.GetRole());
         if (equipment is null) return NotFound();
 
         ViewBag.History = await _equipmentService.GetRepairHistoryAsync(id);
