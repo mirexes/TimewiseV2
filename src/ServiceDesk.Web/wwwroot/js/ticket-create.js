@@ -49,8 +49,10 @@
     const mapContainer = document.getElementById('mapContainer');
     if (!btnShow || !mapContainer) return;
 
-    // Проверяем доступность ymaps
-    if (typeof ymaps === 'undefined') return;
+    if (typeof ymaps === 'undefined') {
+        console.warn('[ticket-create] ymaps не загружен — проверьте API-ключ Яндекс Карт');
+        return;
+    }
 
     let mapInitialized = false;
     let yMap = null;
@@ -62,8 +64,8 @@
             btnShow.innerHTML = '<i class="bi bi-x-lg"></i> Скрыть карту';
 
             if (!mapInitialized) {
-                ymaps.ready(initMap);
                 mapInitialized = true;
+                ymaps.ready(initMap);
             }
         } else {
             mapContainer.style.display = 'none';
@@ -73,7 +75,7 @@
 
     function initMap() {
         yMap = new ymaps.Map('yandexMap', {
-            center: [55.751574, 37.573856], // Москва
+            center: [55.751574, 37.573856],
             zoom: 10,
             controls: ['zoomControl', 'geolocationControl']
         });
@@ -85,61 +87,108 @@
             reverseGeocode(coords);
         });
 
-        // Поиск по адресу с подсказками
+        initAddressSearch();
+    }
+
+    function initAddressSearch() {
         var searchInput = document.getElementById('addressSearch');
         var suggestList = document.getElementById('suggestList');
-        if (searchInput && suggestList) {
-            var suggestTimeout = null;
+        if (!searchInput || !suggestList) {
+            console.warn('[ticket-create] addressSearch или suggestList не найдены в DOM');
+            return;
+        }
 
-            searchInput.addEventListener('input', function () {
-                clearTimeout(suggestTimeout);
-                var query = searchInput.value.trim();
-                if (query.length < 3) {
-                    suggestList.style.display = 'none';
-                    suggestList.innerHTML = '';
-                    return;
-                }
-                // Задержка 300мс перед запросом подсказок
-                suggestTimeout = setTimeout(function () {
-                    ymaps.suggest(query).then(function (items) {
-                        suggestList.innerHTML = '';
-                        if (!items || items.length === 0) {
-                            suggestList.style.display = 'none';
-                            return;
-                        }
-                        items.forEach(function (item) {
-                            var btn = document.createElement('button');
-                            btn.type = 'button';
-                            btn.className = 'list-group-item list-group-item-action small';
-                            btn.textContent = item.displayName;
-                            btn.addEventListener('click', function () {
-                                searchInput.value = item.value;
-                                suggestList.style.display = 'none';
-                                suggestList.innerHTML = '';
-                                geocodeAddress(item.value);
-                            });
-                            suggestList.appendChild(btn);
-                        });
-                        suggestList.style.display = 'block';
+        var debounceTimer = null;
+
+        searchInput.addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+            var query = searchInput.value.trim();
+
+            if (query.length < 3) {
+                hideSuggestions();
+                return;
+            }
+
+            debounceTimer = setTimeout(function () {
+                // Пробуем ymaps.suggest, если не работает — fallback на ymaps.geocode
+                fetchSuggestions(query);
+            }, 350);
+        });
+
+        searchInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                hideSuggestions();
+                geocodeAddress(searchInput.value);
+            }
+        });
+
+        // Скрываем подсказки при клике вне
+        document.addEventListener('mousedown', function (e) {
+            if (!searchInput.contains(e.target) && !suggestList.contains(e.target)) {
+                hideSuggestions();
+            }
+        });
+
+        function fetchSuggestions(query) {
+            // Используем ymaps.suggest если доступен, иначе geocode
+            var suggestPromise = (typeof ymaps.suggest === 'function')
+                ? ymaps.suggest(query)
+                : null;
+
+            if (suggestPromise) {
+                suggestPromise.then(function (items) {
+                    renderSuggestItems(items);
+                }).catch(function () {
+                    // Fallback на geocode если suggest не сработал
+                    geocodeFallback(query);
+                });
+            } else {
+                geocodeFallback(query);
+            }
+        }
+
+        function geocodeFallback(query) {
+            ymaps.geocode(query, { results: 5 }).then(function (res) {
+                var items = [];
+                res.geoObjects.each(function (obj) {
+                    items.push({
+                        displayName: obj.getAddressLine(),
+                        value: obj.getAddressLine()
                     });
-                }, 300);
+                });
+                renderSuggestItems(items);
+            }).catch(function (err) {
+                console.error('[ticket-create] Ошибка геокодирования:', err);
+                hideSuggestions();
             });
+        }
 
-            searchInput.addEventListener('keydown', function (e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    suggestList.style.display = 'none';
-                    suggestList.innerHTML = '';
-                    geocodeAddress(searchInput.value);
-                }
+        function renderSuggestItems(items) {
+            suggestList.innerHTML = '';
+            if (!items || items.length === 0) {
+                hideSuggestions();
+                return;
+            }
+            items.forEach(function (item) {
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'list-group-item list-group-item-action small py-2';
+                btn.textContent = item.displayName;
+                btn.addEventListener('mousedown', function (e) {
+                    e.preventDefault(); // Не даём blur сработать раньше клика
+                    searchInput.value = item.value;
+                    hideSuggestions();
+                    geocodeAddress(item.value);
+                });
+                suggestList.appendChild(btn);
             });
+            suggestList.style.display = 'block';
+        }
 
-            // Скрываем подсказки при клике вне
-            document.addEventListener('click', function (e) {
-                if (!searchInput.contains(e.target) && !suggestList.contains(e.target)) {
-                    suggestList.style.display = 'none';
-                }
-            });
+        function hideSuggestions() {
+            suggestList.style.display = 'none';
+            suggestList.innerHTML = '';
         }
     }
 
@@ -162,8 +211,7 @@
         ymaps.geocode(coords).then(function (res) {
             var firstGeoObject = res.geoObjects.get(0);
             if (!firstGeoObject) return;
-            var address = firstGeoObject.getAddressLine();
-            showAddress(address);
+            showAddress(firstGeoObject.getAddressLine());
         });
     }
 
@@ -174,11 +222,9 @@
             if (!firstGeoObject) return;
 
             var coords = firstGeoObject.geometry.getCoordinates();
-            var resolvedAddress = firstGeoObject.getAddressLine();
-
             setPlacemark(coords);
             yMap.setCenter(coords, 16);
-            showAddress(resolvedAddress);
+            showAddress(firstGeoObject.getAddressLine());
         });
     }
 
