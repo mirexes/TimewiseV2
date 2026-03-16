@@ -1,4 +1,5 @@
 using ServiceDesk.Core.DTOs.Common;
+using ServiceDesk.Core.Enums;
 
 namespace ServiceDesk.Core.Interfaces.Services;
 
@@ -8,5 +9,6 @@ namespace ServiceDesk.Core.Interfaces.Services;
 public interface IClientService
 {
     Task<IEnumerable<SelectOptionDto>> GetClientsForSelectAsync();
-    Task<IEnumerable<SelectOptionDto>> GetServicePointsForSelectAsync(int? clientId = null);
+    Task<IEnumerable<SelectOptionDto>> GetServicePointsForSelectAsync(
+        int currentUserId, UserRole currentUserRole, int? clientId = null);
 }

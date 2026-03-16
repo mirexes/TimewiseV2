@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using ServiceDesk.Application.Helpers;
 using ServiceDesk.Core.DTOs.Common;
+using ServiceDesk.Core.Enums;
 using ServiceDesk.Core.Interfaces.Services;
 using ServiceDesk.Infrastructure.Data;
 
@@ -26,12 +28,40 @@ public class ClientService : IClientService
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<SelectOptionDto>> GetServicePointsForSelectAsync(int? clientId = null)
+    public async Task<IEnumerable<SelectOptionDto>> GetServicePointsForSelectAsync(
+        int currentUserId, UserRole currentUserRole, int? clientId = null)
     {
         var query = _db.ServicePoints.Where(sp => sp.IsActive);
 
         if (clientId.HasValue)
             query = query.Where(sp => sp.ClientId == clientId.Value);
+
+        // Фильтрация по роли пользователя
+        if (!PermissionChecker.CanViewAllTickets(currentUserRole))
+        {
+            query = currentUserRole switch
+            {
+                // Техник/Инженер — только точки, на которых у них есть заявки
+                UserRole.Technician or UserRole.Engineer =>
+                    query.Where(sp => _db.Tickets
+                        .Any(t => t.AssignedEngineerId == currentUserId &&
+                                  t.ServicePointId == sp.Id)),
+
+                // Клиент — только точки, для которых он создавал заявки
+                UserRole.Client =>
+                    query.Where(sp => _db.Tickets
+                        .Any(t => t.CreatedByUserId == currentUserId &&
+                                  t.ServicePointId == sp.Id)),
+
+                // Менеджер клиента — только точки своей организации
+                UserRole.ManagerClient =>
+                    query.Where(sp => sp.ClientId ==
+                        _db.Users.Where(u => u.Id == currentUserId)
+                            .Select(u => u.ClientId).FirstOrDefault()),
+
+                _ => query
+            };
+        }
 
         return await query
             .OrderBy(sp => sp.Name)

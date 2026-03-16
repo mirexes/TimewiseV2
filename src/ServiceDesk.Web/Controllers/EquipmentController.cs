@@ -41,7 +41,7 @@ public class EquipmentController : Controller
     [HttpGet]
     public async Task<IActionResult> Create()
     {
-        ViewBag.ServicePoints = await _clientService.GetServicePointsForSelectAsync();
+        ViewBag.ServicePoints = await _clientService.GetServicePointsForSelectAsync(User.GetUserId(), User.GetRole());
         return View();
     }
 
@@ -51,7 +51,7 @@ public class EquipmentController : Controller
     {
         if (!ModelState.IsValid)
         {
-            ViewBag.ServicePoints = await _clientService.GetServicePointsForSelectAsync();
+            ViewBag.ServicePoints = await _clientService.GetServicePointsForSelectAsync(User.GetUserId(), User.GetRole());
             return View(dto);
         }
 

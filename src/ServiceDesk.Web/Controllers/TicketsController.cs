@@ -44,7 +44,7 @@ public class TicketsController : Controller
         UserRole.ManagerTimewise, UserRole.ManagerClient, UserRole.Moderator)]
     public async Task<IActionResult> Create()
     {
-        ViewBag.ServicePoints = await _clientService.GetServicePointsForSelectAsync();
+        ViewBag.ServicePoints = await _clientService.GetServicePointsForSelectAsync(User.GetUserId(), User.GetRole());
         return View();
     }
 
@@ -56,7 +56,7 @@ public class TicketsController : Controller
     {
         if (!ModelState.IsValid)
         {
-            ViewBag.ServicePoints = await _clientService.GetServicePointsForSelectAsync();
+            ViewBag.ServicePoints = await _clientService.GetServicePointsForSelectAsync(User.GetUserId(), User.GetRole());
             return View(dto);
         }
 
