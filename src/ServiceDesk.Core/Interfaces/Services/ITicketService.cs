@@ -13,6 +13,7 @@ public interface ITicketService
         TicketFilterDto filter, int page, int pageSize, int currentUserId, UserRole currentUserRole);
     Task<TicketDetailDto?> GetByIdAsync(int id, int currentUserId, UserRole currentUserRole);
     Task<int> CreateAsync(CreateTicketDto dto, int currentUserId);
+    Task SaveAttachmentsAsync(int ticketId, IEnumerable<TicketAttachmentFile> files);
     Task UpdateStatusAsync(UpdateTicketStatusDto dto, int currentUserId);
     Task AssignEngineerAsync(int ticketId, int engineerId, int currentUserId);
     Task<IEnumerable<TicketListDto>> GetByEngineerAsync(int engineerId);

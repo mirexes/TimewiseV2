@@ -24,6 +24,7 @@ public class AppDbContext : DbContext
     public DbSet<SparePartStock> SparePartStocks => Set<SparePartStock>();
     public DbSet<SparePartPriceHistory> SparePartPriceHistory => Set<SparePartPriceHistory>();
     public DbSet<TicketSparePart> TicketSpareParts => Set<TicketSparePart>();
+    public DbSet<TicketAttachment> TicketAttachments => Set<TicketAttachment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
