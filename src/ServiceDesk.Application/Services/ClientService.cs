@@ -47,8 +47,17 @@ public class ClientService : IClientService
                         .Any(t => t.AssignedEngineerId == currentUserId &&
                                   t.ServicePointId == sp.Id)),
 
-                // Клиент / Менеджер клиента — только точки своей организации
-                UserRole.Client or UserRole.ManagerClient =>
+                // Клиент — точки своей организации + точки, где создавал заявки
+                UserRole.Client =>
+                    query.Where(sp =>
+                        sp.ClientId ==
+                            _db.Users.Where(u => u.Id == currentUserId)
+                                .Select(u => u.ClientId).FirstOrDefault() ||
+                        _db.Tickets.Any(t => t.CreatedByUserId == currentUserId &&
+                                              t.ServicePointId == sp.Id)),
+
+                // Менеджер клиента — только точки своей организации
+                UserRole.ManagerClient =>
                     query.Where(sp => sp.ClientId ==
                         _db.Users.Where(u => u.Id == currentUserId)
                             .Select(u => u.ClientId).FirstOrDefault()),

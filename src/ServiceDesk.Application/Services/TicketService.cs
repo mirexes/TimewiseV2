@@ -43,8 +43,15 @@ public class TicketService : ITicketService
                 UserRole.Technician or UserRole.Engineer =>
                     query.Where(t => t.AssignedEngineerId == currentUserId),
 
-                // Клиент / Менеджер клиента — заявки точек своей организации
-                UserRole.Client or UserRole.ManagerClient =>
+                // Клиент — заявки своей организации + созданные лично
+                UserRole.Client =>
+                    query.Where(t => t.CreatedByUserId == currentUserId ||
+                        t.ServicePoint.ClientId ==
+                            _db.Users.Where(u => u.Id == currentUserId)
+                                .Select(u => u.ClientId).FirstOrDefault()),
+
+                // Менеджер клиента — заявки точек своей организации
+                UserRole.ManagerClient =>
                     query.Where(t => t.ServicePoint.ClientId ==
                         _db.Users.Where(u => u.Id == currentUserId)
                             .Select(u => u.ClientId).FirstOrDefault()),
@@ -117,7 +124,12 @@ public class TicketService : ITicketService
             {
                 UserRole.Technician or UserRole.Engineer =>
                     ticket.AssignedEngineerId == currentUserId,
-                UserRole.Client or UserRole.ManagerClient =>
+                UserRole.Client =>
+                    ticket.CreatedByUserId == currentUserId ||
+                    ticket.ServicePoint?.ClientId ==
+                        await _db.Users.Where(u => u.Id == currentUserId)
+                            .Select(u => u.ClientId).FirstOrDefaultAsync(),
+                UserRole.ManagerClient =>
                     ticket.ServicePoint?.ClientId ==
                         await _db.Users.Where(u => u.Id == currentUserId)
                             .Select(u => u.ClientId).FirstOrDefaultAsync(),

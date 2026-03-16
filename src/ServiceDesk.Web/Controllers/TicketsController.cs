@@ -40,7 +40,7 @@ public class TicketsController : Controller
     }
 
     [HttpGet]
-    [RoleAuthorize(UserRole.Engineer, UserRole.ChiefEngineer, UserRole.Logist,
+    [RoleAuthorize(UserRole.Client, UserRole.Engineer, UserRole.ChiefEngineer, UserRole.Logist,
         UserRole.ManagerTimewise, UserRole.ManagerClient, UserRole.Moderator)]
     public async Task<IActionResult> Create()
     {
@@ -50,7 +50,7 @@ public class TicketsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [RoleAuthorize(UserRole.Engineer, UserRole.ChiefEngineer, UserRole.Logist,
+    [RoleAuthorize(UserRole.Client, UserRole.Engineer, UserRole.ChiefEngineer, UserRole.Logist,
         UserRole.ManagerTimewise, UserRole.ManagerClient, UserRole.Moderator)]
     public async Task<IActionResult> Create(CreateTicketDto dto)
     {
