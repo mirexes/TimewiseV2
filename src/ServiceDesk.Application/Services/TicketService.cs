@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Application.Helpers;
 using ServiceDesk.Application.Mapping;
@@ -144,12 +145,15 @@ public class TicketService : ITicketService
         var servicePointId = dto.ServicePointId ?? 0;
         if (servicePointId == 0 && !string.IsNullOrWhiteSpace(dto.NewAddress))
         {
+            double.TryParse(dto.Latitude, CultureInfo.InvariantCulture, out var lat);
+            double.TryParse(dto.Longitude, CultureInfo.InvariantCulture, out var lng);
+
             var newPoint = new ServicePoint
             {
                 Name = dto.NewAddress,
                 Address = dto.NewAddress,
-                Latitude = dto.Latitude,
-                Longitude = dto.Longitude,
+                Latitude = lat != 0 ? lat : null,
+                Longitude = lng != 0 ? lng : null,
                 IsActive = true,
                 ClientId = await _db.Users
                     .Where(u => u.Id == currentUserId)
