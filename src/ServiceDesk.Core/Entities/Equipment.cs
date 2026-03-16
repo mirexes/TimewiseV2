@@ -23,6 +23,7 @@ public class Equipment : BaseEntity
     /// <summary>Точка обслуживания</summary>
     public int ServicePointId { get; set; }
     public ServicePoint ServicePoint { get; set; } = null!;
+    public int ClientId { get; set; }
 
     // Навигационные свойства
     public ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();

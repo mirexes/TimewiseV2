@@ -59,12 +59,17 @@ public class ReportService : IReportService
                 t.Deadline.HasValue && t.Deadline < DateTime.UtcNow &&
                 t.Status != TicketStatus.Completed && t.Status != TicketStatus.CompletedRemotely &&
                 t.Status != TicketStatus.Cancelled),
-            TotalEquipment = await _db.Equipment.CountAsync(e => e.IsActive),
+            TotalEquipment = await _db.Equipment.CountAsync(e => e.IsActive && e.ClientId== currentUserId),
             TotalClients = await _db.Clients.CountAsync(c => c.IsActive),
             TotalEngineers = await _db.Users.CountAsync(u =>
                 u.Role == UserRole.Engineer || u.Role == UserRole.Technician ||
                 u.Role == UserRole.ChiefEngineer)
         };
+        if(currentUserRole!=UserRole.Moderator )
+        {
+            stats.TotalClients = 0;
+            stats.TotalEngineers = 0;
+        }
 
         // Заявки по статусам для графика
         var statusGroups = await tickets
