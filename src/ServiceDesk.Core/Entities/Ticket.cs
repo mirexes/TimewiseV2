@@ -56,4 +56,5 @@ public class Ticket : BaseEntity
     // Навигационные свойства
     public ICollection<TicketSparePart> SpareParts { get; set; } = new List<TicketSparePart>();
     public ICollection<ChatMessage> ChatMessages { get; set; } = new List<ChatMessage>();
+    public ICollection<TicketAttachment> Attachments { get; set; } = new List<TicketAttachment>();
 }

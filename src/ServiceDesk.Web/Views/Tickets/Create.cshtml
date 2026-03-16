@@ -3,6 +3,7 @@
     ViewData["Title"] = "Новая заявка";
     var servicePoints = ViewBag.ServicePoints as IEnumerable<SelectOptionDto>
         ?? Enumerable.Empty<SelectOptionDto>();
+    var yandexApiKey = (string)(ViewBag.YandexMapsApiKey ?? "");
 }
 
 <div class="mb-3">
@@ -16,7 +17,7 @@
         <h5 class="mb-0">Создание заявки</h5>
     </div>
     <div class="card-body">
-        <form asp-action="Create" method="post">
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
             @Html.AntiForgeryToken()
             <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
@@ -32,9 +33,11 @@
                     <select asp-for="Priority" asp-items="Html.GetEnumSelectList<TicketPriority>()"
                             class="form-select"></select>
                 </div>
+
+                <!-- Точка обслуживания (адрес выезда) -->
                 <div class="col-12">
-                    <label asp-for="ServicePointId" class="form-label">Точка обслуживания</label>
-                    <select asp-for="ServicePointId" class="form-select">
+                    <label asp-for="ServicePointId" class="form-label">Точка обслуживания (адрес выезда)</label>
+                    <select asp-for="ServicePointId" class="form-select" id="servicePointSelect">
                         <option value="">Выберите точку...</option>
                         @foreach (var sp in servicePoints)
                         {
@@ -42,13 +45,49 @@
                         }
                     </select>
                     <span asp-validation-for="ServicePointId" class="text-danger small"></span>
+
+                    @if (!string.IsNullOrEmpty(yandexApiKey))
+                    {
+                        <div class="mt-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="btnShowMap">
+                                <i class="bi bi-geo-alt"></i> Указать новый адрес на карте
+                            </button>
+                        </div>
+
+                        <!-- Блок карты (скрыт по умолчанию) -->
+                        <div id="mapContainer" class="mt-2" style="display: none;">
+                            <div class="mb-2">
+                                <input type="text" id="addressSearch" class="form-control"
+                                       placeholder="Введите адрес для поиска..." />
+                            </div>
+                            <div id="yandexMap" style="width: 100%; height: 350px; border-radius: 8px;"></div>
+                            <div id="selectedAddress" class="mt-2 text-muted small" style="display: none;">
+                                <i class="bi bi-geo-alt-fill"></i> <span id="addressText"></span>
+                            </div>
+                        </div>
+                    }
                 </div>
+
+                <!-- Описание проблемы -->
                 <div class="col-12">
                     <label asp-for="Description" class="form-label">Описание проблемы</label>
                     <textarea asp-for="Description" class="form-control" rows="4"
                               placeholder="Опишите проблему подробно..."></textarea>
                     <span asp-validation-for="Description" class="text-danger small"></span>
                 </div>
+
+                <!-- Вложения (фото/видео) -->
+                <div class="col-12">
+                    <label class="form-label">Фото / Видео</label>
+                    <input type="file" name="attachments" id="attachmentsInput"
+                           class="form-control" multiple
+                           accept="image/*,video/*" />
+                    <div class="form-text">Можно прикрепить несколько файлов (фото или видео)</div>
+
+                    <!-- Превью выбранных файлов -->
+                    <div id="attachmentPreview" class="d-flex flex-wrap gap-2 mt-2"></div>
+                </div>
+
                 <div class="col-md-6">
                     <label asp-for="Deadline" class="form-label">Дедлайн (необязательно)</label>
                     <input asp-for="Deadline" type="datetime-local" class="form-control" />
@@ -64,3 +103,11 @@
         </form>
     </div>
 </div>
+
+@section Scripts {
+    @if (!string.IsNullOrEmpty(yandexApiKey))
+    {
+        <script src="https://api-maps.yandex.ru/2.1/?apikey=@yandexApiKey&lang=ru_RU"></script>
+    }
+    <script src="~/js/ticket-create.js" asp-append-version="true"></script>
+}

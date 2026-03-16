@@ -15,11 +15,19 @@ public class TicketsController : Controller
 {
     private readonly ITicketService _ticketService;
     private readonly IClientService _clientService;
+    private readonly IWebHostEnvironment _env;
+    private readonly IConfiguration _config;
 
-    public TicketsController(ITicketService ticketService, IClientService clientService)
+    public TicketsController(
+        ITicketService ticketService,
+        IClientService clientService,
+        IWebHostEnvironment env,
+        IConfiguration config)
     {
         _ticketService = ticketService;
         _clientService = clientService;
+        _env = env;
+        _config = config;
     }
 
     [HttpGet]
@@ -45,6 +53,7 @@ public class TicketsController : Controller
     public async Task<IActionResult> Create()
     {
         ViewBag.ServicePoints = await _clientService.GetServicePointsForSelectAsync(User.GetUserId(), User.GetRole());
+        ViewBag.YandexMapsApiKey = _config["YandexMaps:ApiKey"] ?? "";
         return View();
     }
 
@@ -52,15 +61,50 @@ public class TicketsController : Controller
     [ValidateAntiForgeryToken]
     [RoleAuthorize(UserRole.Engineer, UserRole.ChiefEngineer, UserRole.Logist,
         UserRole.ManagerTimewise, UserRole.ManagerClient, UserRole.Moderator, UserRole.Client)]
-    public async Task<IActionResult> Create(CreateTicketDto dto)
+    public async Task<IActionResult> Create(CreateTicketDto dto, List<IFormFile>? attachments)
     {
         if (!ModelState.IsValid)
         {
             ViewBag.ServicePoints = await _clientService.GetServicePointsForSelectAsync(User.GetUserId(), User.GetRole());
+            ViewBag.YandexMapsApiKey = _config["YandexMaps:ApiKey"] ?? "";
             return View(dto);
         }
 
         var id = await _ticketService.CreateAsync(dto, User.GetUserId());
+
+        // Сохранение вложений (фото/видео)
+        if (attachments is { Count: > 0 })
+        {
+            var savedFiles = new List<TicketAttachmentFile>();
+            var uploadsDir = Path.Combine(_env.WebRootPath, "uploads", "tickets");
+            Directory.CreateDirectory(uploadsDir);
+
+            foreach (var file in attachments)
+            {
+                if (file.Length == 0) continue;
+
+                var ext = Path.GetExtension(file.FileName);
+                var uniqueName = $"{id}_{Guid.NewGuid():N}{ext}";
+                var filePath = Path.Combine(uploadsDir, uniqueName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                savedFiles.Add(new TicketAttachmentFile
+                {
+                    FileName = file.FileName,
+                    FilePath = $"/uploads/tickets/{uniqueName}",
+                    ContentType = file.ContentType,
+                    FileSize = file.Length
+                });
+            }
+
+            if (savedFiles.Count > 0)
+                await _ticketService.SaveAttachmentsAsync(id, savedFiles);
+        }
+
         return RedirectToAction(nameof(Details), new { id });
     }
 }

@@ -166,6 +166,23 @@ public class TicketService : ITicketService
         return ticket.Id;
     }
 
+    public async Task SaveAttachmentsAsync(int ticketId, IEnumerable<TicketAttachmentFile> files)
+    {
+        foreach (var file in files)
+        {
+            var attachment = new TicketAttachment
+            {
+                TicketId = ticketId,
+                FileName = file.FileName,
+                FilePath = file.FilePath,
+                ContentType = file.ContentType,
+                FileSize = file.FileSize
+            };
+            _db.TicketAttachments.Add(attachment);
+        }
+        await _db.SaveChangesAsync();
+    }
+
     public async Task UpdateStatusAsync(UpdateTicketStatusDto dto, int currentUserId)
     {
         var ticket = await _db.Tickets.FindAsync(dto.TicketId)
