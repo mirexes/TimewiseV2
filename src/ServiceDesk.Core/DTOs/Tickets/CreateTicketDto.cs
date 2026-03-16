@@ -23,11 +23,11 @@ public class CreateTicketDto
     /// <summary>Новый адрес (если указан через карту)</summary>
     public string? NewAddress { get; set; }
 
-    /// <summary>Широта нового адреса</summary>
-    public double? Latitude { get; set; }
+    /// <summary>Широта нового адреса (строка — чтобы пустые hidden-поля не ломали биндинг)</summary>
+    public string? Latitude { get; set; }
 
     /// <summary>Долгота нового адреса</summary>
-    public double? Longitude { get; set; }
+    public string? Longitude { get; set; }
 
     public int? EquipmentId { get; set; }
 

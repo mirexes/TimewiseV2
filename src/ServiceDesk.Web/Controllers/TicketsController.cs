@@ -63,10 +63,7 @@ public class TicketsController : Controller
         UserRole.ManagerTimewise, UserRole.ManagerClient, UserRole.Moderator, UserRole.Client)]
     public async Task<IActionResult> Create(CreateTicketDto dto, List<IFormFile>? attachments)
     {
-        // Координаты и адрес необязательны — убираем ложные ошибки биндинга
-        ModelState.Remove("Latitude");
-        ModelState.Remove("Longitude");
-        ModelState.Remove("NewAddress");
+        // ServicePointId теперь nullable — убираем ложную ошибку биндинга
         ModelState.Remove("ServicePointId");
 
         // Валидация: нужна либо существующая точка, либо новый адрес
