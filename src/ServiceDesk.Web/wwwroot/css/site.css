@@ -1,0 +1,207 @@
+/* === Общие стили === */
+body {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    margin: 0;
+    min-height: 100vh;
+}
+
+/* === Сайдбар === */
+.sidebar {
+    width: 260px;
+    min-height: 100vh;
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--border-color);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+}
+
+.sidebar-brand {
+    font-size: 1.2rem;
+    color: var(--accent);
+}
+
+.sidebar-nav .nav-link {
+    color: var(--text-secondary);
+    padding: 0.6rem 1rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.2s;
+}
+
+.sidebar-nav .nav-link:hover {
+    background: var(--accent-light);
+    color: var(--accent);
+}
+
+.sidebar-nav .nav-link.active {
+    background: var(--accent);
+    color: #fff;
+}
+
+.sidebar-nav .nav-link i {
+    font-size: 1.1rem;
+    width: 20px;
+    text-align: center;
+}
+
+.nav-section-title {
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+}
+
+/* === Основной контент === */
+.main-content {
+    margin-left: 260px;
+}
+
+.top-bar {
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border-light);
+    min-height: 56px;
+}
+
+.content-area {
+    max-width: 1200px;
+}
+
+/* === Карточки === */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.card-header {
+    background: transparent;
+    border-bottom: 1px solid var(--border-light);
+    padding: 0.75rem 1rem;
+}
+
+/* === Статистика на дашборде === */
+.stat-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+}
+
+/* === Карточка заявки === */
+.ticket-card {
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.ticket-card:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* === Бейджи статусов === */
+.badge-status-new { background: var(--status-new) !important; color: #000; }
+.badge-status-processed { background: var(--status-processed) !important; }
+.badge-status-done { background: var(--status-done) !important; }
+.badge-status-cancelled { background: var(--status-cancelled) !important; }
+.badge-status-waiting { background: var(--status-waiting) !important; color: #000; }
+.badge-status-inprogress { background: var(--status-inprogress) !important; color: #000; }
+.badge-status-approved { background: var(--status-approved) !important; }
+
+/* === Уведомления === */
+.notification-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    font-size: 0.65rem;
+    padding: 2px 5px;
+}
+
+/* === Чат === */
+.chat-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.chat-message {
+    max-width: 80%;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+}
+
+.chat-message.own {
+    align-self: flex-end;
+    background: var(--accent-light);
+}
+
+.chat-message .sender {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.chat-message .time {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+/* === Логин === */
+.login-card {
+    box-shadow: var(--shadow-md);
+}
+
+/* === Мобильная адаптация === */
+@media (max-width: 767.98px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+    .sidebar.show {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    .content-area {
+        padding: 1rem !important;
+    }
+}
+
+/* === Скроллбар === */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}

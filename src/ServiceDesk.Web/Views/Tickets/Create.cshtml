@@ -1,0 +1,66 @@
+@model CreateTicketDto
+@{
+    ViewData["Title"] = "Новая заявка";
+    var servicePoints = ViewBag.ServicePoints as IEnumerable<SelectOptionDto>
+        ?? Enumerable.Empty<SelectOptionDto>();
+}
+
+<div class="mb-3">
+    <a href="/Tickets" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> К списку
+    </a>
+</div>
+
+<div class="card" style="max-width: 700px;">
+    <div class="card-header">
+        <h5 class="mb-0">Создание заявки</h5>
+    </div>
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="Type" class="form-label">Тип заявки</label>
+                    <select asp-for="Type" asp-items="Html.GetEnumSelectList<TicketType>()"
+                            class="form-select"></select>
+                    <span asp-validation-for="Type" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Priority" class="form-label">Приоритет</label>
+                    <select asp-for="Priority" asp-items="Html.GetEnumSelectList<TicketPriority>()"
+                            class="form-select"></select>
+                </div>
+                <div class="col-12">
+                    <label asp-for="ServicePointId" class="form-label">Точка обслуживания</label>
+                    <select asp-for="ServicePointId" class="form-select">
+                        <option value="">Выберите точку...</option>
+                        @foreach (var sp in servicePoints)
+                        {
+                            <option value="@sp.Id">@sp.Text</option>
+                        }
+                    </select>
+                    <span asp-validation-for="ServicePointId" class="text-danger small"></span>
+                </div>
+                <div class="col-12">
+                    <label asp-for="Description" class="form-label">Описание проблемы</label>
+                    <textarea asp-for="Description" class="form-control" rows="4"
+                              placeholder="Опишите проблему подробно..."></textarea>
+                    <span asp-validation-for="Description" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Deadline" class="form-label">Дедлайн (необязательно)</label>
+                    <input asp-for="Deadline" type="datetime-local" class="form-control" />
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> Создать заявку
+                </button>
+                <a href="/Tickets" class="btn btn-outline-secondary ms-2">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>

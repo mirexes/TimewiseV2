@@ -1,0 +1,57 @@
+@model CreateEquipmentDto
+@{
+    ViewData["Title"] = "Добавить оборудование";
+    var servicePoints = ViewBag.ServicePoints as IEnumerable<SelectOptionDto>
+        ?? Enumerable.Empty<SelectOptionDto>();
+}
+
+<div class="mb-3">
+    <a href="/Equipment" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> К списку
+    </a>
+</div>
+
+<div class="card" style="max-width: 600px;">
+    <div class="card-header"><h5 class="mb-0">Новое оборудование</h5></div>
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="Model" class="form-label">Модель</label>
+                <input asp-for="Model" class="form-control" placeholder="Название модели" />
+                <span asp-validation-for="Model" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="SerialNumber" class="form-label">Серийный номер</label>
+                <input asp-for="SerialNumber" class="form-control" placeholder="S/N" />
+                <span asp-validation-for="SerialNumber" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="ServicePointId" class="form-label">Точка обслуживания</label>
+                <select asp-for="ServicePointId" class="form-select">
+                    <option value="">Выберите точку...</option>
+                    @foreach (var sp in servicePoints)
+                    {
+                        <option value="@sp.Id">@sp.Text</option>
+                    }
+                </select>
+                <span asp-validation-for="ServicePointId" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="InstalledAt" class="form-label">Дата установки</label>
+                <input asp-for="InstalledAt" type="date" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label">Описание</label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg"></i> Добавить
+            </button>
+            <a href="/Equipment" class="btn btn-outline-secondary ms-2">Отмена</a>
+        </form>
+    </div>
+</div>

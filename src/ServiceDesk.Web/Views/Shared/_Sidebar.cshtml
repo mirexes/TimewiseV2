@@ -1,0 +1,70 @@
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var userRole = User.GetRole();
+}
+
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-header p-3">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-tools fs-4 text-accent"></i>
+            <span class="sidebar-brand fw-bold">ServiceDesk</span>
+        </div>
+    </div>
+
+    <ul class="nav flex-column sidebar-nav px-2">
+        <li class="nav-item">
+            <a class="nav-link @(currentController == "Home" ? "active" : "")" href="/">
+                <i class="bi bi-speedometer2"></i>
+                <span>Дашборд</span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link @(currentController == "Tickets" ? "active" : "")" href="/Tickets">
+                <i class="bi bi-ticket-detailed"></i>
+                <span>Заявки</span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link @(currentController == "Equipment" ? "active" : "")" href="/Equipment">
+                <i class="bi bi-cpu"></i>
+                <span>Оборудование</span>
+            </a>
+        </li>
+
+        @if (userRole is UserRole.ChiefEngineer or UserRole.Logist
+            or UserRole.ManagerTimewise or UserRole.Moderator)
+        {
+            <li class="nav-item">
+                <a class="nav-link @(currentController == "Clients" ? "active" : "")" href="/Clients">
+                    <i class="bi bi-building"></i>
+                    <span>Клиенты</span>
+                </a>
+            </li>
+        }
+
+        @if (userRole is UserRole.ChiefEngineer or UserRole.ManagerTimewise or UserRole.Moderator)
+        {
+            <li class="nav-item">
+                <a class="nav-link @(currentController == "Reports" ? "active" : "")" href="/Reports/Dashboard">
+                    <i class="bi bi-bar-chart-line"></i>
+                    <span>Отчёты</span>
+                </a>
+            </li>
+        }
+
+        @if (userRole == UserRole.Moderator)
+        {
+            <li class="nav-item mt-3">
+                <small class="nav-section-title px-3 text-muted text-uppercase">Администрирование</small>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(currentController == "Users" ? "active" : "")" href="/Users">
+                    <i class="bi bi-people"></i>
+                    <span>Пользователи</span>
+                </a>
+            </li>
+        }
+    </ul>
+</nav>

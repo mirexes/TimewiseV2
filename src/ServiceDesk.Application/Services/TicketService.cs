@@ -1,0 +1,178 @@
+using Microsoft.EntityFrameworkCore;
+using ServiceDesk.Application.Helpers;
+using ServiceDesk.Application.Mapping;
+using ServiceDesk.Core.DTOs.Common;
+using ServiceDesk.Core.DTOs.Tickets;
+using ServiceDesk.Core.Entities;
+using ServiceDesk.Core.Enums;
+using ServiceDesk.Core.Interfaces.Services;
+using ServiceDesk.Infrastructure.Data;
+
+namespace ServiceDesk.Application.Services;
+
+/// <summary>
+/// Сервис работы с заявками
+/// </summary>
+public class TicketService : ITicketService
+{
+    private readonly AppDbContext _db;
+    private readonly IAuditService _audit;
+    private readonly INotificationService _notifications;
+
+    public TicketService(AppDbContext db, IAuditService audit, INotificationService notifications)
+    {
+        _db = db;
+        _audit = audit;
+        _notifications = notifications;
+    }
+
+    public async Task<PagedResultDto<TicketListDto>> GetTicketsAsync(
+        TicketFilterDto filter, int page, int pageSize)
+    {
+        var query = _db.Tickets
+            .Include(t => t.ServicePoint)
+            .Include(t => t.AssignedEngineer)
+            .AsQueryable();
+
+        // Фильтрация
+        if (filter.Status.HasValue)
+            query = query.Where(t => t.Status == filter.Status.Value);
+
+        if (filter.Type.HasValue)
+            query = query.Where(t => t.Type == filter.Type.Value);
+
+        if (filter.Priority.HasValue)
+            query = query.Where(t => t.Priority == filter.Priority.Value);
+
+        if (filter.EngineerId.HasValue)
+            query = query.Where(t => t.AssignedEngineerId == filter.EngineerId.Value);
+
+        if (!string.IsNullOrEmpty(filter.Region))
+            query = query.Where(t => t.ServicePoint.Region == filter.Region);
+
+        if (!string.IsNullOrEmpty(filter.Network))
+            query = query.Where(t => t.ServicePoint.Network == filter.Network);
+
+        if (filter.DateFrom.HasValue)
+            query = query.Where(t => t.CreatedAt >= filter.DateFrom.Value);
+
+        if (filter.DateTo.HasValue)
+            query = query.Where(t => t.CreatedAt <= filter.DateTo.Value);
+
+        if (!string.IsNullOrEmpty(filter.SearchQuery))
+        {
+            var sq = filter.SearchQuery.ToLower();
+            query = query.Where(t =>
+                t.TicketNumber.ToLower().Contains(sq) ||
+                t.Description.ToLower().Contains(sq) ||
+                t.ServicePoint.Address.ToLower().Contains(sq));
+        }
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .OrderByDescending(t => t.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PagedResultDto<TicketListDto>(
+            items.Select(t => t.ToListDto()), totalCount, page, pageSize);
+    }
+
+    public async Task<TicketDetailDto?> GetByIdAsync(int id)
+    {
+        var ticket = await _db.Tickets
+            .Include(t => t.ServicePoint)
+            .Include(t => t.AssignedEngineer)
+            .Include(t => t.Equipment)
+            .Include(t => t.CreatedByUser)
+            .FirstOrDefaultAsync(t => t.Id == id);
+
+        if (ticket is null) return null;
+
+        var dto = ticket.ToDetailDto();
+        dto.AllowedTransitions = TicketStatusTransitions.GetAllowedTransitions(ticket.Status);
+        return dto;
+    }
+
+    public async Task<int> CreateAsync(CreateTicketDto dto, int currentUserId)
+    {
+        // Генерация номера заявки
+        var count = await _db.Tickets.CountAsync() + 1;
+        var ticketNumber = $"SD-{DateTime.UtcNow:yyyyMM}-{count:D4}";
+
+        var ticket = new Ticket
+        {
+            TicketNumber = ticketNumber,
+            Type = dto.Type,
+            Status = TicketStatus.New,
+            Priority = dto.Priority,
+            Description = dto.Description,
+            ServicePointId = dto.ServicePointId,
+            EquipmentId = dto.EquipmentId,
+            Deadline = dto.Deadline,
+            CreatedByUserId = currentUserId
+        };
+
+        _db.Tickets.Add(ticket);
+        await _db.SaveChangesAsync();
+
+        await _audit.LogAsync(AuditAction.Created, "Ticket", ticket.Id,
+            null, ticketNumber, currentUserId);
+
+        return ticket.Id;
+    }
+
+    public async Task UpdateStatusAsync(UpdateTicketStatusDto dto, int currentUserId)
+    {
+        var ticket = await _db.Tickets.FindAsync(dto.TicketId)
+            ?? throw new KeyNotFoundException($"Заявка {dto.TicketId} не найдена");
+
+        if (!TicketStatusTransitions.IsAllowed(ticket.Status, dto.NewStatus))
+            throw new InvalidOperationException(
+                $"Переход {ticket.Status} → {dto.NewStatus} недопустим");
+
+        var oldStatus = ticket.Status;
+        ticket.Status = dto.NewStatus;
+        ticket.Comment = dto.Comment;
+
+        if (dto.NewStatus == TicketStatus.InProgress)
+            ticket.WorkStartedAt = DateTime.UtcNow;
+
+        if (dto.NewStatus is TicketStatus.Completed or TicketStatus.CompletedRemotely)
+            ticket.WorkCompletedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+
+        await _audit.LogAsync(AuditAction.StatusChanged, "Ticket", ticket.Id,
+            oldStatus.ToString(), dto.NewStatus.ToString(), currentUserId);
+
+        await _notifications.OnTicketStatusChangedAsync(ticket, oldStatus);
+    }
+
+    public async Task AssignEngineerAsync(int ticketId, int engineerId, int currentUserId)
+    {
+        var ticket = await _db.Tickets.FindAsync(ticketId)
+            ?? throw new KeyNotFoundException($"Заявка {ticketId} не найдена");
+
+        var oldEngineer = ticket.AssignedEngineerId?.ToString();
+        ticket.AssignedEngineerId = engineerId;
+        await _db.SaveChangesAsync();
+
+        await _audit.LogAsync(AuditAction.Assigned, "Ticket", ticket.Id,
+            oldEngineer, engineerId.ToString(), currentUserId);
+    }
+
+    public async Task<IEnumerable<TicketListDto>> GetByEngineerAsync(int engineerId)
+    {
+        var tickets = await _db.Tickets
+            .Include(t => t.ServicePoint)
+            .Include(t => t.AssignedEngineer)
+            .Where(t => t.AssignedEngineerId == engineerId)
+            .OrderByDescending(t => t.CreatedAt)
+            .ToListAsync();
+
+        return tickets.Select(t => t.ToListDto());
+    }
+}

@@ -1,0 +1,21 @@
+@model TicketStatus
+
+@{
+    var (cssClass, label) = Model switch
+    {
+        TicketStatus.New => ("badge-status-new", "Новая"),
+        TicketStatus.Processed => ("badge-status-processed", "Обработана"),
+        TicketStatus.CompletedRemotely => ("badge-status-done", "Дистанционно"),
+        TicketStatus.PartsApproval => ("badge-status-waiting", "Согласование"),
+        TicketStatus.RepairApproved => ("badge-status-approved", "Согласована"),
+        TicketStatus.DepartureConfirmation => ("badge-status-waiting", "Подтверждение"),
+        TicketStatus.EngineerEnRoute => ("badge-status-inprogress", "В пути"),
+        TicketStatus.InProgress => ("badge-status-inprogress", "Выполнение"),
+        TicketStatus.Completed => ("badge-status-done", "Выполнена"),
+        TicketStatus.ContinuationRequired => ("badge-status-waiting", "Продолжение"),
+        TicketStatus.Cancelled => ("badge-status-cancelled", "Отменена"),
+        _ => ("bg-secondary", Model.ToString())
+    };
+}
+
+<span class="badge @cssClass">@label</span>

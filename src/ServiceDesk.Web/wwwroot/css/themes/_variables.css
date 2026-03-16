@@ -1,0 +1,55 @@
+/* Светлая тема (по умолчанию) */
+:root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --bg-card: #ffffff;
+    --bg-sidebar: #f1f3f5;
+
+    --text-primary: #212529;
+    --text-secondary: #6c757d;
+    --text-muted: #adb5bd;
+
+    --border-color: #dee2e6;
+    --border-light: #e9ecef;
+
+    --accent: #0d6efd;
+    --accent-hover: #0b5ed7;
+    --accent-light: #e7f1ff;
+
+    --status-new: #0dcaf0;
+    --status-processed: #6f42c1;
+    --status-done: #198754;
+    --status-cancelled: #dc3545;
+    --status-waiting: #fd7e14;
+    --status-inprogress: #ffc107;
+    --status-approved: #20c997;
+
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+}
+
+/* Тёмная тема */
+[data-theme="dark"] {
+    --bg-primary: #1a1d21;
+    --bg-secondary: #212529;
+    --bg-card: #2b3035;
+    --bg-sidebar: #16191d;
+
+    --text-primary: #e9ecef;
+    --text-secondary: #adb5bd;
+    --text-muted: #6c757d;
+
+    --border-color: #495057;
+    --border-light: #343a40;
+
+    --accent: #3d8bfd;
+    --accent-hover: #6ea8fe;
+    --accent-light: #1a2332;
+
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
+}
