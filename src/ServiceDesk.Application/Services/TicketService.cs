@@ -148,6 +148,26 @@ public class TicketService : ITicketService
             double.TryParse(dto.Latitude, CultureInfo.InvariantCulture, out var lat);
             double.TryParse(dto.Longitude, CultureInfo.InvariantCulture, out var lng);
 
+            // Определяем ClientId: от пользователя, или «Без организации»
+            var clientId = await _db.Users
+                .Where(u => u.Id == currentUserId)
+                .Select(u => u.ClientId)
+                .FirstOrDefaultAsync();
+
+            if (clientId is null or 0)
+            {
+                // Ищем или создаём клиента-заглушку
+                var defaultClient = await _db.Clients
+                    .FirstOrDefaultAsync(c => c.Name == "Без организации");
+                if (defaultClient == null)
+                {
+                    defaultClient = new Client { Name = "Без организации", IsActive = true };
+                    _db.Clients.Add(defaultClient);
+                    await _db.SaveChangesAsync();
+                }
+                clientId = defaultClient.Id;
+            }
+
             var newPoint = new ServicePoint
             {
                 Name = dto.NewAddress,
@@ -155,10 +175,7 @@ public class TicketService : ITicketService
                 Latitude = lat != 0 ? lat : null,
                 Longitude = lng != 0 ? lng : null,
                 IsActive = true,
-                ClientId = await _db.Users
-                    .Where(u => u.Id == currentUserId)
-                    .Select(u => u.ClientId ?? 0)
-                    .FirstOrDefaultAsync()
+                ClientId = clientId.Value
             };
             _db.ServicePoints.Add(newPoint);
             await _db.SaveChangesAsync();
