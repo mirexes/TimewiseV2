@@ -37,11 +37,12 @@
                 <!-- Точка обслуживания (адрес выезда) -->
                 <div class="col-12">
                     <label asp-for="ServicePointId" class="form-label">Точка обслуживания (адрес выезда)</label>
-                    <select asp-for="ServicePointId" class="form-select" id="servicePointSelect">
+                    <select name="ServicePointId" class="form-select" id="servicePointSelect">
                         <option value="">Выберите точку...</option>
                         @foreach (var sp in servicePoints)
                         {
-                            <option value="@sp.Id">@sp.Text</option>
+                            <option value="@sp.Id"
+                                    selected="@(Model?.ServicePointId == sp.Id ? "selected" : null)">@sp.Text</option>
                         }
                     </select>
                     <span asp-validation-for="ServicePointId" class="text-danger small"></span>
@@ -53,6 +54,11 @@
                                 <i class="bi bi-geo-alt"></i> Указать новый адрес на карте
                             </button>
                         </div>
+
+                        <!-- Скрытые поля для нового адреса -->
+                        <input type="hidden" name="NewAddress" id="newAddress" />
+                        <input type="hidden" name="Latitude" id="newLatitude" />
+                        <input type="hidden" name="Longitude" id="newLongitude" />
 
                         <!-- Блок карты (скрыт по умолчанию) -->
                         <div id="mapContainer" class="mt-2" style="display: none;">

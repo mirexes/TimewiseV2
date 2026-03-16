@@ -43,6 +43,22 @@
     });
 })();
 
+// === При выборе точки из списка — сбрасываем новый адрес ===
+(function () {
+    var spSelect = document.getElementById('servicePointSelect');
+    if (!spSelect) return;
+    spSelect.addEventListener('change', function () {
+        if (spSelect.value) {
+            var h = document.getElementById('newAddress');
+            if (h) h.value = '';
+            var lat = document.getElementById('newLatitude');
+            if (lat) lat.value = '';
+            var lng = document.getElementById('newLongitude');
+            if (lng) lng.value = '';
+        }
+    });
+})();
+
 // === Яндекс Карты — выбор нового адреса ===
 (function () {
     const btnShow = document.getElementById('btnShowMap');
@@ -234,6 +250,25 @@
         if (searchInput) {
             searchInput.value = address;
         }
+
+        // Заполняем hidden-поля для отправки на сервер
+        var hiddenAddress = document.getElementById('newAddress');
+        var hiddenLat = document.getElementById('newLatitude');
+        var hiddenLng = document.getElementById('newLongitude');
+        if (hiddenAddress) hiddenAddress.value = address;
+        if (hiddenLat && coords) hiddenLat.value = coords[0];
+        if (hiddenLng && coords) hiddenLng.value = coords[1];
+
+        // Сбрасываем выбор существующей точки — используется новый адрес
+        var spSelect = document.getElementById('servicePointSelect');
+        if (spSelect) {
+            spSelect.value = '';
+            spSelect.classList.remove('input-validation-error');
+        }
+
+        // Убираем текст ошибки валидации если был
+        var validationSpan = document.querySelector('[data-valmsg-for="ServicePointId"]');
+        if (validationSpan) validationSpan.textContent = '';
 
         // Показываем адрес и координаты под картой
         var addrBlock = document.getElementById('selectedAddress');

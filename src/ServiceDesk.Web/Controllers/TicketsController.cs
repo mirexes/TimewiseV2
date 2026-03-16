@@ -63,6 +63,10 @@ public class TicketsController : Controller
         UserRole.ManagerTimewise, UserRole.ManagerClient, UserRole.Moderator, UserRole.Client)]
     public async Task<IActionResult> Create(CreateTicketDto dto, List<IFormFile>? attachments)
     {
+        // Валидация: нужна либо существующая точка, либо новый адрес
+        if (!dto.ServicePointId.HasValue && string.IsNullOrWhiteSpace(dto.NewAddress))
+            ModelState.AddModelError("ServicePointId", "Выберите точку обслуживания или укажите новый адрес на карте");
+
         if (!ModelState.IsValid)
         {
             ViewBag.ServicePoints = await _clientService.GetServicePointsForSelectAsync(User.GetUserId(), User.GetRole());

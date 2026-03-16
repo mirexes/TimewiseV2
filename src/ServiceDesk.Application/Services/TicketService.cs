@@ -140,6 +140,27 @@ public class TicketService : ITicketService
 
     public async Task<int> CreateAsync(CreateTicketDto dto, int currentUserId)
     {
+        // Если указан новый адрес — создаём точку обслуживания
+        var servicePointId = dto.ServicePointId ?? 0;
+        if (servicePointId == 0 && !string.IsNullOrWhiteSpace(dto.NewAddress))
+        {
+            var newPoint = new ServicePoint
+            {
+                Name = dto.NewAddress,
+                Address = dto.NewAddress,
+                Latitude = dto.Latitude,
+                Longitude = dto.Longitude,
+                IsActive = true,
+                ClientId = await _db.Users
+                    .Where(u => u.Id == currentUserId)
+                    .Select(u => u.ClientId ?? 0)
+                    .FirstOrDefaultAsync()
+            };
+            _db.ServicePoints.Add(newPoint);
+            await _db.SaveChangesAsync();
+            servicePointId = newPoint.Id;
+        }
+
         // Генерация номера заявки
         var count = await _db.Tickets.CountAsync() + 1;
         var ticketNumber = $"SD-{DateTime.UtcNow:yyyyMM}-{count:D4}";
@@ -151,7 +172,7 @@ public class TicketService : ITicketService
             Status = TicketStatus.New,
             Priority = dto.Priority,
             Description = dto.Description,
-            ServicePointId = dto.ServicePointId,
+            ServicePointId = servicePointId,
             EquipmentId = dto.EquipmentId,
             Deadline = dto.Deadline,
             CreatedByUserId = currentUserId
