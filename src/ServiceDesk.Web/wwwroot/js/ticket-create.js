@@ -211,7 +211,7 @@
         ymaps.geocode(coords).then(function (res) {
             var firstGeoObject = res.geoObjects.get(0);
             if (!firstGeoObject) return;
-            showAddress(firstGeoObject.getAddressLine());
+            showAddress(firstGeoObject.getAddressLine(), coords);
         });
     }
 
@@ -224,15 +224,26 @@
             var coords = firstGeoObject.geometry.getCoordinates();
             setPlacemark(coords);
             yMap.setCenter(coords, 16);
-            showAddress(firstGeoObject.getAddressLine());
+            showAddress(firstGeoObject.getAddressLine(), coords);
         });
     }
 
-    function showAddress(address) {
+    function showAddress(address, coords) {
+        // Подставляем адрес в поле поиска
+        var searchInput = document.getElementById('addressSearch');
+        if (searchInput) {
+            searchInput.value = address;
+        }
+
+        // Показываем адрес и координаты под картой
         var addrBlock = document.getElementById('selectedAddress');
         var addrText = document.getElementById('addressText');
         if (addrBlock && addrText) {
-            addrText.textContent = address;
+            var text = address;
+            if (coords) {
+                text += ' (' + coords[0].toFixed(6) + ', ' + coords[1].toFixed(6) + ')';
+            }
+            addrText.textContent = text;
             addrBlock.style.display = 'block';
         }
     }
