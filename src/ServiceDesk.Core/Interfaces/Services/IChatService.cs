@@ -1,4 +1,5 @@
 using ServiceDesk.Core.DTOs.Chat;
+using ServiceDesk.Core.DTOs.Tickets;
 
 namespace ServiceDesk.Core.Interfaces.Services;
 
@@ -10,4 +11,9 @@ public interface IChatService
     Task<IEnumerable<ChatMessageDto>> GetMessagesAsync(int ticketId);
     Task<ChatMessageDto> SendMessageAsync(SendMessageDto dto, int senderId);
     Task MarkAsReadAsync(int ticketId, int userId);
+
+    /// <summary>
+    /// Создаёт сообщение в чате с вложениями (при создании заявки)
+    /// </summary>
+    Task AddMessageWithAttachmentsAsync(int ticketId, int senderId, string text, IEnumerable<TicketAttachmentFile> files);
 }

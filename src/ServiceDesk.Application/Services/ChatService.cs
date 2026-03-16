@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Application.Mapping;
 using ServiceDesk.Core.DTOs.Chat;
+using ServiceDesk.Core.DTOs.Tickets;
 using ServiceDesk.Core.Entities;
 using ServiceDesk.Core.Interfaces.Services;
 using ServiceDesk.Infrastructure.Data;
@@ -57,6 +58,30 @@ public class ChatService : IChatService
         foreach (var m in unread)
             m.IsRead = true;
 
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task AddMessageWithAttachmentsAsync(int ticketId, int senderId, string text, IEnumerable<TicketAttachmentFile> files)
+    {
+        var message = new ChatMessage
+        {
+            Text = text,
+            TicketId = ticketId,
+            SenderId = senderId
+        };
+
+        foreach (var file in files)
+        {
+            message.Attachments.Add(new ChatAttachment
+            {
+                FileName = file.FileName,
+                FilePath = file.FilePath,
+                ContentType = file.ContentType,
+                FileSize = file.FileSize
+            });
+        }
+
+        _db.ChatMessages.Add(message);
         await _db.SaveChangesAsync();
     }
 }
