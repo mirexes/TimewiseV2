@@ -17,8 +17,17 @@ public class CreateTicketDto
 
     public TicketPriority Priority { get; set; } = TicketPriority.Normal;
 
-    [Required(ErrorMessage = "Укажите точку обслуживания")]
-    public int ServicePointId { get; set; }
+    /// <summary>Существующая точка обслуживания (если выбрана из списка)</summary>
+    public int? ServicePointId { get; set; }
+
+    /// <summary>Новый адрес (если указан через карту)</summary>
+    public string? NewAddress { get; set; }
+
+    /// <summary>Широта нового адреса</summary>
+    public double? Latitude { get; set; }
+
+    /// <summary>Долгота нового адреса</summary>
+    public double? Longitude { get; set; }
 
     public int? EquipmentId { get; set; }
 
