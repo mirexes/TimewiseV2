@@ -44,3 +44,4 @@ wwwroot/uploads/chat/*
 ## Environment
 appsettings.*.local.json
 /src/ServiceDesk.Web/wwwroot/uploads/tickets
+/src/ServiceDesk.Web/wwwroot/uploads/completion-photos
