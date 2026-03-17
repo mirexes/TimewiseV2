@@ -334,6 +334,71 @@ body {
     color: var(--accent);
 }
 
+/* Превью прикреплённых файлов */
+.chat-file-preview {
+    display: none;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 12px;
+    border-top: 1px solid var(--border-light);
+    background: var(--bg-card);
+}
+
+.chat-file-item {
+    position: relative;
+    width: 72px;
+    text-align: center;
+}
+
+.chat-file-thumb {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+}
+
+.chat-file-thumb-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--text-muted);
+    background: var(--bg-body);
+}
+
+.chat-file-remove {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: var(--danger, #dc3545);
+    color: #fff;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.chat-file-name {
+    font-size: 10px;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-top: 2px;
+}
+
 /* Панель эмодзи */
 .emoji-picker {
     display: none;

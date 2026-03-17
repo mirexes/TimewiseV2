@@ -16,4 +16,9 @@ public interface IChatService
     /// Создаёт сообщение в чате с вложениями (при создании заявки)
     /// </summary>
     Task AddMessageWithAttachmentsAsync(int ticketId, int senderId, string text, IEnumerable<TicketAttachmentFile> files);
+
+    /// <summary>
+    /// Отправляет сообщение с вложениями и возвращает DTO (для чата)
+    /// </summary>
+    Task<ChatMessageDto> SendMessageWithAttachmentsAsync(int ticketId, int senderId, string text, IEnumerable<TicketAttachmentFile> files);
 }

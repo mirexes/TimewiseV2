@@ -130,10 +130,16 @@
                     </div>
                 </div>
                 <div id="emojiPicker" class="emoji-picker"></div>
+                <!-- Превью выбранных файлов -->
+                <div id="chatFilePreview" class="chat-file-preview"></div>
                 <form id="chatForm" class="chat-input-area">
                     <button type="button" class="btn-emoji" id="emojiToggle" title="Эмодзи">
                         <i class="bi bi-emoji-smile"></i>
                     </button>
+                    <button type="button" class="btn-emoji" id="chatAttachBtn" title="Прикрепить файл">
+                        <i class="bi bi-paperclip"></i>
+                    </button>
+                    <input type="file" id="chatFileInput" multiple accept="image/*,video/*" style="display:none" />
                     <textarea id="chatInput" rows="1" placeholder="Сообщение..." autocomplete="off"></textarea>
                     <button type="submit" class="btn-send" title="Отправить">
                         <i class="bi bi-send-fill"></i>
