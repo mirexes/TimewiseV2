@@ -33,7 +33,10 @@ async function loadEngineers() {
 
     try {
         const response = await fetch('/api/tickets/engineers');
-        if (!response.ok) return;
+        if (!response.ok) {
+            console.error('Ошибка загрузки специалистов: HTTP ' + response.status);
+            return;
+        }
 
         const engineers = await response.json();
         engineers.forEach(eng => {

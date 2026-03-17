@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ServiceDesk.Application.Helpers;
 using ServiceDesk.Core.DTOs.Tickets;
@@ -10,6 +11,7 @@ namespace ServiceDesk.Web.Controllers.Api;
 /// API для AJAX-операций с заявками
 /// </summary>
 [ApiController]
+[Authorize]
 [Route("api/tickets")]
 public class TicketsApiController : ControllerBase
 {
@@ -31,7 +33,7 @@ public class TicketsApiController : ControllerBase
     public async Task<IActionResult> AssignEngineer([FromBody] AssignEngineerRequest request)
     {
         if (!PermissionChecker.CanAssignEngineer(User.GetRole()))
-            return Forbid();
+            return StatusCode(403, new { error = "Недостаточно прав" });
 
         await _ticketService.AssignEngineerAsync(request.TicketId, request.EngineerId, User.GetUserId());
         return Ok(new { success = true });
@@ -41,7 +43,7 @@ public class TicketsApiController : ControllerBase
     public async Task<IActionResult> GetEngineers()
     {
         if (!PermissionChecker.CanAssignEngineer(User.GetRole()))
-            return Forbid();
+            return StatusCode(403, new { error = "Недостаточно прав" });
 
         var engineers = await _ticketService.GetEngineersAsync();
         return Ok(engineers);
