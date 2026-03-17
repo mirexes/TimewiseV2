@@ -52,9 +52,24 @@
                 <div class="card-body d-flex gap-2 flex-wrap">
                     @foreach (var transition in Model.AllowedTransitions)
                     {
+                        var label = transition switch
+                        {
+                            TicketStatus.New => "Новая",
+                            TicketStatus.Processed => "Обработана",
+                            TicketStatus.CompletedRemotely => "Дистанционно",
+                            TicketStatus.PartsApproval => "Согласование",
+                            TicketStatus.RepairApproved => "Согласована",
+                            TicketStatus.DepartureConfirmation => "Подтверждение",
+                            TicketStatus.EngineerEnRoute => "В пути",
+                            TicketStatus.InProgress => "Выполнение",
+                            TicketStatus.Completed => "Выполнена",
+                            TicketStatus.ContinuationRequired => "Продолжение",
+                            TicketStatus.Cancelled => "Отменена",
+                            _ => transition.ToString()
+                        };
                         <button class="btn btn-outline-primary btn-sm"
                                 onclick="updateStatus(@Model.Id, @((int)transition))">
-                            @transition
+                            @label
                         </button>
                     }
                 </div>
