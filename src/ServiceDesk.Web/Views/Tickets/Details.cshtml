@@ -325,6 +325,7 @@
 
         // Данные фото акта для галереи
         var completionPhotos = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
-            Model.CompletionPhotos.Select(p => new { p.FilePath, p.FileName })));
+            Model.CompletionPhotos.Select(p => new { p.FilePath, p.FileName }),
+            new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
     </script>
 }
