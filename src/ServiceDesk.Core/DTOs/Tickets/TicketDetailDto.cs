@@ -41,4 +41,7 @@ public class TicketDetailDto
 
     /// <summary>Допустимые переходы из текущего статуса</summary>
     public TicketStatus[] AllowedTransitions { get; set; } = [];
+
+    /// <summary>Может ли текущий пользователь назначать специалиста</summary>
+    public bool CanAssignEngineer { get; set; }
 }
