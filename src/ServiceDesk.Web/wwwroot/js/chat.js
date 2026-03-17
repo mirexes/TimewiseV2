@@ -9,6 +9,13 @@ let _emojiPickerReady = false;
 let _lastMessageCount = 0;
 let _isAtBottom = true;
 let _selectedFiles = []; // Выбранные файлы для отправки
+let _replyToMessage = null; // Сообщение, на которое отвечаем
+
+// Цвета для аватарок (по ID пользователя)
+const AVATAR_COLORS = [
+    '#e17076', '#7bc862', '#e5ca77', '#65aadd',
+    '#a695e7', '#ee7aae', '#6ec9cb', '#faa774'
+];
 
 // === Набор эмодзи по категориям ===
 const EMOJI_CATEGORIES = [
@@ -102,7 +109,7 @@ function initChat(ticketId, userId) {
     currentTicketId = ticketId;
     currentUserId = userId;
 
-    const container = document.getElementById('chatMessages');
+    var container = document.getElementById('chatMessages');
     // Отслеживаем положение скролла
     if (container) {
         container.addEventListener('scroll', function () {
@@ -115,6 +122,7 @@ function initChat(ticketId, userId) {
     setupEmojiPicker();
     setupTextareaAutoResize();
     setupFileAttach();
+    setupReplyCancel();
 
     // Обновляем сообщения каждые 5 секунд
     setInterval(loadMessages, 5000);
@@ -122,7 +130,7 @@ function initChat(ticketId, userId) {
 
 // Настройка формы отправки
 function setupChatForm() {
-    const form = document.getElementById('chatForm');
+    var form = document.getElementById('chatForm');
     if (form) {
         form.addEventListener('submit', function (e) {
             e.preventDefault();
@@ -131,7 +139,7 @@ function setupChatForm() {
     }
 
     // Отправка по Enter (Shift+Enter для новой строки)
-    const input = document.getElementById('chatInput');
+    var input = document.getElementById('chatInput');
     if (input) {
         input.addEventListener('keydown', function (e) {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -144,7 +152,7 @@ function setupChatForm() {
 
 // Автоматическое изменение высоты textarea
 function setupTextareaAutoResize() {
-    const textarea = document.getElementById('chatInput');
+    var textarea = document.getElementById('chatInput');
     if (!textarea) return;
 
     textarea.addEventListener('input', function () {
@@ -153,10 +161,45 @@ function setupTextareaAutoResize() {
     });
 }
 
+// Настройка отмены ответа
+function setupReplyCancel() {
+    var cancelBtn = document.getElementById('cancelReply');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', cancelReply);
+    }
+}
+
+// === Ответ на сообщение ===
+function setReplyTo(messageId, senderName, text) {
+    _replyToMessage = { id: messageId, senderName: senderName, text: text };
+
+    var preview = document.getElementById('chatReplyPreview');
+    var senderEl = document.getElementById('replyPreviewSender');
+    var textEl = document.getElementById('replyPreviewText');
+
+    if (preview && senderEl && textEl) {
+        senderEl.textContent = senderName;
+        // Обрезаем текст для превью
+        var shortText = text.length > 80 ? text.substring(0, 80) + '…' : text;
+        textEl.textContent = shortText || 'Вложение';
+        preview.style.display = 'flex';
+    }
+
+    // Фокус на поле ввода
+    var input = document.getElementById('chatInput');
+    if (input) input.focus();
+}
+
+function cancelReply() {
+    _replyToMessage = null;
+    var preview = document.getElementById('chatReplyPreview');
+    if (preview) preview.style.display = 'none';
+}
+
 // === Панель эмодзи ===
 function setupEmojiPicker() {
-    const toggle = document.getElementById('emojiToggle');
-    const picker = document.getElementById('emojiPicker');
+    var toggle = document.getElementById('emojiToggle');
+    var picker = document.getElementById('emojiPicker');
     if (!toggle || !picker) return;
 
     toggle.addEventListener('click', function () {
@@ -166,7 +209,7 @@ function setupEmojiPicker() {
         }
         picker.classList.toggle('open');
         // Меняем иконку кнопки
-        const icon = toggle.querySelector('i');
+        var icon = toggle.querySelector('i');
         if (picker.classList.contains('open')) {
             icon.className = 'bi bi-keyboard';
         } else {
@@ -176,7 +219,7 @@ function setupEmojiPicker() {
 }
 
 function buildEmojiPicker() {
-    const picker = document.getElementById('emojiPicker');
+    var picker = document.getElementById('emojiPicker');
 
     // Вкладки категорий
     var tabsHtml = '<div class="emoji-picker-tabs">';
@@ -300,6 +343,11 @@ function removeSelectedFile(index) {
     renderFilePreview();
 }
 
+// === Получение цвета аватарки по ID пользователя ===
+function getAvatarColor(senderId) {
+    return AVATAR_COLORS[senderId % AVATAR_COLORS.length];
+}
+
 // === Загрузка и отрисовка сообщений ===
 async function loadMessages() {
     if (!currentTicketId) return;
@@ -393,13 +441,46 @@ function renderMessages(messages) {
         // Текст с обнаружением ссылок
         var textHtml = linkify(escapeHtml(msg.text || ''));
 
+        // Блок ответа на сообщение
+        var replyHtml = '';
+        if (msg.replyTo) {
+            var replyText = escapeHtml(msg.replyTo.text || 'Вложение');
+            replyHtml = '<div class="chat-reply-block" onclick="scrollToMessage(' + msg.replyTo.id + ')">' +
+                '<div class="chat-reply-sender">' + escapeHtml(msg.replyTo.senderName) + '</div>' +
+                '<div class="chat-reply-text">' + replyText + '</div>' +
+                '</div>';
+        }
+
+        // Аватарка (только для входящих сообщений)
+        var avatarHtml = '';
+        if (!isOwn) {
+            var avatarColor = getAvatarColor(msg.senderId);
+            if (msg.senderAvatarUrl) {
+                avatarHtml = '<img src="' + escapeHtml(msg.senderAvatarUrl) + '" class="chat-avatar" alt="" />';
+            } else {
+                avatarHtml = '<div class="chat-avatar chat-avatar-initials" style="background:' + avatarColor + '">' +
+                    escapeHtml(msg.senderInitials || '?') + '</div>';
+            }
+        }
+
+        // Кнопка ответа
+        var replyBtnHtml = '<button class="chat-reply-btn" onclick="setReplyTo(' + msg.id + ', \'' +
+            escapeHtml(msg.senderName).replace(/'/g, "\\'") + '\', \'' +
+            escapeHtml(msg.text || '').replace(/'/g, "\\'").replace(/\n/g, ' ') + '\')" title="Ответить">' +
+            '<i class="bi bi-reply-fill"></i></button>';
+
         html +=
+            '<div class="chat-message-row ' + (isOwn ? 'own' : 'incoming') + '" id="msg-' + msg.id + '">' +
+            (isOwn ? '' : '<div class="chat-avatar-col">' + avatarHtml + '</div>') +
             '<div class="chat-message ' + (isOwn ? 'own' : 'incoming') + '">' +
             (isOwn ? '' : '<div class="sender">' + escapeHtml(msg.senderName) + '</div>') +
+            replyHtml +
             '<div class="msg-text">' + textHtml +
             '<span class="msg-meta">' + time + readCheck + '</span>' +
             '</div>' +
             attachmentsHtml +
+            '</div>' +
+            replyBtnHtml +
             '</div>';
     });
 
@@ -409,6 +490,19 @@ function renderMessages(messages) {
     if (_isAtBottom) {
         container.scrollTop = container.scrollHeight;
     }
+}
+
+// Прокрутка к конкретному сообщению (при клике на ответ)
+function scrollToMessage(messageId) {
+    var el = document.getElementById('msg-' + messageId);
+    if (!el) return;
+
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Подсветка сообщения
+    el.classList.add('chat-message-highlight');
+    setTimeout(function () {
+        el.classList.remove('chat-message-highlight');
+    }, 1500);
 }
 
 // Форматирование даты для разделителя
@@ -449,21 +543,25 @@ async function sendMessage() {
     // Сохраняем данные на случай ошибки
     var savedText = text;
     var savedFiles = _selectedFiles.slice();
+    var savedReply = _replyToMessage;
 
-    // Очищаем поле и файлы
+    // Очищаем поле, файлы и ответ
     input.value = '';
     input.style.height = 'auto';
     _selectedFiles = [];
     renderFilePreview();
+    cancelReply();
 
     try {
         var response;
+        var replyId = savedReply ? savedReply.id : null;
 
         if (hasFiles) {
             // Отправка с файлами через multipart/form-data
             var formData = new FormData();
             formData.append('text', text);
             formData.append('ticketId', currentTicketId);
+            if (replyId) formData.append('replyToMessageId', replyId);
             savedFiles.forEach(function (file) {
                 formData.append('files', file);
             });
@@ -474,13 +572,16 @@ async function sendMessage() {
             });
         } else {
             // Обычная отправка текста
+            var body = {
+                text: text,
+                ticketId: currentTicketId
+            };
+            if (replyId) body.replyToMessageId = replyId;
+
             response = await fetch('/api/chat/send', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    text: text,
-                    ticketId: currentTicketId
-                })
+                body: JSON.stringify(body)
             });
         }
 
@@ -490,11 +591,14 @@ async function sendMessage() {
             loadMessages();
         }
     } catch (e) {
-        // Возвращаем текст и файлы при ошибке
+        // Возвращаем текст, файлы и ответ при ошибке
         input.value = savedText;
         input.dispatchEvent(new Event('input'));
         _selectedFiles = savedFiles;
         renderFilePreview();
+        if (savedReply) {
+            setReplyTo(savedReply.id, savedReply.senderName, savedReply.text);
+        }
     }
 }
 
