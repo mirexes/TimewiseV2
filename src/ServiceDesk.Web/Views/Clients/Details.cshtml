@@ -1,0 +1,244 @@
+@model ClientDetailDto
+@{
+    ViewData["Title"] = $"Клиент: {Model.Name}";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="/Clients" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> К списку
+    </a>
+    <div class="d-flex gap-2">
+        <a href="/Clients/Edit/@Model.Id" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-pencil"></i> Редактировать
+        </a>
+        <form asp-action="ToggleActive" asp-route-id="@Model.Id" method="post" class="d-inline">
+            @Html.AntiForgeryToken()
+            @if (Model.IsActive)
+            {
+                <button type="submit" class="btn btn-outline-warning btn-sm"
+                        onclick="return confirm('Деактивировать клиента?')">
+                    <i class="bi bi-pause-circle"></i> Деактивировать
+                </button>
+            }
+            else
+            {
+                <button type="submit" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-play-circle"></i> Активировать
+                </button>
+            }
+        </form>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Основная информация -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-building"></i> @Model.Name</h5>
+                    @if (!Model.IsActive)
+                    {
+                        <span class="badge bg-secondary">Неактивен</span>
+                    }
+                </div>
+            </div>
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(Model.Inn))
+                {
+                    <div class="mb-3">
+                        <small class="text-muted">ИНН</small>
+                        <p class="mb-0 fw-bold">@Model.Inn</p>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.Network))
+                {
+                    <div class="mb-3">
+                        <small class="text-muted">Сеть</small>
+                        <p class="mb-0">@Model.Network</p>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.Phone))
+                {
+                    <div class="mb-3">
+                        <small class="text-muted">Телефон</small>
+                        <p class="mb-0"><a href="tel:@Model.Phone">@Model.Phone</a></p>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.Email))
+                {
+                    <div class="mb-3">
+                        <small class="text-muted">Email</small>
+                        <p class="mb-0"><a href="mailto:@Model.Email">@Model.Email</a></p>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.LegalAddress))
+                {
+                    <div class="mb-3">
+                        <small class="text-muted">Юридический адрес</small>
+                        <p class="mb-0">@Model.LegalAddress</p>
+                    </div>
+                }
+                <div class="d-flex gap-4 text-muted small">
+                    <span>Создан: @Model.CreatedAt.ToString("dd.MM.yyyy")</span>
+                    @if (Model.UpdatedAt.HasValue)
+                    {
+                        <span>Обновлён: @Model.UpdatedAt.Value.ToString("dd.MM.yyyy")</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Менеджеры клиента -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-person-badge"></i> Менеджеры клиента</h6>
+            </div>
+            <div class="card-body">
+                @if (!Model.Managers.Any())
+                {
+                    <p class="text-muted text-center mb-0">Менеджеры не назначены</p>
+                }
+                else
+                {
+                    @foreach (var manager in Model.Managers)
+                    {
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                            <div>
+                                <span class="fw-bold">@manager.FullName</span>
+                                <div class="small text-muted">
+                                    <i class="bi bi-telephone"></i> @manager.Phone
+                                    @if (!string.IsNullOrEmpty(manager.Email))
+                                    {
+                                        <span class="ms-2"><i class="bi bi-envelope"></i> @manager.Email</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Контактные лица -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-people"></i> Контактные лица (@Model.ContactPersons.Count)</h6>
+                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse"
+                        data-bs-target="#addContactForm">
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+            </div>
+            <div class="card-body">
+                <!-- Форма добавления контактного лица -->
+                <div class="collapse mb-3" id="addContactForm">
+                    <div class="card card-body bg-light">
+                        <form asp-action="AddContactPerson" asp-route-id="@Model.Id" method="post">
+                            @Html.AntiForgeryToken()
+                            <div class="mb-2">
+                                <input type="text" name="FullName" class="form-control form-control-sm"
+                                       placeholder="ФИО *" required />
+                            </div>
+                            <div class="mb-2">
+                                <input type="tel" name="Phone" class="form-control form-control-sm"
+                                       placeholder="Телефон *" required />
+                            </div>
+                            <div class="mb-2">
+                                <input type="email" name="Email" class="form-control form-control-sm"
+                                       placeholder="Email" />
+                            </div>
+                            <div class="mb-2">
+                                <input type="text" name="Position" class="form-control form-control-sm"
+                                       placeholder="Должность" />
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bi bi-check-lg"></i> Добавить
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                @if (!Model.ContactPersons.Any())
+                {
+                    <p class="text-muted text-center mb-0">Нет контактных лиц</p>
+                }
+                else
+                {
+                    @foreach (var contact in Model.ContactPersons)
+                    {
+                        <div class="d-flex justify-content-between align-items-start border-bottom py-2">
+                            <div>
+                                <span class="fw-bold">@contact.FullName</span>
+                                @if (!string.IsNullOrEmpty(contact.Position))
+                                {
+                                    <small class="text-muted d-block">@contact.Position</small>
+                                }
+                                <div class="small text-muted">
+                                    <i class="bi bi-telephone"></i> @contact.Phone
+                                    @if (!string.IsNullOrEmpty(contact.Email))
+                                    {
+                                        <span class="ms-2"><i class="bi bi-envelope"></i> @contact.Email</span>
+                                    }
+                                </div>
+                            </div>
+                            <form asp-action="RemoveContactPerson" asp-route-id="@Model.Id" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="contactPersonId" value="@contact.Id" />
+                                <button type="submit" class="btn btn-outline-danger btn-sm"
+                                        onclick="return confirm('Удалить контактное лицо?')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Точки обслуживания -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-geo-alt"></i> Точки обслуживания (@Model.ServicePoints.Count)</h6>
+            </div>
+            <div class="card-body">
+                @if (!Model.ServicePoints.Any())
+                {
+                    <p class="text-muted text-center mb-0">Нет точек обслуживания</p>
+                }
+                else
+                {
+                    @foreach (var sp in Model.ServicePoints)
+                    {
+                        <div class="d-flex justify-content-between align-items-start border-bottom py-2">
+                            <div>
+                                <span class="fw-bold @(!sp.IsActive ? "text-muted" : "")">
+                                    @sp.Name
+                                    @if (!sp.IsActive)
+                                    {
+                                        <span class="badge bg-secondary ms-1">Неактивна</span>
+                                    }
+                                </span>
+                                <small class="text-muted d-block">
+                                    <i class="bi bi-geo-alt"></i> @sp.Address
+                                </small>
+                                @if (!string.IsNullOrEmpty(sp.Region))
+                                {
+                                    <small class="text-muted d-block">Регион: @sp.Region</small>
+                                }
+                            </div>
+                            <span class="badge bg-light text-dark">
+                                <i class="bi bi-cpu"></i> @sp.EquipmentCount
+                            </span>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>

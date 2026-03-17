@@ -1,4 +1,5 @@
 using ServiceDesk.Core.DTOs.Chat;
+using ServiceDesk.Core.DTOs.Clients;
 using ServiceDesk.Core.DTOs.Equipment;
 using ServiceDesk.Core.DTOs.Tickets;
 using ServiceDesk.Core.Entities;
@@ -71,6 +72,49 @@ public static class MappingExtensions
             ServicePointId = equipment.ServicePointId,
             ServicePointName = equipment.ServicePoint?.Name ?? "",
             ServicePointAddress = equipment.ServicePoint?.Address ?? ""
+        };
+    }
+
+    /// <summary>Client → ClientDetailDto</summary>
+    public static ClientDetailDto ToDetailDto(this Client client)
+    {
+        return new ClientDetailDto
+        {
+            Id = client.Id,
+            Name = client.Name,
+            Inn = client.Inn,
+            Network = client.Network,
+            Phone = client.Phone,
+            Email = client.Email,
+            LegalAddress = client.LegalAddress,
+            IsActive = client.IsActive,
+            TtkFilePath = client.TtkFilePath,
+            CreatedAt = client.CreatedAt,
+            UpdatedAt = client.UpdatedAt,
+            ServicePoints = client.ServicePoints?.Select(sp => new ClientServicePointDto
+            {
+                Id = sp.Id,
+                Name = sp.Name,
+                Address = sp.Address,
+                Region = sp.Region,
+                IsActive = sp.IsActive,
+                EquipmentCount = sp.Equipment?.Count ?? 0
+            }).ToList() ?? new(),
+            ContactPersons = client.ContactPersons?.Select(cp => new ClientContactPersonDto
+            {
+                Id = cp.Id,
+                FullName = cp.FullName,
+                Phone = cp.Phone,
+                Email = cp.Email,
+                Position = cp.Position
+            }).ToList() ?? new(),
+            Managers = client.Managers?.Select(m => new ClientManagerDto
+            {
+                Id = m.Id,
+                FullName = m.FullName,
+                Phone = m.Phone,
+                Email = m.Email
+            }).ToList() ?? new()
         };
     }
 

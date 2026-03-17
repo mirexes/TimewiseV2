@@ -1,3 +1,4 @@
+using ServiceDesk.Core.DTOs.Clients;
 using ServiceDesk.Core.DTOs.Common;
 using ServiceDesk.Core.Enums;
 
@@ -11,4 +12,13 @@ public interface IClientService
     Task<IEnumerable<SelectOptionDto>> GetClientsForSelectAsync();
     Task<IEnumerable<SelectOptionDto>> GetServicePointsForSelectAsync(
         int currentUserId, UserRole currentUserRole, int? clientId = null);
+
+    Task<PagedResultDto<ClientListDto>> GetAllAsync(ClientFilterDto filter);
+    Task<ClientDetailDto?> GetByIdAsync(int id);
+    Task<int> CreateAsync(CreateClientDto dto);
+    Task UpdateAsync(int id, CreateClientDto dto);
+    Task ToggleActiveAsync(int id);
+
+    Task<int> AddContactPersonAsync(int clientId, CreateContactPersonDto dto);
+    Task RemoveContactPersonAsync(int contactPersonId);
 }

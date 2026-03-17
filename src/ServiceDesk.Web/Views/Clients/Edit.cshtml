@@ -1,0 +1,64 @@
+@model CreateClientDto
+@{
+    var clientId = (int)ViewBag.ClientId;
+    var clientName = ViewBag.ClientName as string ?? "Клиент";
+    ViewData["Title"] = $"Редактирование: {clientName}";
+}
+
+<div class="mb-3">
+    <a href="/Clients/Details/@clientId" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> К клиенту
+    </a>
+</div>
+
+<div class="card" style="max-width: 600px;">
+    <div class="card-header"><h5 class="mb-0">Редактирование клиента</h5></div>
+    <div class="card-body">
+        <form asp-action="Edit" asp-route-id="@clientId" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label">Наименование организации *</label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Inn" class="form-label">ИНН</label>
+                <input asp-for="Inn" class="form-control" maxlength="12" />
+                <span asp-validation-for="Inn" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Network" class="form-label">Сеть</label>
+                <input asp-for="Network" class="form-control" />
+                <span asp-validation-for="Network" class="text-danger small"></span>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Phone" class="form-label">Телефон</label>
+                    <input asp-for="Phone" type="tel" class="form-control" />
+                    <span asp-validation-for="Phone" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Email" class="form-label">Email</label>
+                    <input asp-for="Email" type="email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label asp-for="LegalAddress" class="form-label">Юридический адрес</label>
+                <textarea asp-for="LegalAddress" class="form-control" rows="2"></textarea>
+                <span asp-validation-for="LegalAddress" class="text-danger small"></span>
+            </div>
+            <div class="mb-3 form-check">
+                <input asp-for="IsActive" type="checkbox" class="form-check-input" />
+                <label asp-for="IsActive" class="form-check-label">Активен</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg"></i> Сохранить
+            </button>
+            <a href="/Clients/Details/@clientId" class="btn btn-outline-secondary ms-2">Отмена</a>
+        </form>
+    </div>
+</div>
