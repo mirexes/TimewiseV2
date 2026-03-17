@@ -37,7 +37,7 @@
             or UserRole.ManagerTimewise or UserRole.Moderator)
         {
             <li class="nav-item">
-                <a class="nav-link @(currentController == "Clients" ? "active" : "")" href="/Clients">
+                <a class="nav-link @(currentController == "Clients" ? "active" : "")" href="/Clients/Index">
                     <i class="bi bi-building"></i>
                     <span>Клиенты</span>
                 </a>
@@ -60,7 +60,7 @@
                 <small class="nav-section-title px-3 text-muted text-uppercase">Администрирование</small>
             </li>
             <li class="nav-item">
-                <a class="nav-link @(currentController == "Users" ? "active" : "")" href="/Users">
+                <a class="nav-link @(currentController == "Users" ? "active" : "")" href="/Users/Index">
                     <i class="bi bi-people"></i>
                     <span>Пользователи</span>
                 </a>

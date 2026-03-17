@@ -4,7 +4,7 @@
     var (cssClass, label) = Model switch
     {
         TicketStatus.New => ("badge-status-new", "Новая"),
-        TicketStatus.Processed => ("badge-status-processed", "Обработана"),
+        TicketStatus.Processed => ("badge-status-processed", "Взяли в работу"),
         TicketStatus.CompletedRemotely => ("badge-status-done", "Дистанционно"),
         TicketStatus.PartsApproval => ("badge-status-waiting", "Согласование"),
         TicketStatus.RepairApproved => ("badge-status-approved", "Согласована"),
