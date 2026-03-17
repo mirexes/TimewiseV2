@@ -10,5 +10,6 @@ public interface INotificationService
 {
     Task OnTicketStatusChangedAsync(Ticket ticket, TicketStatus oldStatus);
     Task<int> GetUnreadCountAsync(int userId);
+    Task<List<Notification>> GetUserNotificationsAsync(int userId, int count = 20);
     Task MarkAllAsReadAsync(int userId);
 }

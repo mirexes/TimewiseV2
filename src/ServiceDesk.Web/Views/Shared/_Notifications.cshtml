@@ -1,7 +1,24 @@
-<div class="position-relative">
+<div class="position-relative" id="notificationWrapper">
     <button class="btn btn-outline-secondary btn-sm" id="notificationBell"
             onclick="toggleNotifications()" title="Уведомления">
         <i class="bi bi-bell"></i>
         <span class="badge bg-danger notification-badge d-none" id="notificationCount">0</span>
     </button>
+
+    <!-- Выпадающая панель уведомлений -->
+    <div class="notification-panel d-none" id="notificationPanel">
+        <div class="notification-panel-header">
+            <span class="fw-semibold">Уведомления</span>
+            <button class="btn btn-link btn-sm text-decoration-none p-0" id="markAllReadBtn"
+                    onclick="markAllNotificationsRead()">
+                Прочитать все
+            </button>
+        </div>
+        <div class="notification-panel-body" id="notificationList">
+            <div class="notification-empty">
+                <i class="bi bi-bell-slash"></i>
+                <span>Нет уведомлений</span>
+            </div>
+        </div>
+    </div>
 </div>

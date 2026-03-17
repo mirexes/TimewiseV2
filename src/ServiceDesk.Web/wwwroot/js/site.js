@@ -51,10 +51,78 @@ async function updateNotificationCount() {
 }
 
 // Переключение панели уведомлений
-function toggleNotifications() {
-    // TODO: Реализовать выпадающую панель уведомлений
-    updateNotificationCount();
+async function toggleNotifications() {
+    const panel = document.getElementById('notificationPanel');
+    if (!panel) return;
+
+    const isOpen = !panel.classList.contains('d-none');
+    if (isOpen) {
+        panel.classList.add('d-none');
+        return;
+    }
+
+    // Загружаем список уведомлений и показываем панель
+    panel.classList.remove('d-none');
+    await loadNotifications();
 }
+
+// Загрузка списка уведомлений
+async function loadNotifications() {
+    const list = document.getElementById('notificationList');
+    if (!list) return;
+
+    try {
+        const response = await fetch('/api/notifications');
+        if (!response.ok) return;
+
+        const data = await response.json();
+        if (!data.length) {
+            list.innerHTML = '<div class="notification-empty"><i class="bi bi-bell-slash"></i><span>Нет уведомлений</span></div>';
+            return;
+        }
+
+        list.innerHTML = data.map(n => `
+            <a href="${n.url || '#'}" class="notification-item ${n.isRead ? '' : 'unread'}" data-id="${n.id}">
+                <div class="notification-item-title">${escapeHtml(n.title)}</div>
+                <div class="notification-item-message">${escapeHtml(n.message)}</div>
+                <div class="notification-item-time">${n.createdAt}</div>
+            </a>
+        `).join('');
+    } catch (e) {
+        // Молча обрабатываем ошибку
+    }
+}
+
+// Пометить все уведомления как прочитанные
+async function markAllNotificationsRead() {
+    try {
+        const response = await fetch('/api/notifications/read-all', { method: 'POST' });
+        if (response.ok) {
+            // Обновляем счётчик и список
+            updateNotificationCount();
+            const items = document.querySelectorAll('.notification-item.unread');
+            items.forEach(item => item.classList.remove('unread'));
+        }
+    } catch (e) {
+        // Молча обрабатываем ошибку
+    }
+}
+
+// Экранирование HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Закрытие панели при клике вне неё
+document.addEventListener('click', function (e) {
+    const wrapper = document.getElementById('notificationWrapper');
+    const panel = document.getElementById('notificationPanel');
+    if (wrapper && panel && !wrapper.contains(e.target)) {
+        panel.classList.add('d-none');
+    }
+});
 
 // Обновляем счётчик каждые 30 секунд
 if (document.getElementById('notificationCount')) {
