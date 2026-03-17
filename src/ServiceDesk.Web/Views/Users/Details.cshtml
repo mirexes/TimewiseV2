@@ -64,7 +64,19 @@
         <div class="card">
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="bi bi-person-circle"></i> @Model.FullName</h5>
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:48px;height:48px;border-radius:50%;overflow:hidden;background:var(--bs-secondary-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+                            {
+                                <img src="@Model.AvatarUrl" alt="Аватар" style="width:100%;height:100%;object-fit:cover;" />
+                            }
+                            else
+                            {
+                                <i class="bi bi-person-fill" style="font-size:1.5rem;color:var(--bs-secondary-color);"></i>
+                            }
+                        </div>
+                        <h5 class="mb-0">@Model.FullName</h5>
+                    </div>
                     <div class="d-flex gap-2 align-items-center">
                         <span class="badge @GetRoleBadgeClass(Model.Role)">@GetRoleName(Model.Role)</span>
                         @if (!Model.IsActive)
