@@ -30,6 +30,10 @@
     --radius-sm: 6px;
     --radius-md: 10px;
     --radius-lg: 14px;
+
+    --chat-bg: #e5ddd5;
+    --chat-own-bg: #d9fdd3;
+    --chat-own-meta: #6b9b62;
 }
 
 /* Тёмная тема */
@@ -52,4 +56,8 @@
 
     --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
     --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
+
+    --chat-bg: #0e1621;
+    --chat-own-bg: #2b5278;
+    --chat-own-meta: #6a9cc1;
 }
