@@ -23,20 +23,34 @@ public class ErrorHandlingMiddleware
         catch (KeyNotFoundException ex)
         {
             _logger.LogWarning(ex, "Ресурс не найден");
-            context.Response.StatusCode = 404;
-            context.Response.Redirect("/Home/Error?code=404");
+            await HandleException(context, 404, ex.Message);
         }
         catch (InvalidOperationException ex)
         {
             _logger.LogWarning(ex, "Недопустимая операция: {Message}", ex.Message);
-            context.Response.StatusCode = 400;
-            context.Response.Redirect("/Home/Error?code=400");
+            await HandleException(context, 400, ex.Message);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Необработанная ошибка");
-            context.Response.StatusCode = 500;
-            context.Response.Redirect("/Home/Error");
+            await HandleException(context, 500, "Внутренняя ошибка сервера");
+        }
+    }
+
+    private static async Task HandleException(HttpContext context, int statusCode, string message)
+    {
+        context.Response.StatusCode = statusCode;
+
+        // Для API-запросов возвращаем JSON, для остальных — редирект на страницу ошибки
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(
+                System.Text.Json.JsonSerializer.Serialize(new { error = message }));
+        }
+        else
+        {
+            context.Response.Redirect($"/Home/Error?code={statusCode}");
         }
     }
 }
