@@ -15,6 +15,7 @@ public interface ITicketService
     Task<int> CreateAsync(CreateTicketDto dto, int currentUserId);
     Task SaveAttachmentsAsync(int ticketId, IEnumerable<TicketAttachmentFile> files);
     Task UpdateStatusAsync(UpdateTicketStatusDto dto, int currentUserId);
+    Task SaveCompletionPhotosAsync(int ticketId, IEnumerable<TicketAttachmentFile> files);
     Task AssignEngineerAsync(int ticketId, int engineerId, int currentUserId);
     Task<IEnumerable<TicketListDto>> GetByEngineerAsync(int engineerId);
     /// <summary>Получить список специалистов (техники + инженеры + главные инженеры)</summary>
