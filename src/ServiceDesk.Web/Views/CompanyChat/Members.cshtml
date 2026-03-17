@@ -1,0 +1,127 @@
+@model IEnumerable<ServiceDesk.Core.DTOs.Chat.CompanyChatMemberDto>
+@{
+    var chatId = (int)ViewBag.ChatId;
+}
+
+@functions {
+    string GetRoleName(UserRole role) => role switch
+    {
+        UserRole.Technician => "Техник",
+        UserRole.Engineer => "Инженер",
+        UserRole.ChiefEngineer => "Главный инженер",
+        UserRole.Logist => "Логист",
+        UserRole.ManagerTimewise => "Менеджер TW",
+        UserRole.Moderator => "Модератор",
+        _ => role.ToString()
+    };
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-people"></i> Участники чата компании</h5>
+    <a href="/CompanyChat/Index" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Назад к чату
+    </a>
+</div>
+
+<!-- Добавление участника -->
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="row g-2 align-items-end">
+            <div class="col">
+                <label class="form-label small">Добавить сотрудника</label>
+                <select id="userSelect" class="form-select form-select-sm">
+                    <option value="">Выберите сотрудника...</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary btn-sm" onclick="addMember()">
+                    <i class="bi bi-person-plus"></i> Добавить
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Список участников -->
+<div class="card">
+    <div class="card-header">
+        <span class="fw-bold">Участники</span>
+        <span class="badge bg-secondary ms-1" id="memberCount">@Model.Count()</span>
+    </div>
+    <div id="membersList">
+        @foreach (var member in Model)
+        {
+            <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom" id="member-@member.UserId">
+                <div class="d-flex align-items-center gap-2">
+                    @if (member.AvatarUrl != null)
+                    {
+                        <img src="@member.AvatarUrl" class="rounded-circle" style="width:32px;height:32px;object-fit:cover;" alt="" />
+                    }
+                    else
+                    {
+                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width:32px;height:32px;font-size:0.75rem;">
+                            @(member.FullName.Length > 0 ? member.FullName[0].ToString() : "?")
+                        </div>
+                    }
+                    <div>
+                        <div class="fw-bold small">@member.FullName</div>
+                        <small class="text-muted">@GetRoleName(member.Role)</small>
+                    </div>
+                </div>
+                <button class="btn btn-outline-danger btn-sm" onclick="removeMember(@member.UserId, '@member.FullName.Replace("'", "\\'")' )" title="Удалить">
+                    <i class="bi bi-person-dash"></i>
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var chatId = @chatId;
+
+        // Загрузка списка сотрудников для добавления
+        (async function () {
+            try {
+                var response = await fetch('/api/company-chat/' + chatId + '/available-users');
+                if (response.ok) {
+                    var users = await response.json();
+                    var select = document.getElementById('userSelect');
+                    users.forEach(function (u) {
+                        var opt = document.createElement('option');
+                        opt.value = u.id;
+                        opt.textContent = u.fullName + ' (' + u.roleName + ')';
+                        select.appendChild(opt);
+                    });
+                }
+            } catch (e) { }
+        })();
+
+        async function addMember() {
+            var select = document.getElementById('userSelect');
+            var userId = parseInt(select.value);
+            if (!userId) return;
+
+            try {
+                var response = await fetch('/api/company-chat/' + chatId + '/members/' + userId, { method: 'POST' });
+                if (response.ok) {
+                    location.reload();
+                }
+            } catch (e) { }
+        }
+
+        async function removeMember(userId, name) {
+            if (!confirm('Удалить участника ' + name + ' из чата?')) return;
+
+            try {
+                var response = await fetch('/api/company-chat/' + chatId + '/members/' + userId, { method: 'DELETE' });
+                if (response.ok) {
+                    var el = document.getElementById('member-' + userId);
+                    if (el) el.remove();
+                    var count = document.getElementById('memberCount');
+                    count.textContent = parseInt(count.textContent) - 1;
+                }
+            } catch (e) { }
+        }
+    </script>
+}

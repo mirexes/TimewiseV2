@@ -1,16 +1,20 @@
 namespace ServiceDesk.Core.Entities;
 
 /// <summary>
-/// Сообщение в чате заявки
+/// Сообщение в чате (заявки или группового чата компании)
 /// </summary>
 public class ChatMessage : BaseEntity
 {
     /// <summary>Текст сообщения</summary>
     public string Text { get; set; } = string.Empty;
 
-    /// <summary>Заявка</summary>
-    public int TicketId { get; set; }
-    public Ticket Ticket { get; set; } = null!;
+    /// <summary>Заявка (null для группового чата)</summary>
+    public int? TicketId { get; set; }
+    public Ticket? Ticket { get; set; }
+
+    /// <summary>Групповой чат компании (null для чата заявки)</summary>
+    public int? CompanyChatId { get; set; }
+    public CompanyChat? CompanyChat { get; set; }
 
     /// <summary>Автор сообщения</summary>
     public int SenderId { get; set; }
