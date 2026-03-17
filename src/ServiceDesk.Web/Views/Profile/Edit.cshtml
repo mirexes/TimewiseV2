@@ -1,0 +1,120 @@
+@model UpdateProfileDto
+@{
+    ViewData["Title"] = "Мой профиль";
+    var avatarUrl = ViewBag.AvatarUrl as string;
+    var roleName = ViewBag.RoleName as string ?? "";
+    var phone = ViewBag.Phone as string ?? "";
+}
+
+<div class="card" style="max-width: 600px;">
+    <div class="card-header"><h5 class="mb-0">Редактирование профиля</h5></div>
+    <div class="card-body">
+        <form asp-action="Edit" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <!-- Аватар -->
+            <div class="mb-3">
+                <label class="form-label">Аватар</label>
+                <div class="d-flex align-items-center gap-3 mb-2">
+                    <div id="avatarPreview" style="width:80px;height:80px;border-radius:50%;overflow:hidden;background:var(--bs-secondary-bg);display:flex;align-items:center;justify-content:center;">
+                        @if (!string.IsNullOrEmpty(avatarUrl))
+                        {
+                            <img src="@avatarUrl" alt="Аватар" style="width:100%;height:100%;object-fit:cover;" id="avatarImg" />
+                        }
+                        else
+                        {
+                            <i class="bi bi-person-fill" style="font-size:2.5rem;color:var(--bs-secondary-color);" id="avatarPlaceholder"></i>
+                        }
+                    </div>
+                    <div>
+                        <input type="file" name="avatar" id="avatarInput" class="form-control form-control-sm" accept="image/*" />
+                        @if (!string.IsNullOrEmpty(avatarUrl))
+                        {
+                            <div class="form-check mt-1">
+                                <input type="checkbox" name="removeAvatar" value="true" class="form-check-input" id="removeAvatarCheck" />
+                                <label for="removeAvatarCheck" class="form-check-label small text-danger">Удалить аватар</label>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="LastName" class="form-label">Фамилия *</label>
+                <input asp-for="LastName" class="form-control" />
+                <span asp-validation-for="LastName" class="text-danger small"></span>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="FirstName" class="form-label">Имя *</label>
+                    <input asp-for="FirstName" class="form-control" />
+                    <span asp-validation-for="FirstName" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="MiddleName" class="form-label">Отчество</label>
+                    <input asp-for="MiddleName" class="form-control" />
+                    <span asp-validation-for="MiddleName" class="text-danger small"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Телефон</label>
+                    <input type="tel" class="form-control" value="@phone" disabled />
+                    <small class="text-muted">Телефон нельзя изменить</small>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Email" class="form-label">Email</label>
+                    <input asp-for="Email" type="email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Должность</label>
+                <input type="text" class="form-control" value="@roleName" disabled />
+                <small class="text-muted">Должность может изменить только модератор</small>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Company" class="form-label">Компания</label>
+                <input asp-for="Company" class="form-control" />
+                <span asp-validation-for="Company" class="text-danger small"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg"></i> Сохранить
+            </button>
+            <a href="/" class="btn btn-outline-secondary ms-2">Отмена</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Предпросмотр выбранного аватара
+        (function () {
+            const input = document.getElementById('avatarInput');
+            const preview = document.getElementById('avatarPreview');
+            const removeCheck = document.getElementById('removeAvatarCheck');
+
+            if (!input || !preview) return;
+
+            input.addEventListener('change', function () {
+                const file = this.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    preview.innerHTML = '<img src="' + e.target.result + '" alt="Аватар" style="width:100%;height:100%;object-fit:cover;" />';
+                    if (removeCheck) removeCheck.checked = false;
+                };
+                reader.readAsDataURL(file);
+            });
+
+            if (removeCheck) {
+                removeCheck.addEventListener('change', function () {
+                    if (this.checked) input.value = '';
+                });
+            }
+        })();
+    </script>
+}
