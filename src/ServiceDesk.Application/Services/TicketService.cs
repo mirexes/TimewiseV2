@@ -111,6 +111,7 @@ public class TicketService : ITicketService
             .Include(t => t.AssignedEngineer)
             .Include(t => t.Equipment)
             .Include(t => t.CreatedByUser)
+            .Include(t => t.CompletionPhotos)
             .FirstOrDefaultAsync(t => t.Id == id);
 
         if (ticket is null) return null;
@@ -222,6 +223,23 @@ public class TicketService : ITicketService
                 FileSize = file.FileSize
             };
             _db.TicketAttachments.Add(attachment);
+        }
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task SaveCompletionPhotosAsync(int ticketId, IEnumerable<TicketAttachmentFile> files)
+    {
+        foreach (var file in files)
+        {
+            var photo = new TicketPhoto
+            {
+                TicketId = ticketId,
+                FileName = file.FileName,
+                FilePath = file.FilePath,
+                ContentType = file.ContentType,
+                FileSize = file.FileSize
+            };
+            _db.TicketPhotos.Add(photo);
         }
         await _db.SaveChangesAsync();
     }

@@ -39,9 +39,23 @@ public class TicketDetailDto
     // АВР
     public string? AvrPhotoPath { get; set; }
 
+    /// <summary>Фото акта выполненных работ</summary>
+    public List<TicketPhotoDto> CompletionPhotos { get; set; } = new();
+
     /// <summary>Допустимые переходы из текущего статуса</summary>
     public TicketStatus[] AllowedTransitions { get; set; } = [];
 
     /// <summary>Может ли текущий пользователь назначать специалиста</summary>
     public bool CanAssignEngineer { get; set; }
+}
+
+/// <summary>
+/// DTO для фото акта выполненных работ
+/// </summary>
+public class TicketPhotoDto
+{
+    public int Id { get; set; }
+    public string FileName { get; set; } = string.Empty;
+    public string FilePath { get; set; } = string.Empty;
+    public long FileSize { get; set; }
 }
