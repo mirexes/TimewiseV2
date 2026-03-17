@@ -1,0 +1,170 @@
+@using ServiceDesk.Core.DTOs.Users
+@model UserDetailDto
+@{
+    ViewData["Title"] = $"Пользователь: {Model.FullName}";
+}
+
+@functions {
+    string GetRoleName(UserRole role) => role switch
+    {
+        UserRole.Technician => "Техник",
+        UserRole.Engineer => "Инженер",
+        UserRole.ChiefEngineer => "Главный инженер",
+        UserRole.Logist => "Логист",
+        UserRole.ManagerTimewise => "Менеджер Timewise",
+        UserRole.ManagerClient => "Менеджер клиента",
+        UserRole.Client => "Клиент",
+        UserRole.Moderator => "Модератор",
+        _ => role.ToString()
+    };
+
+    string GetRoleBadgeClass(UserRole role) => role switch
+    {
+        UserRole.Moderator => "bg-danger",
+        UserRole.ManagerTimewise => "bg-primary",
+        UserRole.ChiefEngineer => "bg-warning text-dark",
+        UserRole.Logist => "bg-info text-dark",
+        UserRole.Engineer or UserRole.Technician => "bg-success",
+        UserRole.ManagerClient => "bg-secondary",
+        UserRole.Client => "bg-light text-dark",
+        _ => "bg-secondary"
+    };
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="/Users" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> К списку
+    </a>
+    <div class="d-flex gap-2">
+        <a href="/Users/Edit/@Model.Id" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-pencil"></i> Редактировать
+        </a>
+        <form asp-action="ToggleActive" asp-route-id="@Model.Id" method="post" class="d-inline">
+            @Html.AntiForgeryToken()
+            @if (Model.IsActive)
+            {
+                <button type="submit" class="btn btn-outline-warning btn-sm"
+                        onclick="return confirm('Деактивировать пользователя?')">
+                    <i class="bi bi-pause-circle"></i> Деактивировать
+                </button>
+            }
+            else
+            {
+                <button type="submit" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-play-circle"></i> Активировать
+                </button>
+            }
+        </form>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Основная информация -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-person-circle"></i> @Model.FullName</h5>
+                    <div class="d-flex gap-2 align-items-center">
+                        <span class="badge @GetRoleBadgeClass(Model.Role)">@GetRoleName(Model.Role)</span>
+                        @if (!Model.IsActive)
+                        {
+                            <span class="badge bg-secondary">Неактивен</span>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">Фамилия</small>
+                    <p class="mb-0 fw-bold">@Model.LastName</p>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted">Имя</small>
+                    <p class="mb-0">@Model.FirstName</p>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.MiddleName))
+                {
+                    <div class="mb-3">
+                        <small class="text-muted">Отчество</small>
+                        <p class="mb-0">@Model.MiddleName</p>
+                    </div>
+                }
+                <div class="mb-3">
+                    <small class="text-muted">Телефон</small>
+                    <p class="mb-0"><a href="tel:@Model.Phone">@Model.Phone</a></p>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.Email))
+                {
+                    <div class="mb-3">
+                        <small class="text-muted">Email</small>
+                        <p class="mb-0"><a href="mailto:@Model.Email">@Model.Email</a></p>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.Company))
+                {
+                    <div class="mb-3">
+                        <small class="text-muted">Компания</small>
+                        <p class="mb-0">@Model.Company</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Дополнительная информация -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Дополнительно</h6>
+            </div>
+            <div class="card-body">
+                @if (Model.Role == UserRole.ManagerClient)
+                {
+                    <div class="mb-3">
+                        <small class="text-muted">Привязан к клиенту</small>
+                        @if (Model.ClientId.HasValue && !string.IsNullOrEmpty(Model.ClientName))
+                        {
+                            <p class="mb-0">
+                                <a href="/Clients/Details/@Model.ClientId">
+                                    <i class="bi bi-building"></i> @Model.ClientName
+                                </a>
+                            </p>
+                        }
+                        else
+                        {
+                            <p class="mb-0 text-muted">Не привязан</p>
+                        }
+                    </div>
+                }
+
+                <div class="mb-3">
+                    <small class="text-muted">Назначенных заявок</small>
+                    <p class="mb-0">
+                        <span class="badge bg-primary">@Model.AssignedTicketsCount</span>
+                    </p>
+                </div>
+
+                <div class="mb-3">
+                    <small class="text-muted">Последний вход</small>
+                    @if (Model.LastLoginAt.HasValue)
+                    {
+                        <p class="mb-0">@Model.LastLoginAt.Value.ToString("dd.MM.yyyy HH:mm")</p>
+                    }
+                    else
+                    {
+                        <p class="mb-0 text-muted">Ни разу не входил</p>
+                    }
+                </div>
+
+                <div class="d-flex gap-4 text-muted small">
+                    <span>Создан: @Model.CreatedAt.ToString("dd.MM.yyyy")</span>
+                    @if (Model.UpdatedAt.HasValue)
+                    {
+                        <span>Обновлён: @Model.UpdatedAt.Value.ToString("dd.MM.yyyy")</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

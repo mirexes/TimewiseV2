@@ -2,6 +2,7 @@ using ServiceDesk.Core.DTOs.Chat;
 using ServiceDesk.Core.DTOs.Clients;
 using ServiceDesk.Core.DTOs.Equipment;
 using ServiceDesk.Core.DTOs.Tickets;
+using ServiceDesk.Core.DTOs.Users;
 using ServiceDesk.Core.Entities;
 
 namespace ServiceDesk.Application.Mapping;
@@ -115,6 +116,47 @@ public static class MappingExtensions
                 Phone = m.Phone,
                 Email = m.Email
             }).ToList() ?? new()
+        };
+    }
+
+    /// <summary>AppUser → UserListDto</summary>
+    public static UserListDto ToListDto(this AppUser user)
+    {
+        return new UserListDto
+        {
+            Id = user.Id,
+            FullName = user.FullName,
+            Phone = user.Phone,
+            Email = user.Email,
+            Role = user.Role,
+            Company = user.Company,
+            IsActive = user.IsActive,
+            LastLoginAt = user.LastLoginAt,
+            CreatedAt = user.CreatedAt
+        };
+    }
+
+    /// <summary>AppUser → UserDetailDto</summary>
+    public static UserDetailDto ToDetailDto(this AppUser user)
+    {
+        return new UserDetailDto
+        {
+            Id = user.Id,
+            LastName = user.LastName,
+            FirstName = user.FirstName,
+            MiddleName = user.MiddleName,
+            FullName = user.FullName,
+            Phone = user.Phone,
+            Email = user.Email,
+            Role = user.Role,
+            Company = user.Company,
+            IsActive = user.IsActive,
+            LastLoginAt = user.LastLoginAt,
+            CreatedAt = user.CreatedAt,
+            UpdatedAt = user.UpdatedAt,
+            ClientId = user.ClientId,
+            ClientName = user.Client?.Name,
+            AssignedTicketsCount = user.AssignedTickets?.Count ?? 0
         };
     }
 

@@ -1,0 +1,174 @@
+@using ServiceDesk.Core.DTOs.Users
+@model PagedResultDto<UserListDto>
+@{
+    ViewData["Title"] = "Пользователи";
+    var filter = ViewBag.Filter as UserFilterDto ?? new UserFilterDto();
+}
+
+@functions {
+    string GetRoleName(UserRole role) => role switch
+    {
+        UserRole.Technician => "Техник",
+        UserRole.Engineer => "Инженер",
+        UserRole.ChiefEngineer => "Главный инженер",
+        UserRole.Logist => "Логист",
+        UserRole.ManagerTimewise => "Менеджер TW",
+        UserRole.ManagerClient => "Менеджер клиента",
+        UserRole.Client => "Клиент",
+        UserRole.Moderator => "Модератор",
+        _ => role.ToString()
+    };
+
+    string GetRoleBadgeClass(UserRole role) => role switch
+    {
+        UserRole.Moderator => "bg-danger",
+        UserRole.ManagerTimewise => "bg-primary",
+        UserRole.ChiefEngineer => "bg-warning text-dark",
+        UserRole.Logist => "bg-info text-dark",
+        UserRole.Engineer or UserRole.Technician => "bg-success",
+        UserRole.ManagerClient => "bg-secondary",
+        UserRole.Client => "bg-light text-dark",
+        _ => "bg-secondary"
+    };
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <span class="text-muted">Всего: @Model.TotalCount</span>
+    <a href="/Users/Create" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg"></i> Добавить
+    </a>
+</div>
+
+<!-- Фильтры -->
+<div class="card mb-4">
+    <div class="card-body py-2">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small text-muted mb-0">Поиск</label>
+                <input type="text" name="Search" value="@filter.Search" class="form-control form-control-sm"
+                       placeholder="ФИО, телефон, email, компания..." />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-0">Роль</label>
+                <select name="Role" class="form-select form-select-sm">
+                    <option value="" @(filter.Role == null ? "selected" : "")>Все роли</option>
+                    @foreach (var role in Enum.GetValues<UserRole>())
+                    {
+                        <option value="@role" @(filter.Role == role ? "selected" : "")>@GetRoleName(role)</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted mb-0">Статус</label>
+                <select name="IsActive" class="form-select form-select-sm">
+                    <option value="" @(filter.IsActive == null ? "selected" : "")>Все</option>
+                    <option value="true" @(filter.IsActive == true ? "selected" : "")>Активные</option>
+                    <option value="false" @(filter.IsActive == false ? "selected" : "")>Неактивные</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+            <div class="col-md-2">
+                <a href="/Users" class="btn btn-outline-secondary btn-sm w-100">Сбросить</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (!Model.Items.Any())
+{
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-people fs-1"></i>
+        <p class="mt-2">Пользователи не найдены</p>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var user in Model.Items)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 @(!user.IsActive ? "opacity-50" : "")"
+                     onclick="location.href='/Users/Details/@user.Id'" style="cursor: pointer;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="card-title mb-0">
+                                <i class="bi bi-person-circle"></i> @user.FullName
+                            </h6>
+                            <span class="badge @GetRoleBadgeClass(user.Role)">@GetRoleName(user.Role)</span>
+                        </div>
+                        <p class="text-muted small mb-1">
+                            <i class="bi bi-telephone"></i> @user.Phone
+                        </p>
+                        @if (!string.IsNullOrEmpty(user.Email))
+                        {
+                            <p class="text-muted small mb-1">
+                                <i class="bi bi-envelope"></i> @user.Email
+                            </p>
+                        }
+                        @if (!string.IsNullOrEmpty(user.Company))
+                        {
+                            <p class="text-muted small mb-1">
+                                <i class="bi bi-building"></i> @user.Company
+                            </p>
+                        }
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            @if (!user.IsActive)
+                            {
+                                <span class="badge bg-secondary">Неактивен</span>
+                            }
+                            else
+                            {
+                                <span></span>
+                            }
+                            @if (user.LastLoginAt.HasValue)
+                            {
+                                <small class="text-muted">
+                                    <i class="bi bi-clock-history"></i> @user.LastLoginAt.Value.ToString("dd.MM.yyyy HH:mm")
+                                </small>
+                            }
+                            else
+                            {
+                                <small class="text-muted">Не входил</small>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Пагинация -->
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="mt-4 d-flex justify-content-center">
+            <ul class="pagination pagination-sm">
+                @if (Model.HasPreviousPage)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="/Users?Page=@(Model.Page - 1)&Search=@filter.Search&Role=@filter.Role&IsActive=@filter.IsActive">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                }
+                @for (var i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.Page ? "active" : "")">
+                        <a class="page-link" href="/Users?Page=@i&Search=@filter.Search&Role=@filter.Role&IsActive=@filter.IsActive">@i</a>
+                    </li>
+                }
+                @if (Model.HasNextPage)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="/Users?Page=@(Model.Page + 1)&Search=@filter.Search&Role=@filter.Role&IsActive=@filter.IsActive">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+}
