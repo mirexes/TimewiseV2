@@ -79,4 +79,8 @@ async function assignEngineer(ticketId) {
 }
 
 // Загружаем специалистов при наличии выпадающего списка
-document.addEventListener('DOMContentLoaded', loadEngineers);
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadEngineers);
+} else {
+    loadEngineers();
+}
