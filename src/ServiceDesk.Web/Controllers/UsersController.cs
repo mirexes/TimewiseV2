@@ -14,11 +14,13 @@ public class UsersController : Controller
 {
     private readonly IUserService _userService;
     private readonly IClientService _clientService;
+    private readonly IWebHostEnvironment _env;
 
-    public UsersController(IUserService userService, IClientService clientService)
+    public UsersController(IUserService userService, IClientService clientService, IWebHostEnvironment env)
     {
         _userService = userService;
         _clientService = clientService;
+        _env = env;
     }
 
     [HttpGet]
@@ -82,13 +84,14 @@ public class UsersController : Controller
 
         ViewBag.UserId = id;
         ViewBag.UserName = user.FullName;
+        ViewBag.AvatarUrl = user.AvatarUrl;
         ViewBag.Clients = await _clientService.GetClientsForSelectAsync();
         return View(dto);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, CreateUserDto dto)
+    public async Task<IActionResult> Edit(int id, CreateUserDto dto, IFormFile? avatar, bool removeAvatar = false)
     {
         if (!await _userService.IsPhoneUniqueAsync(dto.Phone, id))
             ModelState.AddModelError(nameof(dto.Phone), "Пользователь с таким телефоном уже существует");
@@ -96,12 +99,58 @@ public class UsersController : Controller
         if (!ModelState.IsValid)
         {
             ViewBag.UserId = id;
+            ViewBag.AvatarUrl = (await _userService.GetByIdAsync(id))?.AvatarUrl;
             ViewBag.Clients = await _clientService.GetClientsForSelectAsync();
             return View(dto);
         }
 
         await _userService.UpdateAsync(id, dto);
+
+        // Обработка аватара
+        if (removeAvatar)
+        {
+            await DeleteAvatarFileAsync(id);
+            await _userService.UpdateAvatarAsync(id, null);
+        }
+        else if (avatar is { Length: > 0 })
+        {
+            await DeleteAvatarFileAsync(id);
+            var avatarUrl = await SaveAvatarAsync(id, avatar);
+            await _userService.UpdateAvatarAsync(id, avatarUrl);
+        }
+
         return RedirectToAction(nameof(Details), new { id });
+    }
+
+    /// <summary>
+    /// Сохранение файла аватара на диск
+    /// </summary>
+    private async Task<string> SaveAvatarAsync(int userId, IFormFile file)
+    {
+        var uploadsDir = Path.Combine(_env.WebRootPath, "uploads", "avatars");
+        Directory.CreateDirectory(uploadsDir);
+
+        var ext = Path.GetExtension(file.FileName);
+        var fileName = $"{userId}_{Guid.NewGuid():N}{ext}";
+        var filePath = Path.Combine(uploadsDir, fileName);
+
+        await using var stream = new FileStream(filePath, FileMode.Create);
+        await file.CopyToAsync(stream);
+
+        return $"/uploads/avatars/{fileName}";
+    }
+
+    /// <summary>
+    /// Удаление старого файла аватара
+    /// </summary>
+    private async Task DeleteAvatarFileAsync(int userId)
+    {
+        var user = await _userService.GetByIdAsync(userId);
+        if (string.IsNullOrEmpty(user?.AvatarUrl)) return;
+
+        var filePath = Path.Combine(_env.WebRootPath, user.AvatarUrl.TrimStart('/'));
+        if (System.IO.File.Exists(filePath))
+            System.IO.File.Delete(filePath);
     }
 
     [HttpPost]

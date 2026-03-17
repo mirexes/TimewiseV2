@@ -115,6 +115,15 @@ public class UserService : IUserService
         await _db.SaveChangesAsync();
     }
 
+    public async Task UpdateAvatarAsync(int id, string? avatarUrl)
+    {
+        var user = await _db.Users.FindAsync(id)
+            ?? throw new KeyNotFoundException($"Пользователь {id} не найден");
+
+        user.AvatarUrl = avatarUrl;
+        await _db.SaveChangesAsync();
+    }
+
     public async Task<bool> IsPhoneUniqueAsync(string phone, int? excludeId = null)
     {
         var query = _db.Users.Where(u => u.Phone == phone);

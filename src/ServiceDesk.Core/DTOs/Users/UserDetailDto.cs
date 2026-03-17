@@ -25,6 +25,9 @@ public class UserDetailDto
     public int? ClientId { get; set; }
     public string? ClientName { get; set; }
 
+    /// <summary>Путь к аватарке</summary>
+    public string? AvatarUrl { get; set; }
+
     /// <summary>Количество назначенных заявок</summary>
     public int AssignedTicketsCount { get; set; }
 }

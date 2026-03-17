@@ -13,5 +13,6 @@ public interface IUserService
     Task<int> CreateAsync(CreateUserDto dto);
     Task UpdateAsync(int id, CreateUserDto dto);
     Task ToggleActiveAsync(int id);
+    Task UpdateAvatarAsync(int id, string? avatarUrl);
     Task<bool> IsPhoneUniqueAsync(string phone, int? excludeId = null);
 }

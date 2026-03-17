@@ -163,6 +163,7 @@ public static class MappingExtensions
             UpdatedAt = user.UpdatedAt,
             ClientId = user.ClientId,
             ClientName = user.Client?.Name,
+            AvatarUrl = user.AvatarUrl,
             AssignedTicketsCount = user.AssignedTickets?.Count ?? 0
         };
     }
