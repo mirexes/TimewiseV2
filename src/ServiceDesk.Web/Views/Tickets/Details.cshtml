@@ -78,18 +78,25 @@
 
         <!-- Чат -->
         <div class="card mt-3">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h6 class="mb-0"><i class="bi bi-chat-dots"></i> Чат</h6>
+                <span id="chatOnlineCount" class="small text-muted"></span>
             </div>
-            <div class="card-body">
-                <div id="chatMessages" class="chat-messages mb-3" style="max-height: 400px; overflow-y: auto;">
-                    <p class="text-muted text-center small">Загрузка сообщений...</p>
+            <div class="chat-container">
+                <div id="chatMessages" class="chat-messages">
+                    <div class="chat-empty">
+                        <i class="bi bi-chat-text"></i>
+                        <span>Загрузка сообщений...</span>
+                    </div>
                 </div>
-                <form id="chatForm" class="d-flex gap-2">
-                    <input type="text" id="chatInput" class="form-control form-control-sm"
-                           placeholder="Написать сообщение..." />
-                    <button type="submit" class="btn btn-primary btn-sm">
-                        <i class="bi bi-send"></i>
+                <div id="emojiPicker" class="emoji-picker"></div>
+                <form id="chatForm" class="chat-input-area">
+                    <button type="button" class="btn-emoji" id="emojiToggle" title="Эмодзи">
+                        <i class="bi bi-emoji-smile"></i>
+                    </button>
+                    <textarea id="chatInput" rows="1" placeholder="Сообщение..." autocomplete="off"></textarea>
+                    <button type="submit" class="btn-send" title="Отправить">
+                        <i class="bi bi-send-fill"></i>
                     </button>
                 </form>
             </div>
@@ -214,6 +221,6 @@
     <script src="~/js/tickets.js"></script>
     <script>
         // Инициализация чата для текущей заявки
-        initChat(@Model.Id);
+        initChat(@Model.Id, @User.GetUserId());
     </script>
 }
