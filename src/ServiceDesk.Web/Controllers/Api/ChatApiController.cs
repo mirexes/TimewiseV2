@@ -40,7 +40,7 @@ public class ChatApiController : ControllerBase
     /// Отправка сообщения с файлами (multipart/form-data)
     /// </summary>
     [HttpPost("send-with-files")]
-    public async Task<IActionResult> SendWithFiles([FromForm] string? text, [FromForm] int ticketId, [FromForm] List<IFormFile> files)
+    public async Task<IActionResult> SendWithFiles([FromForm] string? text, [FromForm] int ticketId, [FromForm] List<IFormFile> files, [FromForm] int? replyToMessageId)
     {
         var messageText = text?.Trim() ?? string.Empty;
         if (string.IsNullOrEmpty(messageText) && (files == null || files.Count == 0))
@@ -77,8 +77,8 @@ public class ChatApiController : ControllerBase
         }
 
         var message = savedFiles.Count > 0
-            ? await _chatService.SendMessageWithAttachmentsAsync(ticketId, User.GetUserId(), messageText, savedFiles)
-            : await _chatService.SendMessageAsync(new SendMessageDto { Text = messageText, TicketId = ticketId }, User.GetUserId());
+            ? await _chatService.SendMessageWithAttachmentsAsync(ticketId, User.GetUserId(), messageText, savedFiles, replyToMessageId)
+            : await _chatService.SendMessageAsync(new SendMessageDto { Text = messageText, TicketId = ticketId, ReplyToMessageId = replyToMessageId }, User.GetUserId());
 
         return Ok(message);
     }

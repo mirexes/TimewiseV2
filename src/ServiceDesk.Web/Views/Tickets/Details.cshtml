@@ -130,6 +130,14 @@
                     </div>
                 </div>
                 <div id="emojiPicker" class="emoji-picker"></div>
+                <!-- Превью ответа на сообщение -->
+                <div id="chatReplyPreview" class="chat-reply-preview" style="display:none">
+                    <div class="chat-reply-preview-content">
+                        <div class="chat-reply-preview-sender" id="replyPreviewSender"></div>
+                        <div class="chat-reply-preview-text" id="replyPreviewText"></div>
+                    </div>
+                    <button type="button" class="chat-reply-preview-close" id="cancelReply" title="Отменить ответ">&times;</button>
+                </div>
                 <!-- Превью выбранных файлов -->
                 <div id="chatFilePreview" class="chat-file-preview"></div>
                 <form id="chatForm" class="chat-input-area">

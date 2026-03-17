@@ -21,5 +21,11 @@ public class ChatMessageConfiguration : IEntityTypeConfiguration<ChatMessage>
             .WithMany(u => u.ChatMessages)
             .HasForeignKey(cm => cm.SenderId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Ответ на сообщение (самоссылка)
+        builder.HasOne(cm => cm.ReplyToMessage)
+            .WithMany(cm => cm.Replies)
+            .HasForeignKey(cm => cm.ReplyToMessageId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

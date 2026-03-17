@@ -46,6 +46,9 @@ public class AppUser : BaseEntity
     /// <summary>Время блокировки SMS</summary>
     public DateTime? SmsBlockedUntil { get; set; }
 
+    /// <summary>Путь к аватарке пользователя</summary>
+    public string? AvatarUrl { get; set; }
+
     /// <summary>Привязка к клиенту (для менеджера клиента)</summary>
     public int? ClientId { get; set; }
     public Client? Client { get; set; }

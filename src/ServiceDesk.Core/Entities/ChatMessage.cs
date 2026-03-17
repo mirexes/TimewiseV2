@@ -19,6 +19,11 @@ public class ChatMessage : BaseEntity
     /// <summary>Прочитано ли сообщение</summary>
     public bool IsRead { get; set; }
 
+    /// <summary>Ответ на сообщение (null если не ответ)</summary>
+    public int? ReplyToMessageId { get; set; }
+    public ChatMessage? ReplyToMessage { get; set; }
+
     // Навигационные свойства
     public ICollection<ChatAttachment> Attachments { get; set; } = new List<ChatAttachment>();
+    public ICollection<ChatMessage> Replies { get; set; } = new List<ChatMessage>();
 }

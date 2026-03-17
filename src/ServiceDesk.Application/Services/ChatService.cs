@@ -25,6 +25,8 @@ public class ChatService : IChatService
         var messages = await _db.ChatMessages
             .Include(m => m.Sender)
             .Include(m => m.Attachments)
+            .Include(m => m.ReplyToMessage)
+                .ThenInclude(r => r!.Sender)
             .Where(m => m.TicketId == ticketId)
             .OrderBy(m => m.CreatedAt)
             .ToListAsync();
@@ -38,7 +40,8 @@ public class ChatService : IChatService
         {
             Text = dto.Text,
             TicketId = dto.TicketId,
-            SenderId = senderId
+            SenderId = senderId,
+            ReplyToMessageId = dto.ReplyToMessageId
         };
 
         _db.ChatMessages.Add(message);
@@ -46,6 +49,12 @@ public class ChatService : IChatService
 
         // Подгружаем связанные данные для ответа
         await _db.Entry(message).Reference(m => m.Sender).LoadAsync();
+        if (message.ReplyToMessageId.HasValue)
+        {
+            await _db.Entry(message).Reference(m => m.ReplyToMessage).LoadAsync();
+            if (message.ReplyToMessage != null)
+                await _db.Entry(message.ReplyToMessage).Reference(m => m.Sender).LoadAsync();
+        }
         return message.ToDto();
     }
 
@@ -85,13 +94,14 @@ public class ChatService : IChatService
         await _db.SaveChangesAsync();
     }
 
-    public async Task<ChatMessageDto> SendMessageWithAttachmentsAsync(int ticketId, int senderId, string text, IEnumerable<TicketAttachmentFile> files)
+    public async Task<ChatMessageDto> SendMessageWithAttachmentsAsync(int ticketId, int senderId, string text, IEnumerable<TicketAttachmentFile> files, int? replyToMessageId = null)
     {
         var message = new ChatMessage
         {
             Text = text,
             TicketId = ticketId,
-            SenderId = senderId
+            SenderId = senderId,
+            ReplyToMessageId = replyToMessageId
         };
 
         foreach (var file in files)
@@ -110,6 +120,12 @@ public class ChatService : IChatService
 
         // Подгружаем связанные данные для ответа
         await _db.Entry(message).Reference(m => m.Sender).LoadAsync();
+        if (message.ReplyToMessageId.HasValue)
+        {
+            await _db.Entry(message).Reference(m => m.ReplyToMessage).LoadAsync();
+            if (message.ReplyToMessage != null)
+                await _db.Entry(message.ReplyToMessage).Reference(m => m.Sender).LoadAsync();
+        }
         return message.ToDto();
     }
 }

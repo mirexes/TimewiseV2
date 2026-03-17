@@ -170,14 +170,34 @@ public static class MappingExtensions
     /// <summary>ChatMessage → ChatMessageDto</summary>
     public static ChatMessageDto ToDto(this ChatMessage message)
     {
+        var sender = message.Sender;
+        var initials = "";
+        if (sender != null)
+        {
+            var first = !string.IsNullOrEmpty(sender.FirstName) ? sender.FirstName[0].ToString() : "";
+            var last = !string.IsNullOrEmpty(sender.LastName) ? sender.LastName[0].ToString() : "";
+            initials = (last + first).ToUpper();
+        }
+
         return new ChatMessageDto
         {
             Id = message.Id,
             Text = message.Text,
             SenderId = message.SenderId,
-            SenderName = message.Sender?.FullName ?? "",
+            SenderName = sender?.FullName ?? "",
+            SenderAvatarUrl = sender?.AvatarUrl,
+            SenderInitials = initials,
             CreatedAt = message.CreatedAt,
             IsRead = message.IsRead,
+            ReplyToMessageId = message.ReplyToMessageId,
+            ReplyTo = message.ReplyToMessage != null ? new ChatReplyDto
+            {
+                Id = message.ReplyToMessage.Id,
+                Text = message.ReplyToMessage.Text.Length > 100
+                    ? message.ReplyToMessage.Text[..100] + "…"
+                    : message.ReplyToMessage.Text,
+                SenderName = message.ReplyToMessage.Sender?.FullName ?? ""
+            } : null,
             Attachments = message.Attachments?.Select(a => new ChatAttachmentDto
             {
                 Id = a.Id,
