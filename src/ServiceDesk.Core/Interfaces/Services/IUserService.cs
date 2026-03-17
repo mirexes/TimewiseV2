@@ -12,6 +12,7 @@ public interface IUserService
     Task<UserDetailDto?> GetByIdAsync(int id);
     Task<int> CreateAsync(CreateUserDto dto);
     Task UpdateAsync(int id, CreateUserDto dto);
+    Task UpdateProfileAsync(int id, UpdateProfileDto dto);
     Task ToggleActiveAsync(int id);
     Task UpdateAvatarAsync(int id, string? avatarUrl);
     Task<bool> IsPhoneUniqueAsync(string phone, int? excludeId = null);

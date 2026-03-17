@@ -106,6 +106,20 @@ public class UserService : IUserService
         await _db.SaveChangesAsync();
     }
 
+    public async Task UpdateProfileAsync(int id, UpdateProfileDto dto)
+    {
+        var user = await _db.Users.FindAsync(id)
+            ?? throw new KeyNotFoundException($"Пользователь {id} не найден");
+
+        user.LastName = dto.LastName;
+        user.FirstName = dto.FirstName;
+        user.MiddleName = dto.MiddleName;
+        user.Email = dto.Email;
+        user.Company = dto.Company;
+
+        await _db.SaveChangesAsync();
+    }
+
     public async Task ToggleActiveAsync(int id)
     {
         var user = await _db.Users.FindAsync(id)
