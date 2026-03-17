@@ -1,0 +1,128 @@
+@model PagedResultDto<ClientListDto>
+@{
+    ViewData["Title"] = "Клиенты";
+    var filter = ViewBag.Filter as ClientFilterDto ?? new ClientFilterDto();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <span class="text-muted">Всего: @Model.TotalCount</span>
+    <a href="/Clients/Create" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg"></i> Добавить
+    </a>
+</div>
+
+<!-- Фильтры -->
+<div class="card mb-4">
+    <div class="card-body py-2">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label small text-muted mb-0">Поиск</label>
+                <input type="text" name="Search" value="@filter.Search" class="form-control form-control-sm"
+                       placeholder="Название, ИНН, сеть, телефон..." />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-0">Статус</label>
+                <select name="IsActive" class="form-select form-select-sm">
+                    <option value="" @(filter.IsActive == null ? "selected" : "")>Все</option>
+                    <option value="true" @(filter.IsActive == true ? "selected" : "")>Активные</option>
+                    <option value="false" @(filter.IsActive == false ? "selected" : "")>Неактивные</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+                    <i class="bi bi-search"></i> Найти
+                </button>
+            </div>
+            <div class="col-md-2">
+                <a href="/Clients" class="btn btn-outline-secondary btn-sm w-100">Сбросить</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (!Model.Items.Any())
+{
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-building fs-1"></i>
+        <p class="mt-2">Клиенты не найдены</p>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var client in Model.Items)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 @(!client.IsActive ? "opacity-50" : "")"
+                     onclick="location.href='/Clients/Details/@client.Id'" style="cursor: pointer;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="card-title mb-0">
+                                <i class="bi bi-building"></i> @client.Name
+                            </h6>
+                            @if (!client.IsActive)
+                            {
+                                <span class="badge bg-secondary">Неактивен</span>
+                            }
+                        </div>
+                        @if (!string.IsNullOrEmpty(client.Network))
+                        {
+                            <p class="text-muted small mb-1">
+                                <i class="bi bi-diagram-3"></i> Сеть: @client.Network
+                            </p>
+                        }
+                        @if (!string.IsNullOrEmpty(client.Inn))
+                        {
+                            <p class="text-muted small mb-1">ИНН: @client.Inn</p>
+                        }
+                        @if (!string.IsNullOrEmpty(client.Phone))
+                        {
+                            <p class="text-muted small mb-1">
+                                <i class="bi bi-telephone"></i> @client.Phone
+                            </p>
+                        }
+                        <div class="d-flex gap-3 mt-2">
+                            <small class="text-muted">
+                                <i class="bi bi-geo-alt"></i> Точек: @client.ServicePointsCount
+                            </small>
+                            <small class="text-muted">
+                                <i class="bi bi-people"></i> Контактов: @client.ContactPersonsCount
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Пагинация -->
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="mt-4 d-flex justify-content-center">
+            <ul class="pagination pagination-sm">
+                @if (Model.HasPreviousPage)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="/Clients?Page=@(Model.Page - 1)&Search=@filter.Search&IsActive=@filter.IsActive">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                }
+                @for (var i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.Page ? "active" : "")">
+                        <a class="page-link" href="/Clients?Page=@i&Search=@filter.Search&IsActive=@filter.IsActive">@i</a>
+                    </li>
+                }
+                @if (Model.HasNextPage)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="/Clients?Page=@(Model.Page + 1)&Search=@filter.Search&IsActive=@filter.IsActive">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+}

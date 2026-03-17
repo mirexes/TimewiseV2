@@ -37,4 +37,9 @@ public static class PermissionChecker
     /// <summary>Может ли пользователь просматривать отчёты</summary>
     public static bool CanViewReports(UserRole role)
         => role is UserRole.ChiefEngineer or UserRole.ManagerTimewise or UserRole.Moderator;
+
+    /// <summary>Может ли пользователь управлять клиентами (просмотр, создание, редактирование)</summary>
+    public static bool CanManageClients(UserRole role)
+        => role is UserRole.ChiefEngineer or UserRole.Logist
+            or UserRole.ManagerTimewise or UserRole.Moderator;
 }
