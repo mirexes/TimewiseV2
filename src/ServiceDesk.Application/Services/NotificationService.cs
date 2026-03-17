@@ -50,6 +50,15 @@ public class NotificationService : INotificationService
             .CountAsync(n => n.UserId == userId && !n.IsRead);
     }
 
+    public async Task<List<Notification>> GetUserNotificationsAsync(int userId, int count = 20)
+    {
+        return await _db.Notifications
+            .Where(n => n.UserId == userId)
+            .OrderByDescending(n => n.CreatedAt)
+            .Take(count)
+            .ToListAsync();
+    }
+
     public async Task MarkAllAsReadAsync(int userId)
     {
         var notifications = await _db.Notifications
