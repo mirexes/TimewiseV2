@@ -270,7 +270,7 @@ public class TicketService : ITicketService
     {
         return await _db.Users
             .Where(u => u.IsActive &&
-                (u.Role == UserRole.Technician || u.Role == UserRole.Engineer || u.Role == UserRole.ChiefEngineer))
+                (u.Role == UserRole.Technician || u.Role == UserRole.Engineer || u.Role == UserRole.ChiefEngineer || u.Role == UserRole.Logist || u.Role == UserRole.ManagerTimewise || u.Role == UserRole.Moderator))
             .OrderBy(u => u.LastName)
             .ThenBy(u => u.FirstName)
             .Select(u => new EngineerSelectDto
