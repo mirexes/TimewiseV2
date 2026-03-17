@@ -8,6 +8,7 @@ let _galleryIndex = 0;
 let _emojiPickerReady = false;
 let _lastMessageCount = 0;
 let _isAtBottom = true;
+let _selectedFiles = []; // Выбранные файлы для отправки
 
 // === Набор эмодзи по категориям ===
 const EMOJI_CATEGORIES = [
@@ -113,6 +114,7 @@ function initChat(ticketId, userId) {
     setupChatForm();
     setupEmojiPicker();
     setupTextareaAutoResize();
+    setupFileAttach();
 
     // Обновляем сообщения каждые 5 секунд
     setInterval(loadMessages, 5000);
@@ -234,6 +236,68 @@ function insertEmoji(emoji) {
 
     // Обновляем высоту
     textarea.dispatchEvent(new Event('input'));
+}
+
+// === Прикрепление файлов ===
+function setupFileAttach() {
+    var attachBtn = document.getElementById('chatAttachBtn');
+    var fileInput = document.getElementById('chatFileInput');
+    if (!attachBtn || !fileInput) return;
+
+    attachBtn.addEventListener('click', function () {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', function () {
+        // Добавляем новые файлы к уже выбранным
+        for (var i = 0; i < fileInput.files.length; i++) {
+            _selectedFiles.push(fileInput.files[i]);
+        }
+        fileInput.value = '';
+        renderFilePreview();
+    });
+}
+
+// Отрисовка превью выбранных файлов
+function renderFilePreview() {
+    var container = document.getElementById('chatFilePreview');
+    if (!container) return;
+
+    if (_selectedFiles.length === 0) {
+        container.innerHTML = '';
+        container.style.display = 'none';
+        return;
+    }
+
+    container.style.display = 'flex';
+    var html = '';
+    _selectedFiles.forEach(function (file, index) {
+        var isImage = file.type.startsWith('image/');
+        var isVideo = file.type.startsWith('video/');
+        var thumbHtml = '';
+
+        if (isImage) {
+            thumbHtml = '<img src="' + URL.createObjectURL(file) + '" alt="" class="chat-file-thumb" />';
+        } else if (isVideo) {
+            thumbHtml = '<div class="chat-file-thumb-icon"><i class="bi bi-camera-video-fill"></i></div>';
+        } else {
+            thumbHtml = '<div class="chat-file-thumb-icon"><i class="bi bi-file-earmark"></i></div>';
+        }
+
+        html += '<div class="chat-file-item">' +
+            thumbHtml +
+            '<button type="button" class="chat-file-remove" onclick="removeSelectedFile(' + index + ')" title="Удалить">&times;</button>' +
+            '<div class="chat-file-name">' + escapeHtml(file.name) + '</div>' +
+            '</div>';
+    });
+
+    container.innerHTML = html;
+}
+
+// Удаление файла из превью
+function removeSelectedFile(index) {
+    _selectedFiles.splice(index, 1);
+    renderFilePreview();
 }
 
 // === Загрузка и отрисовка сообщений ===
@@ -371,7 +435,10 @@ function linkify(text) {
 async function sendMessage() {
     var input = document.getElementById('chatInput');
     var text = input.value.trim();
-    if (!text || !currentTicketId) return;
+    var hasFiles = _selectedFiles.length > 0;
+
+    if (!text && !hasFiles) return;
+    if (!currentTicketId) return;
 
     // Закрываем эмодзи-панель
     var picker = document.getElementById('emojiPicker');
@@ -379,19 +446,43 @@ async function sendMessage() {
     var emojiIcon = document.querySelector('#emojiToggle i');
     if (emojiIcon) emojiIcon.className = 'bi bi-emoji-smile';
 
-    // Очищаем поле и сбрасываем высоту
+    // Сохраняем данные на случай ошибки
+    var savedText = text;
+    var savedFiles = _selectedFiles.slice();
+
+    // Очищаем поле и файлы
     input.value = '';
     input.style.height = 'auto';
+    _selectedFiles = [];
+    renderFilePreview();
 
     try {
-        var response = await fetch('/api/chat/send', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                text: text,
-                ticketId: currentTicketId
-            })
-        });
+        var response;
+
+        if (hasFiles) {
+            // Отправка с файлами через multipart/form-data
+            var formData = new FormData();
+            formData.append('text', text);
+            formData.append('ticketId', currentTicketId);
+            savedFiles.forEach(function (file) {
+                formData.append('files', file);
+            });
+
+            response = await fetch('/api/chat/send-with-files', {
+                method: 'POST',
+                body: formData
+            });
+        } else {
+            // Обычная отправка текста
+            response = await fetch('/api/chat/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    text: text,
+                    ticketId: currentTicketId
+                })
+            });
+        }
 
         if (response.ok) {
             _lastMessageCount = 0; // Принудительная перерисовка
@@ -399,9 +490,11 @@ async function sendMessage() {
             loadMessages();
         }
     } catch (e) {
-        // Возвращаем текст при ошибке
-        input.value = text;
+        // Возвращаем текст и файлы при ошибке
+        input.value = savedText;
         input.dispatchEvent(new Event('input'));
+        _selectedFiles = savedFiles;
+        renderFilePreview();
     }
 }
 

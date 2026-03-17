@@ -84,4 +84,32 @@ public class ChatService : IChatService
         _db.ChatMessages.Add(message);
         await _db.SaveChangesAsync();
     }
+
+    public async Task<ChatMessageDto> SendMessageWithAttachmentsAsync(int ticketId, int senderId, string text, IEnumerable<TicketAttachmentFile> files)
+    {
+        var message = new ChatMessage
+        {
+            Text = text,
+            TicketId = ticketId,
+            SenderId = senderId
+        };
+
+        foreach (var file in files)
+        {
+            message.Attachments.Add(new ChatAttachment
+            {
+                FileName = file.FileName,
+                FilePath = file.FilePath,
+                ContentType = file.ContentType,
+                FileSize = file.FileSize
+            });
+        }
+
+        _db.ChatMessages.Add(message);
+        await _db.SaveChangesAsync();
+
+        // Подгружаем связанные данные для ответа
+        await _db.Entry(message).Reference(m => m.Sender).LoadAsync();
+        return message.ToDto();
+    }
 }

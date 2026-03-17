@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace ServiceDesk.Core.DTOs.Chat;
 
 /// <summary>
@@ -7,7 +5,6 @@ namespace ServiceDesk.Core.DTOs.Chat;
 /// </summary>
 public class SendMessageDto
 {
-    [Required(ErrorMessage = "Введите сообщение")]
     public string Text { get; set; } = string.Empty;
 
     public int TicketId { get; set; }
