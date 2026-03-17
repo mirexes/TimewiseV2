@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using ServiceDesk.Application.Helpers;
 using ServiceDesk.Core.DTOs.Tickets;
 using ServiceDesk.Core.Interfaces.Services;
 using ServiceDesk.Web.Extensions;
@@ -26,6 +27,26 @@ public class TicketsApiController : ControllerBase
         return Ok(new { success = true });
     }
 
+    [HttpPost("assign")]
+    public async Task<IActionResult> AssignEngineer([FromBody] AssignEngineerRequest request)
+    {
+        if (!PermissionChecker.CanAssignEngineer(User.GetRole()))
+            return Forbid();
+
+        await _ticketService.AssignEngineerAsync(request.TicketId, request.EngineerId, User.GetUserId());
+        return Ok(new { success = true });
+    }
+
+    [HttpGet("engineers")]
+    public async Task<IActionResult> GetEngineers()
+    {
+        if (!PermissionChecker.CanAssignEngineer(User.GetRole()))
+            return Forbid();
+
+        var engineers = await _ticketService.GetEngineersAsync();
+        return Ok(engineers);
+    }
+
     [HttpGet("filter")]
     public async Task<IActionResult> Filter([FromQuery] TicketFilterDto filter, int page = 1)
     {
@@ -33,4 +54,13 @@ public class TicketsApiController : ControllerBase
             filter, page, 20, User.GetUserId(), User.GetRole());
         return Ok(result);
     }
+}
+
+/// <summary>
+/// Запрос на назначение специалиста
+/// </summary>
+public class AssignEngineerRequest
+{
+    public int TicketId { get; set; }
+    public int EngineerId { get; set; }
 }

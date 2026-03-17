@@ -136,6 +136,7 @@ public class TicketService : ITicketService
 
         var dto = ticket.ToDetailDto();
         dto.AllowedTransitions = TicketStatusTransitions.GetAllowedTransitions(ticket.Status);
+        dto.CanAssignEngineer = PermissionChecker.CanAssignEngineer(currentUserRole);
         return dto;
     }
 
@@ -263,6 +264,24 @@ public class TicketService : ITicketService
 
         await _audit.LogAsync(AuditAction.Assigned, "Ticket", ticket.Id,
             oldEngineer, engineerId.ToString(), currentUserId);
+    }
+
+    public async Task<IEnumerable<EngineerSelectDto>> GetEngineersAsync()
+    {
+        return await _db.Users
+            .Where(u => u.IsActive &&
+                (u.Role == UserRole.Technician || u.Role == UserRole.Engineer || u.Role == UserRole.ChiefEngineer))
+            .OrderBy(u => u.LastName)
+            .ThenBy(u => u.FirstName)
+            .Select(u => new EngineerSelectDto
+            {
+                Id = u.Id,
+                FullName = (u.LastName + " " + u.FirstName + " " + (u.MiddleName ?? "")).Trim(),
+                Role = u.Role == UserRole.Technician ? "Техник"
+                    : u.Role == UserRole.Engineer ? "Инженер"
+                    : "Главный инженер"
+            })
+            .ToListAsync();
     }
 
     public async Task<IEnumerable<TicketListDto>> GetByEngineerAsync(int engineerId)

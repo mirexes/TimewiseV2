@@ -53,7 +53,7 @@
                     @foreach (var transition in Model.AllowedTransitions)
                     {
                         <button class="btn btn-outline-primary btn-sm"
-                                onclick="updateStatus(@Model.Id, '@transition')">
+                                onclick="updateStatus(@Model.Id, @((int)transition))">
                             @transition
                         </button>
                     }
@@ -98,13 +98,29 @@
                         <p class="mb-0">@Model.EquipmentModel (@Model.EquipmentSerialNumber)</p>
                     </div>
                 }
-                @if (Model.EngineerName is not null)
-                {
-                    <div class="mb-3">
-                        <small class="text-muted">Специалист</small>
+                <div class="mb-3">
+                    <small class="text-muted">Специалист</small>
+                    @if (Model.EngineerName is not null)
+                    {
                         <p class="mb-0"><i class="bi bi-person"></i> @Model.EngineerName</p>
-                    </div>
-                }
+                    }
+                    else
+                    {
+                        <p class="mb-0 text-muted fst-italic">Не назначен</p>
+                    }
+                    @if (Model.CanAssignEngineer)
+                    {
+                        <div class="mt-2">
+                            <select id="engineerSelect" class="form-select form-select-sm">
+                                <option value="">Выберите специалиста...</option>
+                            </select>
+                            <button class="btn btn-sm btn-primary mt-1 w-100"
+                                    onclick="assignEngineer(@Model.Id)">
+                                <i class="bi bi-person-plus"></i> Назначить
+                            </button>
+                        </div>
+                    }
+                </div>
                 <div class="mb-3">
                     <small class="text-muted">Создал</small>
                     <p class="mb-0">@Model.CreatedByName</p>

@@ -17,4 +17,6 @@ public interface ITicketService
     Task UpdateStatusAsync(UpdateTicketStatusDto dto, int currentUserId);
     Task AssignEngineerAsync(int ticketId, int engineerId, int currentUserId);
     Task<IEnumerable<TicketListDto>> GetByEngineerAsync(int engineerId);
+    /// <summary>Получить список специалистов (техники + инженеры + главные инженеры)</summary>
+    Task<IEnumerable<EngineerSelectDto>> GetEngineersAsync();
 }
