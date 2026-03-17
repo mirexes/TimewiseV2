@@ -1,0 +1,107 @@
+@using ServiceDesk.Core.DTOs.Users
+@using ServiceDesk.Core.DTOs.Common
+@model CreateUserDto
+@{
+    ViewData["Title"] = "Новый пользователь";
+    var clients = ViewBag.Clients as IEnumerable<SelectOptionDto> ?? Enumerable.Empty<SelectOptionDto>();
+}
+
+@functions {
+    string GetRoleName(UserRole role) => role switch
+    {
+        UserRole.Technician => "Техник",
+        UserRole.Engineer => "Инженер",
+        UserRole.ChiefEngineer => "Главный инженер",
+        UserRole.Logist => "Логист",
+        UserRole.ManagerTimewise => "Менеджер Timewise",
+        UserRole.ManagerClient => "Менеджер клиента",
+        UserRole.Client => "Клиент",
+        UserRole.Moderator => "Модератор",
+        _ => role.ToString()
+    };
+}
+
+<div class="mb-3">
+    <a href="/Users" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> К списку
+    </a>
+</div>
+
+<div class="card" style="max-width: 600px;">
+    <div class="card-header"><h5 class="mb-0">Новый пользователь</h5></div>
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="LastName" class="form-label">Фамилия *</label>
+                <input asp-for="LastName" class="form-control" placeholder="Иванов" />
+                <span asp-validation-for="LastName" class="text-danger small"></span>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="FirstName" class="form-label">Имя *</label>
+                    <input asp-for="FirstName" class="form-control" placeholder="Иван" />
+                    <span asp-validation-for="FirstName" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="MiddleName" class="form-label">Отчество</label>
+                    <input asp-for="MiddleName" class="form-control" placeholder="Иванович" />
+                    <span asp-validation-for="MiddleName" class="text-danger small"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Phone" class="form-label">Телефон *</label>
+                    <input asp-for="Phone" type="tel" class="form-control" placeholder="+7 (999) 123-45-67" />
+                    <span asp-validation-for="Phone" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Email" class="form-label">Email</label>
+                    <input asp-for="Email" type="email" class="form-control" placeholder="user@example.ru" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Role" class="form-label">Роль *</label>
+                <select asp-for="Role" class="form-select" id="roleSelect">
+                    @foreach (var role in Enum.GetValues<UserRole>())
+                    {
+                        <option value="@role" @(Model.Role == role ? "selected" : "")>@GetRoleName(role)</option>
+                    }
+                </select>
+                <span asp-validation-for="Role" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Company" class="form-label">Компания</label>
+                <input asp-for="Company" class="form-control" placeholder="Название компании" />
+                <span asp-validation-for="Company" class="text-danger small"></span>
+            </div>
+            <div class="mb-3" id="clientSelectGroup" style="display: none;">
+                <label asp-for="ClientId" class="form-label">Клиент (организация)</label>
+                <select asp-for="ClientId" class="form-select">
+                    <option value="">— Не выбран —</option>
+                    @foreach (var client in clients)
+                    {
+                        <option value="@client.Id">@client.Text</option>
+                    }
+                </select>
+                <span asp-validation-for="ClientId" class="text-danger small"></span>
+            </div>
+            <div class="mb-3 form-check">
+                <input asp-for="IsActive" type="checkbox" class="form-check-input" checked="checked" />
+                <label asp-for="IsActive" class="form-check-label">Активен</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg"></i> Создать
+            </button>
+            <a href="/Users" class="btn btn-outline-secondary ms-2">Отмена</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/users.js" asp-append-version="true"></script>
+}
