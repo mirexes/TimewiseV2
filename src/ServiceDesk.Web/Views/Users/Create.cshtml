@@ -68,7 +68,7 @@
                 <select asp-for="Role" class="form-select" id="roleSelect">
                     @foreach (var role in Enum.GetValues<UserRole>())
                     {
-                        <option value="@role" @(Model.Role == role ? "selected" : "")>@GetRoleName(role)</option>
+                        <!option value="@role" @(Model.Role == role ? "selected" : "")>@GetRoleName(role)</!option>
                     }
                 </select>
                 <span asp-validation-for="Role" class="text-danger small"></span>

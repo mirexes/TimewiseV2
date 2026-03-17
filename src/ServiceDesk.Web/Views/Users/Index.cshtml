@@ -51,19 +51,19 @@
             <div class="col-md-3">
                 <label class="form-label small text-muted mb-0">Роль</label>
                 <select name="Role" class="form-select form-select-sm">
-                    <option value="" @(filter.Role == null ? "selected" : "")>Все роли</option>
+                    <!option value="" @(filter.Role == null ? "selected" : "")>Все роли</!option>
                     @foreach (var role in Enum.GetValues<UserRole>())
                     {
-                        <option value="@role" @(filter.Role == role ? "selected" : "")>@GetRoleName(role)</option>
+                        <!option value="@role" @(filter.Role == role ? "selected" : "")>@GetRoleName(role)</!option>
                     }
                 </select>
             </div>
             <div class="col-md-2">
                 <label class="form-label small text-muted mb-0">Статус</label>
                 <select name="IsActive" class="form-select form-select-sm">
-                    <option value="" @(filter.IsActive == null ? "selected" : "")>Все</option>
-                    <option value="true" @(filter.IsActive == true ? "selected" : "")>Активные</option>
-                    <option value="false" @(filter.IsActive == false ? "selected" : "")>Неактивные</option>
+                    <!option value="" @(filter.IsActive == null ? "selected" : "")>Все</!option>
+                    <!option value="true" @(filter.IsActive == true ? "selected" : "")>Активные</!option>
+                    <!option value="false" @(filter.IsActive == false ? "selected" : "")>Неактивные</!option>
                 </select>
             </div>
             <div class="col-md-1">

@@ -70,7 +70,7 @@
                 <select asp-for="Role" class="form-select" id="roleSelect">
                     @foreach (var role in Enum.GetValues<UserRole>())
                     {
-                        <option value="@role" @(Model.Role == role ? "selected" : "")>@GetRoleName(role)</option>
+                        <!option value="@role" @(Model.Role == role ? "selected" : "")>@GetRoleName(role)</!option>
                     }
                 </select>
                 <span asp-validation-for="Role" class="text-danger small"></span>
@@ -86,7 +86,7 @@
                     <option value="">— Не выбран —</option>
                     @foreach (var client in clients)
                     {
-                        <option value="@client.Id" @(Model.ClientId == client.Id ? "selected" : "")>@client.Text</option>
+                        <!option value="@client.Id" @(Model.ClientId == client.Id ? "selected" : "")>@client.Text</!option>
                     }
                 </select>
                 <span asp-validation-for="ClientId" class="text-danger small"></span>
