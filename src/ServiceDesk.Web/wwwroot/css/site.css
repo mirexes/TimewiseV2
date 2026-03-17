@@ -144,6 +144,11 @@ body {
     overflow: hidden;
 }
 
+/* Полноэкранный чат компании */
+.chat-container.company-chat-fullpage {
+    height: calc(100vh - 200px);
+}
+
 .chat-messages {
     display: flex;
     flex-direction: column;

@@ -26,6 +26,8 @@ public class AppDbContext : DbContext
     public DbSet<TicketSparePart> TicketSpareParts => Set<TicketSparePart>();
     public DbSet<TicketAttachment> TicketAttachments => Set<TicketAttachment>();
     public DbSet<TicketPhoto> TicketPhotos => Set<TicketPhoto>();
+    public DbSet<CompanyChat> CompanyChats => Set<CompanyChat>();
+    public DbSet<CompanyChatMember> CompanyChatMembers => Set<CompanyChatMember>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
