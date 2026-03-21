@@ -49,7 +49,7 @@ public class AccountController : Controller
     public async Task<IActionResult> VerifyCode(string phone)
     {
         // В режиме разработки показываем код на странице
-        if (_env.IsDevelopment())
+        if (true)//_env.IsDevelopment())
         {
             var code = await _authService.GetSmsCodeAsync(phone);
             ViewBag.DevSmsCode = code;
