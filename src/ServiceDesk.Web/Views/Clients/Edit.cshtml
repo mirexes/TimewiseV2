@@ -2,6 +2,7 @@
 @{
     var clientId = (int)ViewBag.ClientId;
     var clientName = ViewBag.ClientName as string ?? "Клиент";
+    var ttkFilePath = ViewBag.TtkFilePath as string;
     ViewData["Title"] = $"Редактирование: {clientName}";
 }
 
@@ -14,7 +15,7 @@
 <div class="card" style="max-width: 600px;">
     <div class="card-header"><h5 class="mb-0">Редактирование клиента</h5></div>
     <div class="card-body">
-        <form asp-action="Edit" asp-route-id="@clientId" method="post">
+        <form asp-action="Edit" asp-route-id="@clientId" method="post" enctype="multipart/form-data">
             @Html.AntiForgeryToken()
             <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
@@ -49,6 +50,19 @@
                 <label asp-for="LegalAddress" class="form-label">Юридический адрес</label>
                 <textarea asp-for="LegalAddress" class="form-control" rows="2"></textarea>
                 <span asp-validation-for="LegalAddress" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Фото ТТК настроек</label>
+                @if (!string.IsNullOrEmpty(ttkFilePath))
+                {
+                    <div class="mb-2">
+                        <img src="@ttkFilePath" alt="Текущее фото ТТК" class="img-thumbnail"
+                             style="max-height: 200px; cursor: pointer;"
+                             onclick="window.open(this.src, '_blank')" />
+                        <small class="text-muted d-block">Текущее фото ТТК (загрузите новое для замены)</small>
+                    </div>
+                }
+                <input type="file" name="ttkPhoto" class="form-control" accept="image/*" />
             </div>
             <div class="mb-3 form-check">
                 <input asp-for="IsActive" type="checkbox" class="form-check-input" />

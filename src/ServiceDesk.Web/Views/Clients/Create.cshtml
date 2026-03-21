@@ -12,7 +12,7 @@
 <div class="card" style="max-width: 600px;">
     <div class="card-header"><h5 class="mb-0">Новый клиент</h5></div>
     <div class="card-body">
-        <form asp-action="Create" method="post">
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
             @Html.AntiForgeryToken()
             <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
@@ -48,6 +48,11 @@
                 <textarea asp-for="LegalAddress" class="form-control" rows="2"
                           placeholder="г. Москва, ул. Примерная, д. 1"></textarea>
                 <span asp-validation-for="LegalAddress" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Фото ТТК настроек</label>
+                <input type="file" name="ttkPhoto" class="form-control" accept="image/*" />
+                <small class="text-muted">Фото технико-технологической карты настроек</small>
             </div>
             <div class="mb-3 form-check">
                 <input asp-for="IsActive" type="checkbox" class="form-check-input" checked="checked" />
