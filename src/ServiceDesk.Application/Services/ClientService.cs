@@ -131,7 +131,7 @@ public class ClientService : IClientService
         return client?.ToDetailDto();
     }
 
-    public async Task<int> CreateAsync(CreateClientDto dto)
+    public async Task<int> CreateAsync(CreateClientDto dto, string? ttkFilePath = null)
     {
         var client = new Client
         {
@@ -141,7 +141,8 @@ public class ClientService : IClientService
             Phone = dto.Phone,
             Email = dto.Email,
             LegalAddress = dto.LegalAddress,
-            IsActive = dto.IsActive
+            IsActive = dto.IsActive,
+            TtkFilePath = ttkFilePath
         };
 
         _db.Clients.Add(client);
@@ -149,7 +150,7 @@ public class ClientService : IClientService
         return client.Id;
     }
 
-    public async Task UpdateAsync(int id, CreateClientDto dto)
+    public async Task UpdateAsync(int id, CreateClientDto dto, string? ttkFilePath = null)
     {
         var client = await _db.Clients.FindAsync(id)
             ?? throw new KeyNotFoundException($"Клиент {id} не найден");
@@ -162,7 +163,19 @@ public class ClientService : IClientService
         client.LegalAddress = dto.LegalAddress;
         client.IsActive = dto.IsActive;
 
+        // Обновляем путь к фото ТТК только если передан новый файл
+        if (ttkFilePath is not null)
+            client.TtkFilePath = ttkFilePath;
+
         await _db.SaveChangesAsync();
+    }
+
+    public async Task<string?> GetTtkFilePathAsync(int clientId)
+    {
+        return await _db.Clients
+            .Where(c => c.Id == clientId)
+            .Select(c => c.TtkFilePath)
+            .FirstOrDefaultAsync();
     }
 
     public async Task ToggleActiveAsync(int id)

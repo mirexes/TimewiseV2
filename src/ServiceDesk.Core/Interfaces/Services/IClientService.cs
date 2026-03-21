@@ -15,8 +15,9 @@ public interface IClientService
 
     Task<PagedResultDto<ClientListDto>> GetAllAsync(ClientFilterDto filter);
     Task<ClientDetailDto?> GetByIdAsync(int id);
-    Task<int> CreateAsync(CreateClientDto dto);
-    Task UpdateAsync(int id, CreateClientDto dto);
+    Task<int> CreateAsync(CreateClientDto dto, string? ttkFilePath = null);
+    Task UpdateAsync(int id, CreateClientDto dto, string? ttkFilePath = null);
+    Task<string?> GetTtkFilePathAsync(int clientId);
     Task ToggleActiveAsync(int id);
 
     Task<int> AddContactPersonAsync(int clientId, CreateContactPersonDto dto);

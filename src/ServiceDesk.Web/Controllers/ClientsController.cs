@@ -14,10 +14,12 @@ namespace ServiceDesk.Web.Controllers;
 public class ClientsController : Controller
 {
     private readonly IClientService _clientService;
+    private readonly IWebHostEnvironment _env;
 
-    public ClientsController(IClientService clientService)
+    public ClientsController(IClientService clientService, IWebHostEnvironment env)
     {
         _clientService = clientService;
+        _env = env;
     }
 
     [HttpGet]
@@ -44,10 +46,11 @@ public class ClientsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(CreateClientDto dto)
+    public async Task<IActionResult> Create(CreateClientDto dto, IFormFile? ttkPhoto)
     {
         if (!ModelState.IsValid) return View(dto);
-        var id = await _clientService.CreateAsync(dto);
+        var ttkFilePath = await SaveTtkPhotoAsync(ttkPhoto);
+        var id = await _clientService.CreateAsync(dto, ttkFilePath);
         return RedirectToAction(nameof(Details), new { id });
     }
 
@@ -70,12 +73,13 @@ public class ClientsController : Controller
 
         ViewBag.ClientId = id;
         ViewBag.ClientName = client.Name;
+        ViewBag.TtkFilePath = client.TtkFilePath;
         return View(dto);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, CreateClientDto dto)
+    public async Task<IActionResult> Edit(int id, CreateClientDto dto, IFormFile? ttkPhoto)
     {
         if (!ModelState.IsValid)
         {
@@ -83,7 +87,8 @@ public class ClientsController : Controller
             return View(dto);
         }
 
-        await _clientService.UpdateAsync(id, dto);
+        var ttkFilePath = await SaveTtkPhotoAsync(ttkPhoto);
+        await _clientService.UpdateAsync(id, dto, ttkFilePath);
         return RedirectToAction(nameof(Details), new { id });
     }
 
@@ -110,5 +115,23 @@ public class ClientsController : Controller
     {
         await _clientService.RemoveContactPersonAsync(contactPersonId);
         return RedirectToAction(nameof(Details), new { id });
+    }
+
+    /// <summary>Сохранение файла фото ТТК на диск</summary>
+    private async Task<string?> SaveTtkPhotoAsync(IFormFile? file)
+    {
+        if (file is null || file.Length == 0) return null;
+
+        var uploadsDir = Path.Combine(_env.WebRootPath, "uploads", "ttk");
+        Directory.CreateDirectory(uploadsDir);
+
+        var ext = Path.GetExtension(file.FileName);
+        var uniqueName = $"ttk_{Guid.NewGuid():N}{ext}";
+        var filePath = Path.Combine(uploadsDir, uniqueName);
+
+        await using var stream = new FileStream(filePath, FileMode.Create);
+        await file.CopyToAsync(stream);
+
+        return $"/uploads/ttk/{uniqueName}";
     }
 }
