@@ -197,6 +197,7 @@ public class TicketService : ITicketService
             Description = dto.Description,
             ServicePointId = servicePointId,
             EquipmentId = dto.EquipmentId,
+            AssignedEngineerId = dto.AssignedEngineerId,
             Deadline = dto.Deadline,
             CreatedByUserId = currentUserId
         };
