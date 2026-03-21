@@ -10,4 +10,9 @@ public interface IAuthService
 {
     Task<bool> SendCodeAsync(SendCodeDto dto);
     Task<AppUser?> VerifyCodeAsync(VerifyCodeDto dto);
+
+    /// <summary>
+    /// Получение текущего SMS-кода по номеру телефона (только для разработки)
+    /// </summary>
+    Task<string?> GetSmsCodeAsync(string phone);
 }

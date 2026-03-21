@@ -93,4 +93,10 @@ public class AuthService : IAuthService
 
         return user;
     }
+
+    public async Task<string?> GetSmsCodeAsync(string phone)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Phone == phone);
+        return user?.SmsCode;
+    }
 }
