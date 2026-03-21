@@ -12,10 +12,12 @@ namespace ServiceDesk.Web.Controllers;
 public class AccountController : Controller
 {
     private readonly IAuthService _authService;
+    private readonly IWebHostEnvironment _env;
 
-    public AccountController(IAuthService authService)
+    public AccountController(IAuthService authService, IWebHostEnvironment env)
     {
         _authService = authService;
+        _env = env;
     }
 
     [HttpGet]
@@ -44,8 +46,15 @@ public class AccountController : Controller
     }
 
     [HttpGet]
-    public IActionResult VerifyCode(string phone)
+    public async Task<IActionResult> VerifyCode(string phone)
     {
+        // В режиме разработки показываем код на странице
+        if (_env.IsDevelopment())
+        {
+            var code = await _authService.GetSmsCodeAsync(phone);
+            ViewBag.DevSmsCode = code;
+        }
+
         return View(new VerifyCodeDto { Phone = phone });
     }
 
