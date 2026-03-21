@@ -3,6 +3,7 @@
     ViewData["Title"] = "Новая заявка";
     var servicePoints = ViewBag.ServicePoints as IEnumerable<SelectOptionDto>
         ?? Enumerable.Empty<SelectOptionDto>();
+    var engineers = ViewBag.Engineers as IEnumerable<EngineerSelectDto>;
     var yandexApiKey = (string)(ViewBag.YandexMapsApiKey ?? "");
 }
 
@@ -100,6 +101,20 @@
                     <label asp-for="Deadline" class="form-label">Дедлайн (необязательно)</label>
                     <input asp-for="Deadline" type="datetime-local" class="form-control" />
                 </div>
+
+                @if (engineers != null && engineers.Any())
+                {
+                    <div class="col-md-6">
+                        <label asp-for="AssignedEngineerId" class="form-label">Специалист (необязательно)</label>
+                        <select asp-for="AssignedEngineerId" class="form-select">
+                            <option value="">Не назначен</option>
+                            @foreach (var eng in engineers)
+                            {
+                                <option value="@eng.Id">@eng.FullName — @eng.Role</option>
+                            }
+                        </select>
+                    </div>
+                }
             </div>
 
             <div class="mt-4">

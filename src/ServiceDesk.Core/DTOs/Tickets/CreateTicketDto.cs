@@ -31,5 +31,8 @@ public class CreateTicketDto
 
     public int? EquipmentId { get; set; }
 
+    /// <summary>Специалист, назначаемый при создании (необязательно)</summary>
+    public int? AssignedEngineerId { get; set; }
+
     public DateTime? Deadline { get; set; }
 }

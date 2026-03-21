@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using ServiceDesk.Core.DTOs.Tickets;
 using ServiceDesk.Core.Enums;
 using ServiceDesk.Core.Interfaces.Services;
+using ServiceDesk.Application.Helpers;
 using ServiceDesk.Web.Extensions;
 using ServiceDesk.Web.Filters;
 
@@ -57,6 +58,12 @@ public class TicketsController : Controller
     {
         ViewBag.ServicePoints = await _clientService.GetServicePointsForSelectAsync(User.GetUserId(), User.GetRole());
         ViewBag.YandexMapsApiKey = _config["YandexMaps:ApiKey"] ?? "";
+
+        // Специалисты доступны всем, кроме клиента и менеджера клиента
+        var role = User.GetRole();
+        if (role is not UserRole.Client and not UserRole.ManagerClient)
+            ViewBag.Engineers = await _ticketService.GetEngineersAsync();
+
         return View();
     }
 
@@ -77,6 +84,9 @@ public class TicketsController : Controller
         {
             ViewBag.ServicePoints = await _clientService.GetServicePointsForSelectAsync(User.GetUserId(), User.GetRole());
             ViewBag.YandexMapsApiKey = _config["YandexMaps:ApiKey"] ?? "";
+            var role = User.GetRole();
+            if (role is not UserRole.Client and not UserRole.ManagerClient)
+                ViewBag.Engineers = await _ticketService.GetEngineersAsync();
             return View(dto);
         }
 
