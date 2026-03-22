@@ -56,8 +56,13 @@ public class AppUser : BaseEntity
     /// <summary>Полное ФИО</summary>
     public string FullName => $"{LastName} {FirstName} {MiddleName}".Trim();
 
+    /// <summary>Дата согласия на обработку ПД (ФЗ-152)</summary>
+    public DateTime? PersonalDataConsentAt { get; set; }
+
     // Навигационные свойства
     public ICollection<Ticket> AssignedTickets { get; set; } = new List<Ticket>();
     public ICollection<ChatMessage> ChatMessages { get; set; } = new List<ChatMessage>();
     public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+    public ICollection<UserConsent> Consents { get; set; } = new List<UserConsent>();
+    public ICollection<PersonalDataRequest> PersonalDataRequests { get; set; } = new List<PersonalDataRequest>();
 }

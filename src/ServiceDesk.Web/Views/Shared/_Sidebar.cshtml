@@ -75,6 +75,22 @@
                     <span>Пользователи</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link @(currentController == "PersonalData" && ViewContext.RouteData.Values["action"]?.ToString() == "Requests" ? "active" : "")" href="/PersonalData/Requests">
+                    <i class="bi bi-shield-lock"></i>
+                    <span>ФЗ-152 Запросы ПД</span>
+                </a>
+            </li>
         }
+
+        <li class="nav-item mt-3">
+            <small class="nav-section-title px-3 text-muted text-uppercase">Настройки</small>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(currentController == "PersonalData" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")" href="/PersonalData/Index">
+                <i class="bi bi-person-lock"></i>
+                <span>Мои данные (ФЗ-152)</span>
+            </a>
+        </li>
     </ul>
 </nav>

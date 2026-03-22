@@ -29,6 +29,8 @@ public class AppDbContext : DbContext
     public DbSet<CompanyChat> CompanyChats => Set<CompanyChat>();
     public DbSet<CompanyChatMember> CompanyChatMembers => Set<CompanyChatMember>();
     public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
+    public DbSet<UserConsent> UserConsents => Set<UserConsent>();
+    public DbSet<PersonalDataRequest> PersonalDataRequests => Set<PersonalDataRequest>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
