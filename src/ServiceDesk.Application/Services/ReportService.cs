@@ -100,23 +100,35 @@ public class ReportService : IReportService
         var query = _db.Tickets.AsQueryable();
 
         if (filter.DateFrom.HasValue)
-            query = query.Where(t => t.CreatedAt >= filter.DateFrom.Value);
+            query = query.Where(t => t.CreatedAt >= filter.DateFrom.Value.Date);
         if (filter.DateTo.HasValue)
-            query = query.Where(t => t.CreatedAt <= filter.DateTo.Value);
+            query = query.Where(t => t.CreatedAt < filter.DateTo.Value.Date.AddDays(1));
 
+        // Группировка только по идентификатору специалиста (без навигационных свойств в ключе)
         var stats = await query
             .Where(t => t.AssignedEngineerId.HasValue)
-            .GroupBy(t => new { t.AssignedEngineerId, t.AssignedEngineer!.LastName, t.AssignedEngineer.FirstName })
+            .GroupBy(t => t.AssignedEngineerId!.Value)
             .Select(g => new EngineerStatsDto
             {
-                EngineerId = g.Key.AssignedEngineerId!.Value,
-                EngineerName = g.Key.LastName + " " + g.Key.FirstName,
+                EngineerId = g.Key,
                 TotalTickets = g.Count(),
                 CompletedTickets = g.Count(t =>
                     t.Status == TicketStatus.Completed || t.Status == TicketStatus.CompletedRemotely),
                 InProgressTickets = g.Count(t => t.Status == TicketStatus.InProgress)
             })
             .ToListAsync();
+
+        // Загрузка имён специалистов отдельным запросом
+        var engineerIds = stats.Select(s => s.EngineerId).ToList();
+        var engineerNames = await _db.Users
+            .Where(u => engineerIds.Contains(u.Id))
+            .Select(u => new { u.Id, u.LastName, u.FirstName })
+            .ToDictionaryAsync(u => u.Id, u => u.LastName + " " + u.FirstName);
+
+        foreach (var s in stats)
+        {
+            s.EngineerName = engineerNames.GetValueOrDefault(s.EngineerId, "Неизвестный");
+        }
 
         return stats;
     }
