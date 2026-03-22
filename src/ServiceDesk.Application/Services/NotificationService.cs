@@ -22,13 +22,17 @@ public class NotificationService : INotificationService
 
     public async Task OnTicketStatusChangedAsync(Ticket ticket, TicketStatus oldStatus)
     {
-        // Уведомляем назначенного специалиста
+        // Уведомляем назначенного специалиста (кроме техников — они получают только уведомления о назначении)
         if (ticket.AssignedEngineerId.HasValue)
         {
+            var user = await _db.Users.FindAsync(ticket.AssignedEngineerId.Value);
+            if (user?.Role == UserRole.Technician)
+                return;
+
             var notification = new Notification
             {
                 Title = $"Заявка {ticket.TicketNumber}",
-                Message = $"Статус изменён: {oldStatus} → {ticket.Status}",
+                Message = $"Статус изменён: {GetStatusDisplayName(oldStatus)} → {GetStatusDisplayName(ticket.Status)}",
                 Url = $"/Tickets/Details/{ticket.Id}",
                 UserId = ticket.AssignedEngineerId.Value,
                 TicketId = ticket.Id
@@ -42,6 +46,30 @@ public class NotificationService : INotificationService
                 notification.Message,
                 notification.Url);
         }
+    }
+
+    public async Task OnTicketAssignedAsync(Ticket ticket)
+    {
+        // Уведомляем назначенного специалиста о новой заявке
+        if (!ticket.AssignedEngineerId.HasValue)
+            return;
+
+        var notification = new Notification
+        {
+            Title = $"Новая заявка {ticket.TicketNumber}",
+            Message = "На вас назначена заявка",
+            Url = $"/Tickets/Details/{ticket.Id}",
+            UserId = ticket.AssignedEngineerId.Value,
+            TicketId = ticket.Id
+        };
+        _db.Notifications.Add(notification);
+        await _db.SaveChangesAsync();
+
+        await _webPush.SendAsync(
+            ticket.AssignedEngineerId.Value,
+            notification.Title,
+            notification.Message,
+            notification.Url);
     }
 
     public async Task<int> GetUnreadCountAsync(int userId)
@@ -70,4 +98,23 @@ public class NotificationService : INotificationService
 
         await _db.SaveChangesAsync();
     }
+
+    /// <summary>
+    /// Русское название статуса заявки
+    /// </summary>
+    private static string GetStatusDisplayName(TicketStatus status) => status switch
+    {
+        TicketStatus.New => "Новая",
+        TicketStatus.Processed => "Обработана",
+        TicketStatus.CompletedRemotely => "Дистанционно",
+        TicketStatus.PartsApproval => "Согласование",
+        TicketStatus.RepairApproved => "Согласована",
+        TicketStatus.DepartureConfirmation => "Подтверждение выезда",
+        TicketStatus.EngineerEnRoute => "В пути",
+        TicketStatus.InProgress => "Выполнение",
+        TicketStatus.Completed => "Выполнена",
+        TicketStatus.ContinuationRequired => "Продолжение",
+        TicketStatus.Cancelled => "Отменена",
+        _ => status.ToString()
+    };
 }
