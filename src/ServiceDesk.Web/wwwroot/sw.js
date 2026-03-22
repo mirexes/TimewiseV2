@@ -1,6 +1,6 @@
 // Service Worker для PWA и офлайн-доступа
 
-const CACHE_NAME = 'servicedesk-v1';
+const CACHE_NAME = 'teamwise-v1';
 const STATIC_ASSETS = [
     '/',
     '/css/site.css',
@@ -68,7 +68,7 @@ self.addEventListener('push', function (event) {
     }
 
     event.waitUntil(
-        self.registration.showNotification(data.title || 'ServiceDesk', {
+        self.registration.showNotification(data.title || 'TEAMWISE', {
             body: data.message || '',
             icon: '/icons/icon-192.png',
             badge: '/icons/icon-192.png',
