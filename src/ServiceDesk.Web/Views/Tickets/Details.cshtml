@@ -331,8 +331,8 @@
 </div>
 
 @section Scripts {
-    <script src="~/js/chat.js"></script>
-    <script src="~/js/tickets.js"></script>
+    <script src="~/js/chat.js?dd=1" asp-append-version="true"></script>
+    <script src="~/js/tickets.js?dd=1" asp-append-version="true"></script>
     <script>
         // Инициализация чата для текущей заявки
         initChat(@Model.Id, @User.GetUserId());
