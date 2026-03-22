@@ -13,17 +13,17 @@
         <i class="bi bi-speedometer2"></i>
         <span>Главная</span>
     </a>
-    <a class="bottom-nav-item @(currentController == "Tickets" ? "active" : "")" href="/Tickets">
+    <a class="bottom-nav-item @(currentController == "Tickets" ? "active" : "")" href="/Tickets/Index">
         <i class="bi bi-ticket-detailed"></i>
         <span>Заявки</span>
     </a>
-    <a class="bottom-nav-item @(currentController == "Equipment" ? "active" : "")" href="/Equipment">
+    <a class="bottom-nav-item @(currentController == "Equipment" ? "active" : "")" href="/Equipment/Index">
         <i class="bi bi-cpu"></i>
         <span>Оборудование</span>
     </a>
     @if (showClients)
     {
-        <a class="bottom-nav-item @(currentController == "Clients" ? "active" : "")" href="/Clients">
+        <a class="bottom-nav-item @(currentController == "Clients" ? "active" : "")" href="/Clients/Index">
             <i class="bi bi-building"></i>
             <span>Клиенты</span>
         </a>
