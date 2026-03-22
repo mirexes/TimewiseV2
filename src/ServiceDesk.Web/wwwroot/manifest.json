@@ -1,6 +1,6 @@
 {
-    "name": "ServiceDesk — Управление заявками",
-    "short_name": "ServiceDesk",
+    "name": "TEAMWISE — Управление заявками",
+    "short_name": "TEAMWISE",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
