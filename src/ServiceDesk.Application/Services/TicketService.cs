@@ -283,6 +283,9 @@ public class TicketService : ITicketService
 
         await _audit.LogAsync(AuditAction.Assigned, "Ticket", ticket.Id,
             oldEngineer, engineerId.ToString(), currentUserId);
+
+        // Уведомляем назначенного специалиста
+        await _notifications.OnTicketAssignedAsync(ticket);
     }
 
     public async Task<IEnumerable<EngineerSelectDto>> GetEngineersAsync()
