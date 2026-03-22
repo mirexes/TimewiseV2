@@ -42,6 +42,28 @@ public class TicketDetailDto
     /// <summary>Фото акта выполненных работ</summary>
     public List<TicketPhotoDto> CompletionPhotos { get; set; } = new();
 
+    /// <summary>Отображаемое название типа</summary>
+    public string TypeDisplayName => Type switch
+    {
+        TicketType.Repair => "Ремонт",
+        TicketType.Maintenance => "Техническое обслуживание",
+        TicketType.Installation => "Установка",
+        TicketType.Dismantling => "Демонтаж",
+        TicketType.Delivery => "Поставка",
+        TicketType.Consultation => "Консультация",
+        _ => Type.ToString()
+    };
+
+    /// <summary>Отображаемое название приоритета</summary>
+    public string PriorityDisplayName => Priority switch
+    {
+        TicketPriority.Low => "Низкий",
+        TicketPriority.Normal => "Обычный",
+        TicketPriority.High => "Высокий",
+        TicketPriority.Critical => "Критичный",
+        _ => Priority.ToString()
+    };
+
     /// <summary>Допустимые переходы из текущего статуса</summary>
     public TicketStatus[] AllowedTransitions { get; set; } = [];
 
