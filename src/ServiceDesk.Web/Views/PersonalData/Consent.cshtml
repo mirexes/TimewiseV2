@@ -1,0 +1,72 @@
+@{
+    ViewData["Title"] = "Согласие на обработку ПД";
+    Layout = "_Layout";
+}
+
+<div class="d-flex justify-content-center align-items-center" style="min-height: 60vh;">
+    <div class="card" style="width: 100%; max-width: 600px;">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-shield-lock me-2"></i>Согласие на обработку персональных данных</h5>
+        </div>
+        <div class="card-body">
+            <p>
+                Для продолжения работы с системой TEAMWISE ServiceDesk необходимо дать согласие
+                на обработку персональных данных в соответствии с Федеральным законом от 27.07.2006
+                № 152-ФЗ «О персональных данных».
+            </p>
+
+            <div class="border rounded p-3 mb-3" style="max-height: 300px; overflow-y: auto; background: var(--bs-tertiary-bg);">
+                <p>
+                    Я даю согласие на обработку моих персональных данных (ФИО, номер телефона,
+                    адрес электронной почты) оператору ООО «TEAMWISE» в соответствии с Федеральным
+                    законом от 27.07.2006 № 152-ФЗ «О персональных данных» в целях предоставления
+                    сервиса управления заявками на обслуживание оборудования.
+                </p>
+                <p>
+                    Персональные данные обрабатываются с использованием средств автоматизации.
+                    Обработка включает: сбор, запись, систематизацию, накопление, хранение,
+                    уточнение (обновление, изменение), извлечение, использование, передачу
+                    (предоставление, доступ), обезличивание, блокирование, удаление, уничтожение.
+                </p>
+                <p>
+                    Согласие действует до момента его отзыва. Отзыв согласия осуществляется
+                    через личный кабинет в разделе «Персональные данные» или путём направления
+                    письменного запроса оператору.
+                </p>
+                <p class="mb-0">
+                    С <a href="/PersonalData/PrivacyPolicy" target="_blank">Политикой обработки персональных данных</a> ознакомлен(а).
+                </p>
+            </div>
+
+            <form asp-controller="PersonalData" asp-action="GrantConsent" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="consentType" value="0" />
+
+                <div class="form-check mb-3">
+                    <input type="checkbox" class="form-check-input" id="agreeCheck" required />
+                    <label class="form-check-label" for="agreeCheck">
+                        Я ознакомился(лась) с политикой обработки персональных данных и даю согласие
+                        на обработку моих персональных данных
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100" id="consentBtn" disabled>
+                    <i class="bi bi-check-lg"></i> Подтвердить согласие
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function() {
+            const checkbox = document.getElementById('agreeCheck');
+            const btn = document.getElementById('consentBtn');
+            if (!checkbox || !btn) return;
+            checkbox.addEventListener('change', function() {
+                btn.disabled = !this.checked;
+            });
+        })();
+    </script>
+}

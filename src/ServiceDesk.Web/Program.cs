@@ -1,6 +1,7 @@
 using ServiceDesk.Application;
 using ServiceDesk.Infrastructure;
 using ServiceDesk.Infrastructure.Data.Seeds;
+using ServiceDesk.Web.Filters;
 using ServiceDesk.Web.Middleware;
 using Serilog;
 
@@ -15,7 +16,11 @@ builder.Host.UseSerilog((context, config) => config
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    // Глобальная проверка согласия на обработку ПД (ФЗ-152)
+    options.Filters.Add<ConsentRequiredFilter>();
+});
 
 // Аутентификация через Cookies (бессрочная сессия)
 builder.Services.AddAuthentication("Cookies")

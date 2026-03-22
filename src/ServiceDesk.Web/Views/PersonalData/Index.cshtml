@@ -1,0 +1,188 @@
+@using ServiceDesk.Core.DTOs.PersonalData
+@using ServiceDesk.Core.Enums
+@{
+    ViewData["Title"] = "Персональные данные";
+    var consents = ViewBag.Consents as List<ConsentDto> ?? new();
+    var requests = ViewBag.Requests as List<PersonalDataRequestDto> ?? new();
+}
+
+<!-- Информация о правах -->
+<div class="alert alert-info mb-4">
+    <i class="bi bi-shield-lock me-2"></i>
+    В соответствии с Федеральным законом № 152-ФЗ «О персональных данных» вы имеете право на доступ к своим данным,
+    их исправление, удаление, а также на отзыв согласия на обработку.
+</div>
+
+<!-- Согласия на обработку ПД -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-check-circle me-2"></i>Согласия на обработку данных</h5>
+    </div>
+    <div class="card-body">
+        @foreach (ConsentType type in Enum.GetValues<ConsentType>())
+        {
+            var active = consents.FirstOrDefault(c => c.ConsentType == type && c.IsActive);
+            var typeName = type switch
+            {
+                ConsentType.PersonalDataProcessing => "Обработка персональных данных",
+                ConsentType.SmsNotifications => "SMS-уведомления",
+                ConsentType.PushNotifications => "Push-уведомления",
+                ConsentType.ThirdPartyTransfer => "Передача данных третьим лицам",
+                _ => type.ToString()
+            };
+
+            <div class="d-flex justify-content-between align-items-center py-3 @(type != Enum.GetValues<ConsentType>().Last() ? "border-bottom" : "")">
+                <div>
+                    <strong>@typeName</strong>
+                    @if (active is not null)
+                    {
+                        <br />
+                        <small class="text-muted">Дано: @active.GrantedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm") (версия @active.ConsentVersion)</small>
+                    }
+                    @if (type == ConsentType.PersonalDataProcessing)
+                    {
+                        <br />
+                        <small class="text-warning">Обязательное согласие для использования системы</small>
+                    }
+                </div>
+                <div>
+                    @if (active is not null)
+                    {
+                        <span class="badge bg-success me-2">Активно</span>
+                        @if (type != ConsentType.PersonalDataProcessing)
+                        {
+                            <form asp-action="RevokeConsent" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="consentType" value="@((int)type)" />
+                                <button type="submit" class="btn btn-outline-danger btn-sm"
+                                        onclick="return confirm('Вы уверены, что хотите отозвать согласие?')">
+                                    Отозвать
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <small class="text-muted">(отзыв через запрос)</small>
+                        }
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary me-2">Не дано</span>
+                        <form asp-action="GrantConsent" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="consentType" value="@((int)type)" />
+                            <button type="submit" class="btn btn-outline-primary btn-sm">
+                                Дать согласие
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Действия с персональными данными -->
+<div class="row mb-4">
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <h6><i class="bi bi-download me-2"></i>Экспорт данных</h6>
+                <p class="text-muted small">Скачать все ваши персональные данные в формате JSON (ст. 14 ФЗ-152)</p>
+                <form asp-action="ExportData" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-file-earmark-arrow-down"></i> Скачать мои данные
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <h6><i class="bi bi-file-text me-2"></i>Политика конфиденциальности</h6>
+                <p class="text-muted small">Ознакомьтесь с политикой обработки персональных данных</p>
+                <a href="/PersonalData/PrivacyPolicy" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-eye"></i> Открыть
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Создание запроса -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-envelope-paper me-2"></i>Направить запрос оператору</h5>
+    </div>
+    <div class="card-body">
+        <form asp-action="CreateRequest" method="post">
+            @Html.AntiForgeryToken()
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Тип запроса</label>
+                    <select name="RequestType" class="form-select" required>
+                        <option value="@((int)PersonalDataRequestType.Access)">Доступ к данным</option>
+                        <option value="@((int)PersonalDataRequestType.Rectification)">Исправление данных</option>
+                        <option value="@((int)PersonalDataRequestType.Deletion)">Удаление данных</option>
+                        <option value="@((int)PersonalDataRequestType.ConsentWithdrawal)">Отзыв согласия</option>
+                    </select>
+                </div>
+                <div class="col-md-8 mb-3">
+                    <label class="form-label">Описание запроса</label>
+                    <textarea name="Description" class="form-control" rows="2" required
+                              placeholder="Опишите ваш запрос подробнее..."></textarea>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">
+                <i class="bi bi-send"></i> Отправить запрос
+            </button>
+            <small class="text-muted ms-2">Срок рассмотрения — до 30 дней (ФЗ-152)</small>
+        </form>
+    </div>
+</div>
+
+<!-- Мои запросы -->
+@if (requests.Any())
+{
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Мои запросы</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="list-group list-group-flush">
+                @foreach (var req in requests)
+                {
+                    var statusClass = req.Status switch
+                    {
+                        PersonalDataRequestStatus.New => "bg-primary",
+                        PersonalDataRequestStatus.InProgress => "bg-warning text-dark",
+                        PersonalDataRequestStatus.Completed => "bg-success",
+                        PersonalDataRequestStatus.Rejected => "bg-danger",
+                        _ => "bg-secondary"
+                    };
+
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>@req.RequestTypeName</strong>
+                                <span class="badge @statusClass ms-2">@req.StatusName</span>
+                                @if (req.IsOverdue)
+                                {
+                                    <span class="badge bg-danger ms-1">Просрочен</span>
+                                }
+                                <p class="mb-1 small text-muted mt-1">@req.Description</p>
+                                @if (!string.IsNullOrEmpty(req.Response))
+                                {
+                                    <p class="mb-0 small"><strong>Ответ:</strong> @req.Response</p>
+                                }
+                            </div>
+                            <small class="text-muted text-nowrap">@req.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")</small>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}

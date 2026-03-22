@@ -30,5 +30,20 @@ public enum AuditAction
     PartsApproved = 7,
 
     /// <summary>Отклонение запчастей</summary>
-    PartsRejected = 8
+    PartsRejected = 8,
+
+    /// <summary>Согласие на обработку ПД</summary>
+    ConsentGranted = 9,
+
+    /// <summary>Отзыв согласия на обработку ПД</summary>
+    ConsentRevoked = 10,
+
+    /// <summary>Запрос на доступ к ПД</summary>
+    PersonalDataRequested = 11,
+
+    /// <summary>Экспорт персональных данных</summary>
+    PersonalDataExported = 12,
+
+    /// <summary>Удаление персональных данных</summary>
+    PersonalDataDeleted = 13
 }

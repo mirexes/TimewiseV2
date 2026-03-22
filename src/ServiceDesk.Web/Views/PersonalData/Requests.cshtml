@@ -1,0 +1,58 @@
+@using ServiceDesk.Core.DTOs.PersonalData
+@using ServiceDesk.Core.Enums
+@model List<PersonalDataRequestDto>
+@{
+    ViewData["Title"] = "Запросы ПД (ФЗ-152)";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">Запросы субъектов персональных данных</h5>
+    <span class="badge bg-primary">@Model.Count(r => r.Status is PersonalDataRequestStatus.New or PersonalDataRequestStatus.InProgress) активных</span>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Запросов нет.</div>
+}
+else
+{
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="list-group list-group-flush">
+                @foreach (var req in Model)
+                {
+                    var statusClass = req.Status switch
+                    {
+                        PersonalDataRequestStatus.New => "bg-primary",
+                        PersonalDataRequestStatus.InProgress => "bg-warning text-dark",
+                        PersonalDataRequestStatus.Completed => "bg-success",
+                        PersonalDataRequestStatus.Rejected => "bg-danger",
+                        _ => "bg-secondary"
+                    };
+
+                    <a href="/PersonalData/RequestDetails/@req.Id" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>@req.RequestTypeName</strong>
+                                <span class="badge @statusClass ms-2">@req.StatusName</span>
+                                @if (req.IsOverdue)
+                                {
+                                    <span class="badge bg-danger ms-1">Просрочен!</span>
+                                }
+                                <br />
+                                <small class="text-muted">
+                                    <i class="bi bi-person"></i> @req.UserName (@req.UserPhone)
+                                </small>
+                                <p class="mb-0 small mt-1">@req.Description</p>
+                            </div>
+                            <div class="text-end text-nowrap">
+                                <small class="text-muted d-block">@req.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")</small>
+                                <small class="text-muted d-block">Срок: @req.Deadline.ToLocalTime().ToString("dd.MM.yyyy")</small>
+                            </div>
+                        </div>
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+}

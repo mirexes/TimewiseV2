@@ -1,0 +1,109 @@
+@using ServiceDesk.Core.DTOs.PersonalData
+@using ServiceDesk.Core.Enums
+@model PersonalDataRequestDto
+@{
+    ViewData["Title"] = "Запрос ПД #" + Model.Id;
+}
+
+<a href="/PersonalData/Requests" class="btn btn-outline-secondary btn-sm mb-3">
+    <i class="bi bi-arrow-left"></i> К списку запросов
+</a>
+
+<div class="card" style="max-width: 700px;">
+    <div class="card-header">
+        <h5 class="mb-0">Запрос #@Model.Id — @Model.RequestTypeName</h5>
+    </div>
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-sm-4 text-muted">Пользователь</div>
+            <div class="col-sm-8">@Model.UserName (@Model.UserPhone)</div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm-4 text-muted">Тип запроса</div>
+            <div class="col-sm-8">@Model.RequestTypeName</div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm-4 text-muted">Статус</div>
+            <div class="col-sm-8">
+                @{
+                    var statusClass = Model.Status switch
+                    {
+                        PersonalDataRequestStatus.New => "bg-primary",
+                        PersonalDataRequestStatus.InProgress => "bg-warning text-dark",
+                        PersonalDataRequestStatus.Completed => "bg-success",
+                        PersonalDataRequestStatus.Rejected => "bg-danger",
+                        _ => "bg-secondary"
+                    };
+                }
+                <span class="badge @statusClass">@Model.StatusName</span>
+                @if (Model.IsOverdue)
+                {
+                    <span class="badge bg-danger ms-1">Просрочен!</span>
+                }
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm-4 text-muted">Дата подачи</div>
+            <div class="col-sm-8">@Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm-4 text-muted">Крайний срок</div>
+            <div class="col-sm-8">@Model.Deadline.ToLocalTime().ToString("dd.MM.yyyy")</div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm-4 text-muted">Описание</div>
+            <div class="col-sm-8">@Model.Description</div>
+        </div>
+
+        @if (Model.ProcessedAt.HasValue)
+        {
+            <hr />
+            <div class="row mb-3">
+                <div class="col-sm-4 text-muted">Обработал</div>
+                <div class="col-sm-8">@Model.ProcessedByName</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-4 text-muted">Дата обработки</div>
+                <div class="col-sm-8">@Model.ProcessedAt.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-4 text-muted">Ответ</div>
+                <div class="col-sm-8">@Model.Response</div>
+            </div>
+        }
+
+        @if (Model.Status is PersonalDataRequestStatus.New or PersonalDataRequestStatus.InProgress)
+        {
+            <hr />
+            <h6>Обработка запроса</h6>
+            <form asp-action="ProcessRequest" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+
+                <div class="mb-3">
+                    <label class="form-label">Решение</label>
+                    <select name="Status" class="form-select" required>
+                        <option value="@((int)PersonalDataRequestStatus.InProgress)">В обработке</option>
+                        <option value="@((int)PersonalDataRequestStatus.Completed)">Выполнен</option>
+                        <option value="@((int)PersonalDataRequestStatus.Rejected)">Отклонён</option>
+                    </select>
+                    @if (Model.RequestType == PersonalDataRequestType.Deletion)
+                    {
+                        <small class="text-danger">
+                            Внимание: при статусе «Выполнен» для запроса на удаление данные пользователя будут анонимизированы!
+                        </small>
+                    }
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Ответ</label>
+                    <textarea name="Response" class="form-control" rows="3" required
+                              placeholder="Опишите принятые меры..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm"
+                        onclick="return confirm('Вы уверены?')">
+                    <i class="bi bi-check-lg"></i> Сохранить решение
+                </button>
+            </form>
+        }
+    </div>
+</div>
