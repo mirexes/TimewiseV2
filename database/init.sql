@@ -281,6 +281,51 @@ CREATE TABLE IF NOT EXISTS AuditLogs (
 ) ENGINE=InnoDB COMMENT='Журнал аудита действий';
 
 -- ============================================================
+-- 16. Согласия пользователей (ФЗ-152, ст. 9)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS UserConsents (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    UserId INT NOT NULL COMMENT 'Пользователь, давший согласие',
+    ConsentType TINYINT NOT NULL DEFAULT 0 COMMENT '0=ОбработкаПД, 1=SMS, 2=Push, 3=ПередачаТретьимЛицам',
+    ConsentVersion VARCHAR(50) NOT NULL COMMENT 'Версия текста согласия',
+    ConsentText TEXT NOT NULL COMMENT 'Текст согласия на момент подписания',
+    IsGranted TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Согласие дано',
+    GrantedAt DATETIME(6) NOT NULL COMMENT 'Дата предоставления согласия',
+    RevokedAt DATETIME(6) NULL COMMENT 'Дата отзыва согласия (NULL — действует)',
+    IpAddress VARCHAR(45) NULL COMMENT 'IP-адрес при подписании',
+    UserAgent VARCHAR(500) NULL COMMENT 'User-Agent при подписании',
+    CreatedAt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    UpdatedAt DATETIME(6) NULL,
+    INDEX idx_consents_user (UserId),
+    INDEX idx_consents_type (ConsentType),
+    INDEX idx_consents_granted (GrantedAt),
+    CONSTRAINT fk_consents_user FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE
+) ENGINE=InnoDB COMMENT='Согласия пользователей на обработку ПД (ФЗ-152)';
+
+-- ============================================================
+-- 17. Запросы субъектов ПД (ФЗ-152, ст. 14–17)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS PersonalDataRequests (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    UserId INT NOT NULL COMMENT 'Пользователь-заявитель',
+    RequestType TINYINT NOT NULL DEFAULT 0 COMMENT '0=Доступ, 1=Исправление, 2=Удаление, 3=ОтзывСогласия',
+    Status TINYINT NOT NULL DEFAULT 0 COMMENT '0=Новый, 1=ВОбработке, 2=Выполнен, 3=Отклонён',
+    Description TEXT NOT NULL COMMENT 'Описание запроса от пользователя',
+    Response TEXT NULL COMMENT 'Ответ оператора',
+    ProcessedByUserId INT NULL COMMENT 'Кто обработал запрос (модератор)',
+    ProcessedAt DATETIME(6) NULL COMMENT 'Дата обработки',
+    Deadline DATETIME(6) NOT NULL COMMENT 'Крайний срок обработки (30 дней по ФЗ-152)',
+    CreatedAt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    UpdatedAt DATETIME(6) NULL,
+    INDEX idx_pdr_user (UserId),
+    INDEX idx_pdr_status (Status),
+    INDEX idx_pdr_deadline (Deadline),
+    INDEX idx_pdr_created (CreatedAt),
+    CONSTRAINT fk_pdr_user FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE,
+    CONSTRAINT fk_pdr_processed_by FOREIGN KEY (ProcessedByUserId) REFERENCES Users(Id) ON DELETE SET NULL
+) ENGINE=InnoDB COMMENT='Запросы субъектов ПД на доступ/исправление/удаление (ФЗ-152)';
+
+-- ============================================================
 -- НАЧАЛЬНЫЕ ДАННЫЕ
 -- ============================================================
 
