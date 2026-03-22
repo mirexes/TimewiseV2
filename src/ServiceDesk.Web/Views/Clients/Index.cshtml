@@ -35,7 +35,7 @@
                 </button>
             </div>
             <div class="col-md-2">
-                <a href="/Clients" class="btn btn-outline-secondary btn-sm w-100">Сбросить</a>
+                <a href="/Clients/Index" class="btn btn-outline-secondary btn-sm w-100">Сбросить</a>
             </div>
         </form>
     </div>
@@ -104,7 +104,7 @@ else
                 @if (Model.HasPreviousPage)
                 {
                     <li class="page-item">
-                        <a class="page-link" href="/Clients?Page=@(Model.Page - 1)&Search=@filter.Search&IsActive=@filter.IsActive">
+                        <a class="page-link" href="/Clients/Index?Page=@(Model.Page - 1)&Search=@filter.Search&IsActive=@filter.IsActive">
                             <i class="bi bi-chevron-left"></i>
                         </a>
                     </li>
@@ -112,13 +112,13 @@ else
                 @for (var i = 1; i <= Model.TotalPages; i++)
                 {
                     <li class="page-item @(i == Model.Page ? "active" : "")">
-                        <a class="page-link" href="/Clients?Page=@i&Search=@filter.Search&IsActive=@filter.IsActive">@i</a>
+                        <a class="page-link" href="/Clients/Index?Page=@i&Search=@filter.Search&IsActive=@filter.IsActive">@i</a>
                     </li>
                 }
                 @if (Model.HasNextPage)
                 {
                     <li class="page-item">
-                        <a class="page-link" href="/Clients?Page=@(Model.Page + 1)&Search=@filter.Search&IsActive=@filter.IsActive">
+                        <a class="page-link" href="/Clients/Index?Page=@(Model.Page + 1)&Search=@filter.Search&IsActive=@filter.IsActive">
                             <i class="bi bi-chevron-right"></i>
                         </a>
                     </li>
