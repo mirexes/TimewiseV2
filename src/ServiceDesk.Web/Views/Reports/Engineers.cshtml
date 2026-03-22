@@ -1,0 +1,192 @@
+@model IEnumerable<EngineerStatsDto>
+@{
+    ViewData["Title"] = "Отчёты — Специалисты";
+    var filter = ViewContext.HttpContext.Request.Query;
+    var dateFrom = filter["DateFrom"].FirstOrDefault() ?? "";
+    var dateTo = filter["DateTo"].FirstOrDefault() ?? "";
+}
+
+<!-- Навигация по разделам отчётов -->
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+        <a class="nav-link" href="/Reports/Dashboard">
+            <i class="bi bi-speedometer2"></i> Дашборд
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link active" href="/Reports/Engineers">
+            <i class="bi bi-people"></i> Специалисты
+        </a>
+    </li>
+</ul>
+
+<!-- Фильтры -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small">Дата от</label>
+                <input type="date" name="DateFrom" value="@dateFrom" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small">Дата до</label>
+                <input type="date" name="DateTo" value="@dateTo" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+                    <i class="bi bi-funnel"></i> Фильтр
+                </button>
+            </div>
+            <div class="col-md-2">
+                <a href="/Reports/Engineers" class="btn btn-outline-secondary btn-sm w-100">
+                    <i class="bi bi-x-lg"></i> Сбросить
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-people fs-1"></i>
+        <p class="mt-2">Нет данных по специалистам</p>
+    </div>
+}
+else
+{
+    <!-- Графики -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-bar-chart"></i> Заявки по специалистам</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="engineerChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-pie-chart"></i> Доля выполненных заявок</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="completionChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Карточки специалистов -->
+    <div class="row g-3">
+        @foreach (var eng in Model.OrderByDescending(e => e.TotalTickets))
+        {
+            var completionRate = eng.TotalTickets > 0
+                ? Math.Round((double)eng.CompletedTickets / eng.TotalTickets * 100)
+                : 0;
+
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <i class="bi bi-person-circle fs-3 text-primary"></i>
+                            <div>
+                                <h6 class="mb-0">@eng.EngineerName</h6>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Всего заявок</span>
+                            <span class="fw-bold">@eng.TotalTickets</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Выполнено</span>
+                            <span class="text-success fw-bold">@eng.CompletedTickets</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="text-muted">В работе</span>
+                            <span class="text-warning fw-bold">@eng.InProgressTickets</span>
+                        </div>
+
+                        <!-- Прогресс выполнения -->
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-success" style="width: @completionRate%"></div>
+                        </div>
+                        <small class="text-muted">Выполнено: @completionRate%</small>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script>
+        const engineers = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+
+        if (engineers.length > 0) {
+            const names = engineers.map(e => e.engineerName);
+            const totals = engineers.map(e => e.totalTickets);
+            const completed = engineers.map(e => e.completedTickets);
+            const inProgress = engineers.map(e => e.inProgressTickets);
+
+            // Столбчатый график — заявки по специалистам
+            new Chart(document.getElementById('engineerChart'), {
+                type: 'bar',
+                data: {
+                    labels: names,
+                    datasets: [
+                        {
+                            label: 'Выполнено',
+                            data: completed,
+                            backgroundColor: '#198754'
+                        },
+                        {
+                            label: 'В работе',
+                            data: inProgress,
+                            backgroundColor: '#ffc107'
+                        },
+                        {
+                            label: 'Всего',
+                            data: totals,
+                            backgroundColor: 'rgba(13, 110, 253, 0.3)',
+                            borderColor: '#0d6efd',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    }
+                }
+            });
+
+            // Круговой график — доля выполненных
+            const totalAll = totals.reduce((a, b) => a + b, 0);
+            const completedAll = completed.reduce((a, b) => a + b, 0);
+            const inProgressAll = inProgress.reduce((a, b) => a + b, 0);
+            const otherAll = totalAll - completedAll - inProgressAll;
+
+            new Chart(document.getElementById('completionChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Выполнено', 'В работе', 'Прочие'],
+                    datasets: [{
+                        data: [completedAll, inProgressAll, otherAll],
+                        backgroundColor: ['#198754', '#ffc107', '#6c757d']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+    </script>
+}

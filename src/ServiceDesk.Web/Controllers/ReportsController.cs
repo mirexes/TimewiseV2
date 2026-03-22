@@ -21,6 +21,9 @@ public class ReportsController : Controller
     }
 
     [HttpGet]
+    public IActionResult Index() => RedirectToAction(nameof(Dashboard));
+
+    [HttpGet]
     public async Task<IActionResult> Dashboard()
     {
         var stats = await _reportService.GetDashboardStatsAsync(User.GetUserId(), User.GetRole());
