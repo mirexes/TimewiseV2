@@ -53,7 +53,7 @@ public class TicketsController : Controller
 
     [HttpGet]
     [RoleAuthorize(UserRole.Engineer, UserRole.ChiefEngineer, UserRole.Logist,
-        UserRole.ManagerTimewise, UserRole.ManagerClient, UserRole.Moderator, UserRole.Client)]
+        UserRole.ManagerTimewise, UserRole.ManagerClient, UserRole.Moderator, UserRole.Client, UserRole.Technician)]
     public async Task<IActionResult> Create()
     {
         ViewBag.ServicePoints = await _clientService.GetServicePointsForSelectAsync(User.GetUserId(), User.GetRole());
@@ -70,7 +70,7 @@ public class TicketsController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [RoleAuthorize(UserRole.Engineer, UserRole.ChiefEngineer, UserRole.Logist,
-        UserRole.ManagerTimewise, UserRole.ManagerClient, UserRole.Moderator, UserRole.Client)]
+        UserRole.ManagerTimewise, UserRole.ManagerClient, UserRole.Moderator, UserRole.Client, UserRole.Technician)]
     public async Task<IActionResult> Create(CreateTicketDto dto, List<IFormFile>? attachments)
     {
         // ServicePointId теперь nullable — убираем ложную ошибку биндинга
