@@ -1,0 +1,212 @@
+@using ServiceDesk.Core.DTOs.AuditLogs
+@using ServiceDesk.Core.DTOs.Common
+@using ServiceDesk.Core.Enums
+@model PagedResultDto<AuditLogListDto>
+@{
+    ViewData["Title"] = "Журнал аудита";
+    var filter = ViewBag.Filter as AuditLogFilterDto ?? new AuditLogFilterDto();
+}
+
+<!-- Заголовок -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <span class="text-muted">Всего записей: @Model.TotalCount</span>
+</div>
+
+<!-- Фильтры -->
+<div class="card mb-4">
+    <div class="card-body py-2">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-0">Поиск</label>
+                <input type="text" name="Search" value="@filter.Search"
+                       class="form-control form-control-sm"
+                       placeholder="Пользователь, IP, значения..." />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted mb-0">Действие</label>
+                <select name="Action" class="form-select form-select-sm">
+                    <option value="">Все действия</option>
+                    @foreach (var action in Enum.GetValues<AuditAction>())
+                    {
+                        <option value="@action" selected="@(filter.Action == action)">@GetActionName(action)</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted mb-0">Тип сущности</label>
+                <select name="EntityType" class="form-select form-select-sm">
+                    <option value="">Все типы</option>
+                    @foreach (var (value, label) in GetEntityTypes())
+                    {
+                        <option value="@value" selected="@(filter.EntityType == value)">@label</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted mb-0">Дата от</label>
+                <input type="date" name="DateFrom" value="@filter.DateFrom?.ToString("yyyy-MM-dd")"
+                       class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted mb-0">Дата до</label>
+                <input type="date" name="DateTo" value="@filter.DateTo?.ToString("yyyy-MM-dd")"
+                       class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-1 d-flex gap-1">
+                <button type="submit" class="btn btn-outline-primary btn-sm flex-fill"
+                        title="Найти">
+                    <i class="bi bi-search"></i>
+                </button>
+                <a href="/AuditLogs/Index" class="btn btn-outline-secondary btn-sm flex-fill"
+                   title="Сбросить">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Пустое состояние -->
+@if (!Model.Items.Any())
+{
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-journal-text fs-1"></i>
+        <p class="mt-2">Записи не найдены</p>
+    </div>
+}
+else
+{
+    <!-- Список логов -->
+    <div class="list-group">
+        @foreach (var log in Model.Items)
+        {
+            <div class="list-group-item">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="badge @GetActionBadgeClass(log.Action)">
+                                @log.ActionDisplayName
+                            </span>
+                            <span class="badge bg-secondary">@log.EntityTypeDisplayName #@log.EntityId</span>
+                            <small class="text-muted">
+                                <i class="bi bi-person"></i> @log.UserFullName
+                            </small>
+                            @if (!string.IsNullOrEmpty(log.IpAddress))
+                            {
+                                <small class="text-muted">
+                                    <i class="bi bi-globe"></i> @log.IpAddress
+                                </small>
+                            }
+                        </div>
+                        @if (!string.IsNullOrEmpty(log.OldValue) || !string.IsNullOrEmpty(log.NewValue))
+                        {
+                            <div class="small mt-1">
+                                @if (!string.IsNullOrEmpty(log.OldValue))
+                                {
+                                    <span class="text-danger me-2">
+                                        <i class="bi bi-dash-circle"></i> @TruncateValue(log.OldValue)
+                                    </span>
+                                }
+                                @if (!string.IsNullOrEmpty(log.NewValue))
+                                {
+                                    <span class="text-success">
+                                        <i class="bi bi-plus-circle"></i> @TruncateValue(log.NewValue)
+                                    </span>
+                                }
+                            </div>
+                        }
+                    </div>
+                    <small class="text-muted text-nowrap ms-3">
+                        <i class="bi bi-clock"></i> @log.CreatedAt.ToString("dd.MM.yyyy HH:mm:ss")
+                    </small>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Пагинация -->
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="mt-4 d-flex justify-content-center">
+            <ul class="pagination pagination-sm">
+                <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
+                    <a class="page-link" href="@BuildPageUrl(Model.Page - 1)">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+                @for (var i = Math.Max(1, Model.Page - 2); i <= Math.Min(Model.TotalPages, Model.Page + 2); i++)
+                {
+                    <li class="page-item @(i == Model.Page ? "active" : "")">
+                        <a class="page-link" href="@BuildPageUrl(i)">@i</a>
+                    </li>
+                }
+                <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
+                    <a class="page-link" href="@BuildPageUrl(Model.Page + 1)">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    }
+}
+
+@functions {
+    string GetActionName(AuditAction action) => action switch
+    {
+        AuditAction.Created => "Создание",
+        AuditAction.Updated => "Обновление",
+        AuditAction.Deleted => "Удаление",
+        AuditAction.StatusChanged => "Смена статуса",
+        AuditAction.Assigned => "Назначение",
+        AuditAction.Login => "Вход",
+        AuditAction.Logout => "Выход",
+        AuditAction.PartsApproved => "Согласование запчастей",
+        AuditAction.PartsRejected => "Отклонение запчастей",
+        AuditAction.ConsentGranted => "Согласие на ПД",
+        AuditAction.ConsentRevoked => "Отзыв согласия на ПД",
+        AuditAction.PersonalDataRequested => "Запрос ПД",
+        AuditAction.PersonalDataExported => "Экспорт ПД",
+        AuditAction.PersonalDataDeleted => "Удаление ПД",
+        _ => action.ToString()
+    };
+
+    string GetActionBadgeClass(AuditAction action) => action switch
+    {
+        AuditAction.Created => "bg-success",
+        AuditAction.Updated => "bg-info",
+        AuditAction.Deleted => "bg-danger",
+        AuditAction.StatusChanged => "bg-warning text-dark",
+        AuditAction.Assigned => "bg-primary",
+        AuditAction.Login => "bg-success bg-opacity-75",
+        AuditAction.Logout => "bg-secondary",
+        AuditAction.PartsApproved => "bg-success",
+        AuditAction.PartsRejected => "bg-danger",
+        _ => "bg-secondary"
+    };
+
+    List<(string value, string label)> GetEntityTypes() => new()
+    {
+        ("Ticket", "Заявка"),
+        ("Equipment", "Оборудование"),
+        ("ServicePoint", "Точка обслуживания"),
+        ("Client", "Клиент"),
+        ("AppUser", "Пользователь"),
+        ("SparePart", "Запчасть"),
+        ("ChatMessage", "Сообщение")
+    };
+
+    string TruncateValue(string value) =>
+        value.Length > 150 ? value[..150] + "..." : value;
+
+    string BuildPageUrl(int page)
+    {
+        var filter = ViewBag.Filter as AuditLogFilterDto ?? new AuditLogFilterDto();
+        var parameters = new List<string> { $"Page={page}" };
+        if (!string.IsNullOrEmpty(filter.Search)) parameters.Add($"Search={Uri.EscapeDataString(filter.Search)}");
+        if (filter.Action.HasValue) parameters.Add($"Action={filter.Action}");
+        if (!string.IsNullOrEmpty(filter.EntityType)) parameters.Add($"EntityType={Uri.EscapeDataString(filter.EntityType)}");
+        if (filter.DateFrom.HasValue) parameters.Add($"DateFrom={filter.DateFrom:yyyy-MM-dd}");
+        if (filter.DateTo.HasValue) parameters.Add($"DateTo={filter.DateTo:yyyy-MM-dd}");
+        return $"/AuditLogs/Index?{string.Join("&", parameters)}";
+    }
+}

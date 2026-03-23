@@ -1,3 +1,4 @@
+using ServiceDesk.Core.DTOs.AuditLogs;
 using ServiceDesk.Core.DTOs.Chat;
 using ServiceDesk.Core.DTOs.Clients;
 using ServiceDesk.Core.DTOs.Equipment;
@@ -165,6 +166,24 @@ public static class MappingExtensions
             ClientName = user.Client?.Name,
             AvatarUrl = user.AvatarUrl,
             AssignedTicketsCount = user.AssignedTickets?.Count ?? 0
+        };
+    }
+
+    /// <summary>AuditLog → AuditLogListDto</summary>
+    public static AuditLogListDto ToListDto(this AuditLog log)
+    {
+        return new AuditLogListDto
+        {
+            Id = log.Id,
+            Action = log.Action,
+            EntityType = log.EntityType,
+            EntityId = log.EntityId,
+            OldValue = log.OldValue,
+            NewValue = log.NewValue,
+            UserId = log.UserId,
+            UserFullName = log.User?.FullName ?? "",
+            IpAddress = log.IpAddress,
+            CreatedAt = log.CreatedAt
         };
     }
 
