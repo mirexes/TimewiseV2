@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Core.Entities;
 
@@ -6,9 +7,14 @@ namespace ServiceDesk.Infrastructure.Data;
 /// <summary>
 /// Единый контекст базы данных
 /// </summary>
-public class AppDbContext : DbContext
+public class AppDbContext : DbContext, IDataProtectionKeyContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
+    /// <summary>
+    /// Ключи Data Protection для сохранения авторизации между перезапусками сервера
+    /// </summary>
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     public DbSet<Ticket> Tickets => Set<Ticket>();
     public DbSet<Equipment> Equipment => Set<Equipment>();
