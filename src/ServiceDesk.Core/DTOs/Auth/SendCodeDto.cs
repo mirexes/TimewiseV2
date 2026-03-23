@@ -8,6 +8,6 @@ namespace ServiceDesk.Core.DTOs.Auth;
 public class SendCodeDto
 {
     [Required(ErrorMessage = "Укажите номер телефона")]
-    [Phone(ErrorMessage = "Некорректный номер телефона")]
+    [RegularExpression(@"^\+\d{10,15}$", ErrorMessage = "Номер должен начинаться с + и содержать код страны, например +79618934486")]
     public string Phone { get; set; } = string.Empty;
 }

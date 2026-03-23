@@ -49,5 +49,51 @@
         if (validationSummary && validationSummary.querySelector('li')) {
             validationSummary.classList.remove('d-none');
         }
+
+        // Валидация и форматирование телефона
+        const phoneInput = document.getElementById('Phone');
+        if (phoneInput) {
+            // Если поле пустое — подставляем +7
+            phoneInput.addEventListener('focus', function () {
+                if (!this.value) this.value = '+7';
+            });
+
+            phoneInput.addEventListener('input', function () {
+                // Убираем всё кроме цифр и +
+                let val = this.value.replace(/[^\d+]/g, '');
+
+                // Гарантируем + в начале
+                if (!val.startsWith('+')) {
+                    // 8xxxx → +7xxxx (замена 8 на +7 для России)
+                    if (val.startsWith('8') && val.length >= 2) {
+                        val = '+7' + val.substring(1);
+                    } else {
+                        val = '+' + val;
+                    }
+                }
+
+                this.value = val;
+            });
+
+            // Валидация перед отправкой
+            phoneInput.closest('form').addEventListener('submit', function (e) {
+                const val = phoneInput.value.trim();
+                const errorSpan = document.querySelector('[data-valmsg-for="Phone"]');
+
+                if (!/^\+\d{10,15}$/.test(val)) {
+                    e.preventDefault();
+                    if (errorSpan) {
+                        errorSpan.textContent = 'Номер должен начинаться с + и содержать код страны, например +79618934486';
+                        errorSpan.classList.add('field-validation-error');
+                    }
+                    return;
+                }
+
+                if (errorSpan) {
+                    errorSpan.textContent = '';
+                    errorSpan.classList.remove('field-validation-error');
+                }
+            });
+        }
     </script>
 }
