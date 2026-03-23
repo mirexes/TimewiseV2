@@ -71,13 +71,21 @@ public class AccountController : Controller
             return View(dto);
         }
 
+        // Деактивированным пользователям вход запрещён
+        if (!user.IsActive)
+        {
+            ModelState.AddModelError("", "Ваш аккаунт деактивирован. Обратитесь к администратору");
+            return View(dto);
+        }
+
         // Создаём Claims
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Name, user.Phone),
             new(ClaimTypes.Role, user.Role.ToString()),
-            new("FullName", user.FullName)
+            new("FullName", user.FullName),
+            new("SecurityStamp", user.SecurityStamp)
         };
 
         var identity = new ClaimsIdentity(claims, "Cookies");

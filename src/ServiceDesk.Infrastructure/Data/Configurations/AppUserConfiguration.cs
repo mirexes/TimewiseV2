@@ -17,6 +17,7 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
         builder.Property(u => u.Email).HasMaxLength(255);
         builder.Property(u => u.Company).HasMaxLength(255);
         builder.Property(u => u.SmsCode).HasMaxLength(10);
+        builder.Property(u => u.SecurityStamp).HasMaxLength(50).IsRequired();
 
         builder.HasIndex(u => u.Phone).IsUnique();
 

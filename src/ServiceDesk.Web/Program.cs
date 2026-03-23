@@ -18,6 +18,8 @@ builder.Services.AddApplication();
 
 builder.Services.AddControllersWithViews(options =>
 {
+    // Принудительный разлогин деактивированных пользователей
+    options.Filters.Add<DeactivatedUserFilter>();
     // Глобальная проверка согласия на обработку ПД (ФЗ-152)
     options.Filters.Add<ConsentRequiredFilter>();
 });

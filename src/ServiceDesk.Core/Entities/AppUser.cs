@@ -49,6 +49,9 @@ public class AppUser : BaseEntity
     /// <summary>Путь к аватарке пользователя</summary>
     public string? AvatarUrl { get; set; }
 
+    /// <summary>Метка безопасности — меняется при деактивации для инвалидации сессий</summary>
+    public string SecurityStamp { get; set; } = Guid.NewGuid().ToString();
+
     /// <summary>Привязка к клиенту (для менеджера клиента)</summary>
     public int? ClientId { get; set; }
     public Client? Client { get; set; }

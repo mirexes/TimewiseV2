@@ -3,6 +3,7 @@ using ServiceDesk.Application.Mapping;
 using ServiceDesk.Core.DTOs.Common;
 using ServiceDesk.Core.DTOs.Users;
 using ServiceDesk.Core.Entities;
+using ServiceDesk.Core.Enums;
 using ServiceDesk.Core.Interfaces.Services;
 using ServiceDesk.Infrastructure.Data;
 
@@ -126,6 +127,20 @@ public class UserService : IUserService
             ?? throw new KeyNotFoundException($"Пользователь {id} не найден");
 
         user.IsActive = !user.IsActive;
+
+        // При деактивации: понижаем роль до Клиент, убираем из чата компании, инвалидируем сессию
+        if (!user.IsActive)
+        {
+            user.Role = UserRole.Client;
+            user.SecurityStamp = Guid.NewGuid().ToString();
+
+            // Удаляем из всех чатов компании
+            var memberships = await _db.CompanyChatMembers
+                .Where(m => m.UserId == id)
+                .ToListAsync();
+            _db.CompanyChatMembers.RemoveRange(memberships);
+        }
+
         await _db.SaveChangesAsync();
     }
 
