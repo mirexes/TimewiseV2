@@ -18,6 +18,16 @@ public static class DbSeeder
         // Применяем миграции
         await db.Database.MigrateAsync();
 
+        // Создаём таблицу DataProtectionKeys если не существует (для сохранения авторизации между перезапусками)
+        await db.Database.ExecuteSqlRawAsync(
+            """
+            CREATE TABLE IF NOT EXISTS DataProtectionKeys (
+                Id INT AUTO_INCREMENT PRIMARY KEY,
+                FriendlyName TEXT NULL,
+                Xml LONGTEXT NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+            """);
+
         // Создаём модератора (администратора) если нет пользователей
         if (!await db.Users.AnyAsync())
         {

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,6 +25,11 @@ public static class DependencyInjection
                 connectionString,
                 ServerVersion.AutoDetect(connectionString)
             ));
+
+        // Хранение ключей Data Protection в БД для сохранения авторизации между перезапусками
+        services.AddDataProtection()
+            .PersistKeysToDbContext<AppDbContext>()
+            .SetApplicationName("ServiceDesk");
 
         // Обобщённый репозиторий
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
