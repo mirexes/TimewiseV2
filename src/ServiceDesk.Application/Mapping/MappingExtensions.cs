@@ -52,6 +52,8 @@ public static class MappingExtensions
             ServicePointId = ticket.ServicePointId,
             ServicePointName = ticket.ServicePoint?.Name ?? "",
             Address = ticket.ServicePoint?.Address ?? "",
+            Latitude = ticket.ServicePoint?.Latitude,
+            Longitude = ticket.ServicePoint?.Longitude,
             EquipmentId = ticket.EquipmentId,
             EquipmentModel = ticket.Equipment?.Model,
             EquipmentSerialNumber = ticket.Equipment?.SerialNumber,
