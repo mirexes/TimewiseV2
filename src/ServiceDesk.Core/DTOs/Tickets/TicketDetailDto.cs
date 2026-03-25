@@ -27,6 +27,8 @@ public class TicketDetailDto
     public int ServicePointId { get; set; }
     public string ServicePointName { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
+    public double? Latitude { get; set; }
+    public double? Longitude { get; set; }
 
     // Оборудование
     public int? EquipmentId { get; set; }
