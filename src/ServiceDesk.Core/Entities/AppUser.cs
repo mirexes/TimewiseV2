@@ -50,7 +50,7 @@ public class AppUser : BaseEntity
     public string? AvatarUrl { get; set; }
 
     /// <summary>Метка безопасности — меняется при деактивации для инвалидации сессий</summary>
-    public string SecurityStamp { get; set; } = Guid.NewGuid().ToString();
+    public string? SecurityStamp { get; set; } = Guid.NewGuid().ToString();
 
     /// <summary>Привязка к клиенту (для менеджера клиента)</summary>
     public int? ClientId { get; set; }
