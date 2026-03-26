@@ -34,6 +34,11 @@ public static class PermissionChecker
         => role is UserRole.ChiefEngineer or UserRole.ManagerTimewise
             or UserRole.ManagerClient or UserRole.Moderator;
 
+    /// <summary>Может ли пользователь привязывать/менять оборудование в заявке</summary>
+    public static bool CanEditEquipment(UserRole role)
+        => role is UserRole.Technician or UserRole.Engineer or UserRole.ChiefEngineer
+            or UserRole.Logist or UserRole.ManagerTimewise or UserRole.Moderator;
+
     /// <summary>Может ли пользователь просматривать отчёты</summary>
     public static bool CanViewReports(UserRole role)
         => role is UserRole.ChiefEngineer or UserRole.ManagerTimewise or UserRole.Moderator;

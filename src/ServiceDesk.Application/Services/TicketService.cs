@@ -138,6 +138,7 @@ public class TicketService : ITicketService
         var dto = ticket.ToDetailDto();
         dto.AllowedTransitions = TicketStatusTransitions.GetAllowedTransitions(ticket.Status);
         dto.CanAssignEngineer = PermissionChecker.CanAssignEngineer(currentUserRole);
+        dto.CanEditEquipment = PermissionChecker.CanEditEquipment(currentUserRole);
         return dto;
     }
 
@@ -304,6 +305,19 @@ public class TicketService : ITicketService
                     : "Главный инженер"
             })
             .ToListAsync();
+    }
+
+    public async Task UpdateEquipmentAsync(int ticketId, int? equipmentId, int currentUserId)
+    {
+        var ticket = await _db.Tickets.FindAsync(ticketId)
+            ?? throw new KeyNotFoundException($"Заявка {ticketId} не найдена");
+
+        var oldEquipmentId = ticket.EquipmentId?.ToString();
+        ticket.EquipmentId = equipmentId;
+        await _db.SaveChangesAsync();
+
+        await _audit.LogAsync(AuditAction.Updated, "Ticket", ticket.Id,
+            oldEquipmentId, equipmentId?.ToString(), currentUserId);
     }
 
     public async Task<IEnumerable<TicketListDto>> GetByEngineerAsync(int engineerId)

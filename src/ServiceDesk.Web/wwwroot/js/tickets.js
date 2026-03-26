@@ -174,6 +174,97 @@ async function assignEngineer(ticketId) {
     }
 }
 
+// === Оборудование ===
+
+// Загрузка списка оборудования точки обслуживания
+async function loadEquipment(servicePointId) {
+    const select = document.getElementById('equipmentSelect');
+    if (!select) return;
+
+    try {
+        const response = await fetch(`/api/tickets/equipment/by-service-point/${servicePointId}`);
+        if (!response.ok) return;
+
+        const items = await response.json();
+        items.forEach(eq => {
+            const option = document.createElement('option');
+            option.value = eq.id;
+            option.textContent = `${eq.model} (${eq.serialNumber})`;
+            select.appendChild(option);
+        });
+    } catch (e) {
+        console.error('Ошибка загрузки оборудования:', e);
+    }
+}
+
+// Привязать выбранное оборудование к заявке
+async function assignEquipment(ticketId) {
+    const select = document.getElementById('equipmentSelect');
+    const equipmentId = select.value ? parseInt(select.value) : null;
+
+    if (!equipmentId) {
+        alert('Выберите оборудование');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/tickets/equipment/assign', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ticketId, equipmentId })
+        });
+
+        if (response.ok) {
+            location.reload();
+        } else {
+            const error = await response.text();
+            alert('Ошибка: ' + error);
+        }
+    } catch (e) {
+        alert('Ошибка соединения');
+    }
+}
+
+// Показать форму добавления нового оборудования
+function showNewEquipmentForm() {
+    document.getElementById('newEquipmentForm').style.display = '';
+}
+
+// Скрыть форму добавления нового оборудования
+function hideNewEquipmentForm() {
+    document.getElementById('newEquipmentForm').style.display = 'none';
+    document.getElementById('newEquipmentModel').value = '';
+    document.getElementById('newEquipmentSerial').value = '';
+}
+
+// Создать новое оборудование и привязать к заявке
+async function createAndAssignEquipment(ticketId, servicePointId) {
+    const model = document.getElementById('newEquipmentModel').value.trim();
+    const serialNumber = document.getElementById('newEquipmentSerial').value.trim();
+
+    if (!model || !serialNumber) {
+        alert('Заполните модель и серийный номер');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/tickets/equipment/create-and-assign', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ticketId, servicePointId, model, serialNumber })
+        });
+
+        if (response.ok) {
+            location.reload();
+        } else {
+            const error = await response.text();
+            alert('Ошибка: ' + error);
+        }
+    } catch (e) {
+        alert('Ошибка соединения');
+    }
+}
+
 // Загружаем специалистов при наличии выпадающего списка
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', loadEngineers);

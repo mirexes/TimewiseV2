@@ -184,13 +184,63 @@
                         </a>
                     }
                 </div>
-                @if (Model.EquipmentModel is not null)
-                {
-                    <div class="mb-3">
-                        <small class="text-muted">Оборудование</small>
-                        <p class="mb-0">@Model.EquipmentModel (@Model.EquipmentSerialNumber)</p>
+                <div class="mb-3">
+                    <small class="text-muted">Оборудование</small>
+                    <div id="equipmentDisplay">
+                        @if (Model.EquipmentModel is not null)
+                        {
+                            <p class="mb-0">
+                                <i class="bi bi-gear"></i> @Model.EquipmentModel
+                                <span class="text-muted">(@Model.EquipmentSerialNumber)</span>
+                            </p>
+                        }
+                        else
+                        {
+                            <p class="mb-0 text-muted fst-italic">Не указано</p>
+                        }
                     </div>
-                }
+                    @if (Model.CanEditEquipment)
+                    {
+                        <div class="mt-2">
+                            <select id="equipmentSelect" class="form-select form-select-sm">
+                                <option value="">Выберите оборудование...</option>
+                            </select>
+                            <div class="d-flex gap-1 mt-1">
+                                <button class="btn btn-sm btn-primary flex-grow-1"
+                                        onclick="assignEquipment(@Model.Id)">
+                                    <i class="bi bi-link-45deg"></i> Привязать
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary"
+                                        onclick="showNewEquipmentForm()" title="Добавить новое">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Форма добавления нового оборудования -->
+                        <div id="newEquipmentForm" class="mt-2 p-2 border rounded bg-body-secondary" style="display:none">
+                            <h6 class="small fw-bold mb-2">Новое оборудование</h6>
+                            <div class="mb-2">
+                                <input type="text" id="newEquipmentModel" class="form-control form-control-sm"
+                                       placeholder="Модель *" />
+                            </div>
+                            <div class="mb-2">
+                                <input type="text" id="newEquipmentSerial" class="form-control form-control-sm"
+                                       placeholder="Серийный номер *" />
+                            </div>
+                            <div class="d-flex gap-1">
+                                <button class="btn btn-sm btn-success flex-grow-1"
+                                        onclick="createAndAssignEquipment(@Model.Id, @Model.ServicePointId)">
+                                    <i class="bi bi-plus-circle"></i> Создать и привязать
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary"
+                                        onclick="hideNewEquipmentForm()">
+                                    Отмена
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
                 <div class="mb-3">
                     <small class="text-muted">Специалист</small>
                     @if (Model.EngineerName is not null)
@@ -353,6 +403,12 @@
     <script>
         // Инициализация чата для текущей заявки
         initChat(@Model.Id, @User.GetUserId());
+
+        // Загрузка оборудования точки обслуживания
+        @if (Model.CanEditEquipment)
+        {
+            <text>loadEquipment(@Model.ServicePointId);</text>
+        }
 
         // Данные фото акта для галереи
         var completionPhotos = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
