@@ -46,3 +46,4 @@ appsettings.*.local.json
 /src/ServiceDesk.Web/wwwroot/uploads/tickets
 /src/ServiceDesk.Web/wwwroot/uploads/completion-photos
 /src/ServiceDesk.Web/wwwroot/uploads
+/src/ServiceDesk.Web/wwwroot/icons
