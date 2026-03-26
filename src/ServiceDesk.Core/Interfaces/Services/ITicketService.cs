@@ -20,4 +20,6 @@ public interface ITicketService
     Task<IEnumerable<TicketListDto>> GetByEngineerAsync(int engineerId);
     /// <summary>Получить список специалистов (техники + инженеры + главные инженеры)</summary>
     Task<IEnumerable<EngineerSelectDto>> GetEngineersAsync();
+    /// <summary>Привязать оборудование к заявке</summary>
+    Task UpdateEquipmentAsync(int ticketId, int? equipmentId, int currentUserId);
 }

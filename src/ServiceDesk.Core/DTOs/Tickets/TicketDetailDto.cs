@@ -71,6 +71,9 @@ public class TicketDetailDto
 
     /// <summary>Может ли текущий пользователь назначать специалиста</summary>
     public bool CanAssignEngineer { get; set; }
+
+    /// <summary>Может ли текущий пользователь привязывать/менять оборудование</summary>
+    public bool CanEditEquipment { get; set; }
 }
 
 /// <summary>

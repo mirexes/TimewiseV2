@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using ServiceDesk.Application.Helpers;
+using ServiceDesk.Core.DTOs.Equipment;
 using ServiceDesk.Core.DTOs.Tickets;
 using ServiceDesk.Core.Enums;
 using ServiceDesk.Core.Interfaces.Services;
@@ -15,11 +16,13 @@ namespace ServiceDesk.Web.Controllers.Api;
 public class TicketsApiController : ControllerBase
 {
     private readonly ITicketService _ticketService;
+    private readonly IEquipmentService _equipmentService;
     private readonly IWebHostEnvironment _env;
 
-    public TicketsApiController(ITicketService ticketService, IWebHostEnvironment env)
+    public TicketsApiController(ITicketService ticketService, IEquipmentService equipmentService, IWebHostEnvironment env)
     {
         _ticketService = ticketService;
+        _equipmentService = equipmentService;
         _env = env;
     }
 
@@ -94,6 +97,47 @@ public class TicketsApiController : ControllerBase
             filter, page, 20, User.GetUserId(), User.GetRole());
         return Ok(result);
     }
+
+    /// <summary>Получить оборудование по точке обслуживания</summary>
+    [HttpGet("equipment/by-service-point/{servicePointId}")]
+    public async Task<IActionResult> GetEquipmentByServicePoint(int servicePointId)
+    {
+        if (!PermissionChecker.CanEditEquipment(User.GetRole()))
+            return Forbid();
+
+        var items = await _equipmentService.GetByServicePointAsync(servicePointId);
+        return Ok(items);
+    }
+
+    /// <summary>Привязать оборудование к заявке</summary>
+    [HttpPost("equipment/assign")]
+    public async Task<IActionResult> AssignEquipment([FromBody] AssignEquipmentRequest request)
+    {
+        if (!PermissionChecker.CanEditEquipment(User.GetRole()))
+            return Forbid();
+
+        await _ticketService.UpdateEquipmentAsync(request.TicketId, request.EquipmentId, User.GetUserId());
+        return Ok(new { success = true });
+    }
+
+    /// <summary>Создать новое оборудование и привязать к заявке</summary>
+    [HttpPost("equipment/create-and-assign")]
+    public async Task<IActionResult> CreateAndAssignEquipment([FromBody] CreateAndAssignEquipmentRequest request)
+    {
+        if (!PermissionChecker.CanEditEquipment(User.GetRole()))
+            return Forbid();
+
+        var dto = new CreateEquipmentDto
+        {
+            Model = request.Model,
+            SerialNumber = request.SerialNumber,
+            ServicePointId = request.ServicePointId
+        };
+
+        var equipmentId = await _equipmentService.CreateAsync(dto);
+        await _ticketService.UpdateEquipmentAsync(request.TicketId, equipmentId, User.GetUserId());
+        return Ok(new { success = true, equipmentId });
+    }
 }
 
 /// <summary>
@@ -103,4 +147,24 @@ public class AssignEngineerRequest
 {
     public int TicketId { get; set; }
     public int EngineerId { get; set; }
+}
+
+/// <summary>
+/// Запрос на привязку оборудования
+/// </summary>
+public class AssignEquipmentRequest
+{
+    public int TicketId { get; set; }
+    public int? EquipmentId { get; set; }
+}
+
+/// <summary>
+/// Запрос на создание и привязку нового оборудования
+/// </summary>
+public class CreateAndAssignEquipmentRequest
+{
+    public int TicketId { get; set; }
+    public int ServicePointId { get; set; }
+    public string Model { get; set; } = string.Empty;
+    public string SerialNumber { get; set; } = string.Empty;
 }
