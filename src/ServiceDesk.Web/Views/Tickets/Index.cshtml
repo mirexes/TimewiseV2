@@ -78,9 +78,18 @@ else
                     <p class="mb-1 text-truncate">@ticket.Description</p>
 
                     <div class="d-flex justify-content-between align-items-center">
-                        <small class="text-muted">
-                            <i class="bi bi-geo-alt"></i> @ticket.Address
-                        </small>
+                        @if (!string.IsNullOrEmpty(ticket.Address))
+                        {
+                            <a href="https://yandex.ru/maps/?text=@(Uri.EscapeDataString(ticket.Address))"
+                               target="_blank" rel="noopener noreferrer" class="text-decoration-none"
+                               onclick="event.stopPropagation();">
+                                <small class="link-primary"><i class="bi bi-geo-alt"></i> @ticket.Address</small>
+                            </a>
+                        }
+                        else
+                        {
+                            <small class="text-muted"><i class="bi bi-geo-alt"></i> Адрес не указан</small>
+                        }
                         @if (ticket.EngineerName is not null)
                         {
                             <small class="text-muted">

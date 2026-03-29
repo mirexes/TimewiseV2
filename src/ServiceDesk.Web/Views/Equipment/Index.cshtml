@@ -55,9 +55,18 @@ else
                             <i class="bi bi-cpu"></i> @eq.Model
                         </h6>
                         <p class="text-muted small mb-1">S/N: @eq.SerialNumber</p>
-                        <p class="text-muted small mb-0">
-                            <i class="bi bi-geo-alt"></i> @eq.ServicePointAddress
-                        </p>
+                        @if (!string.IsNullOrEmpty(eq.ServicePointAddress))
+                        {
+                            <a href="https://yandex.ru/maps/?text=@(Uri.EscapeDataString(eq.ServicePointAddress))"
+                               target="_blank" rel="noopener noreferrer" class="text-decoration-none"
+                               onclick="event.stopPropagation();">
+                                <p class="small mb-0 link-primary"><i class="bi bi-geo-alt"></i> @eq.ServicePointAddress</p>
+                            </a>
+                        }
+                        else
+                        {
+                            <p class="text-muted small mb-0"><i class="bi bi-geo-alt"></i> Адрес не указан</p>
+                        }
                         @if (eq.InstalledAt.HasValue)
                         {
                             <small class="text-muted">

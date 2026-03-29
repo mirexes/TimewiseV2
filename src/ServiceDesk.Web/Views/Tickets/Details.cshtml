@@ -165,7 +165,14 @@
                 <div class="mb-3">
                     <small class="text-muted">Точка обслуживания</small>
                     <p class="mb-1 fw-bold">@Model.ServicePointName</p>
-                    @if (!string.IsNullOrEmpty(Model.Address))
+                    @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
+                    {
+                        <a href="https://yandex.ru/maps/?pt=@(Model.Longitude.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)),@(Model.Latitude.Value.ToString(System.Globalization.CultureInfo.InvariantCulture))&z=17&l=map"
+                           target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+                            <small class="link-primary"><i class="bi bi-geo-alt"></i> @Model.Address</small>
+                        </a>
+                    }
+                    else if (!string.IsNullOrEmpty(Model.Address))
                     {
                         <a href="https://yandex.ru/maps/?text=@(Uri.EscapeDataString(Model.Address))"
                            target="_blank" rel="noopener noreferrer" class="text-decoration-none">
@@ -174,14 +181,7 @@
                     }
                     else
                     {
-                        <small class="text-muted"><i class="bi bi-geo-alt"></i> @Model.Address</small>
-                    }
-                    @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
-                    {
-                        <a href="https://yandex.ru/maps/?pt=@(Model.Longitude.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)),@(Model.Latitude.Value.ToString(System.Globalization.CultureInfo.InvariantCulture))&z=17&l=map"
-                           target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-                            <small class="link-primary"><i class="bi bi-map"></i> Показать на карте</small>
-                        </a>
+                        <small class="text-muted"><i class="bi bi-geo-alt"></i> Адрес не указан</small>
                     }
                 </div>
                 <div class="mb-3">

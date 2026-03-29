@@ -236,9 +236,17 @@
                                         <span class="badge bg-secondary ms-1">Неактивна</span>
                                     }
                                 </span>
-                                <small class="text-muted d-block">
-                                    <i class="bi bi-geo-alt"></i> @sp.Address
-                                </small>
+                                @if (!string.IsNullOrEmpty(sp.Address))
+                                {
+                                    <a href="https://yandex.ru/maps/?text=@(Uri.EscapeDataString(sp.Address))"
+                                       target="_blank" rel="noopener noreferrer" class="text-decoration-none d-block">
+                                        <small class="link-primary"><i class="bi bi-geo-alt"></i> @sp.Address</small>
+                                    </a>
+                                }
+                                else
+                                {
+                                    <small class="text-muted d-block"><i class="bi bi-geo-alt"></i> Адрес не указан</small>
+                                }
                                 @if (!string.IsNullOrEmpty(sp.Region))
                                 {
                                     <small class="text-muted d-block">Регион: @sp.Region</small>
