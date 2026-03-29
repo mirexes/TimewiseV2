@@ -1,24 +1,41 @@
-@model IEnumerable<EquipmentDto>
+@using ServiceDesk.Core.DTOs.Equipment
+@model PagedResultDto<EquipmentDto>
 @{
     ViewData["Title"] = "Оборудование";
+    var search = ViewBag.Search as string ?? "";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <span class="text-muted" id="equipment-count">Всего: @Model.Count()</span>
+    <span class="text-muted">Всего: @Model.TotalCount</span>
     <a href="/Equipment/Create" class="btn btn-primary btn-sm">
         <i class="bi bi-plus-lg"></i> Добавить
     </a>
 </div>
 
-<div class="mb-4">
-    <div class="input-group">
-        <span class="input-group-text"><i class="bi bi-search"></i></span>
-        <input type="text" id="serial-search" class="form-control"
-               placeholder="Поиск по серийному номеру..." autocomplete="off" />
+<div class="card mb-4">
+    <div class="card-body py-2">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col">
+                <label class="form-label small text-muted mb-0">Серийный номер</label>
+                <input type="text" name="search" value="@search" class="form-control form-control-sm"
+                       placeholder="Поиск по серийному номеру..." />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+            @if (!string.IsNullOrEmpty(search))
+            {
+                <div class="col-auto">
+                    <a href="/Equipment/Index" class="btn btn-outline-secondary btn-sm">Сбросить</a>
+                </div>
+            }
+        </form>
     </div>
 </div>
 
-@if (!Model.Any())
+@if (!Model.Items.Any())
 {
     <div class="text-center py-5 text-muted">
         <i class="bi bi-cpu fs-1"></i>
@@ -28,9 +45,9 @@
 else
 {
     <div class="row g-3">
-        @foreach (var eq in Model)
+        @foreach (var eq in Model.Items)
         {
-            <div class="col-md-6 col-lg-4 equipment-card" data-serial="@eq.SerialNumber.ToLower()">
+            <div class="col-md-6 col-lg-4">
                 <div class="card h-100" onclick="location.href='/Equipment/Details/@eq.Id'"
                      style="cursor: pointer;">
                     <div class="card-body">
@@ -52,31 +69,6 @@ else
             </div>
         }
     </div>
-}
 
-@section Scripts {
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const input = document.getElementById('serial-search');
-            const cards = document.querySelectorAll('.equipment-card');
-            const countEl = document.getElementById('equipment-count');
-            const total = cards.length;
-
-            input.addEventListener('input', function () {
-                const query = this.value.toLowerCase().trim();
-                let visible = 0;
-
-                cards.forEach(function (card) {
-                    const serial = card.getAttribute('data-serial');
-                    const match = !query || serial.includes(query);
-                    card.style.display = match ? '' : 'none';
-                    if (match) visible++;
-                });
-
-                countEl.textContent = query
-                    ? 'Найдено: ' + visible + ' из ' + total
-                    : 'Всего: ' + total;
-            });
-        });
-    </script>
+    @await Html.PartialAsync("_Pagination", Model)
 }
