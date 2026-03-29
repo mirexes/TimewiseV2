@@ -22,7 +22,7 @@ public class CompanyChatService : ICompanyChatService
 
     public async Task<int> GetOrCreateChatAsync()
     {
-        var chat = await _db.CompanyChats.FirstOrDefaultAsync(c => c.IsActive);
+        var chat = await _db.CompanyChats.FirstOrDefaultAsync(c => c.IsActive && !c.IsDirectChat);
         if (chat != null)
             return chat.Id;
 

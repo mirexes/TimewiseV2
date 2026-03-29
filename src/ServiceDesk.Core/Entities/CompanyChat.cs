@@ -1,7 +1,7 @@
 namespace ServiceDesk.Core.Entities;
 
 /// <summary>
-/// Групповой чат компании (только сотрудники, без клиентов)
+/// Чат компании: групповой или личный (только сотрудники, без клиентов)
 /// </summary>
 public class CompanyChat : BaseEntity
 {
@@ -10,6 +10,9 @@ public class CompanyChat : BaseEntity
 
     /// <summary>Активен ли чат</summary>
     public bool IsActive { get; set; } = true;
+
+    /// <summary>Личный чат между двумя сотрудниками</summary>
+    public bool IsDirectChat { get; set; }
 
     // Навигационные свойства
     public ICollection<CompanyChatMember> Members { get; set; } = new List<CompanyChatMember>();

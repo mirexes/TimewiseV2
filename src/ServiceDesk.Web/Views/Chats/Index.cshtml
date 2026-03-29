@@ -1,0 +1,44 @@
+@{
+    var userId = (int)ViewBag.UserId;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-chat-left-text"></i> Чаты</h5>
+    <button class="btn btn-primary btn-sm" id="newChatBtn">
+        <i class="bi bi-plus-lg"></i> Новый чат
+    </button>
+</div>
+
+<!-- Список чатов -->
+<div id="chatList" class="chat-list">
+    <div class="text-center text-muted py-4">
+        <div class="spinner-border spinner-border-sm" role="status"></div>
+        <span class="ms-2">Загрузка...</span>
+    </div>
+</div>
+
+<!-- Модальное окно выбора сотрудника для нового чата -->
+<div class="modal fade" id="newChatModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-2">
+                <h6 class="modal-title"><i class="bi bi-person-plus"></i> Новый чат</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                <input type="text" class="form-control form-control-sm mb-3" id="employeeSearch"
+                       placeholder="Поиск сотрудника..." autocomplete="off" />
+                <div id="employeeList" class="employee-list">
+                    <div class="text-center text-muted py-3">Загрузка...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/chats.js" asp-append-version="true"></script>
+    <script>
+        initChats(@userId);
+    </script>
+}

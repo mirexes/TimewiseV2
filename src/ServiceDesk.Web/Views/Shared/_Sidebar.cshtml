@@ -36,6 +36,12 @@
         @if (userRole is not UserRole.Client and not UserRole.ManagerClient)
         {
             <li class="nav-item">
+                <a class="nav-link @(currentController == "Chats" ? "active" : "")" href="/Chats/Index">
+                    <i class="bi bi-chat-left-text"></i>
+                    <span>Чаты</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link @(currentController == "CompanyChat" ? "active" : "")" href="/CompanyChat/Index">
                     <i class="bi bi-chat-dots"></i>
                     <span>Чат компании</span>
