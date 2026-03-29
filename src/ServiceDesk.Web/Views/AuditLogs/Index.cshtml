@@ -80,14 +80,25 @@ else
     <div class="list-group">
         @foreach (var log in Model.Items)
         {
-            <div class="list-group-item">
+            @{
+                var entityUrl = GetEntityUrl(log.EntityType, log.EntityId);
+            }
+            <a href="@(entityUrl ?? "#")"
+               class="list-group-item list-group-item-action @(entityUrl == null ? "pe-none" : "")"
+               @(entityUrl == null ? "tabindex=-1" : "")>
                 <div class="d-flex justify-content-between align-items-start">
                     <div class="flex-grow-1">
                         <div class="d-flex align-items-center gap-2 mb-1">
                             <span class="badge @GetActionBadgeClass(log.Action)">
                                 @log.ActionDisplayName
                             </span>
-                            <span class="badge bg-secondary">@log.EntityTypeDisplayName #@log.EntityId</span>
+                            <span class="badge bg-secondary">
+                                @log.EntityTypeDisplayName #@log.EntityId
+                                @if (entityUrl != null)
+                                {
+                                    <i class="bi bi-box-arrow-up-right ms-1"></i>
+                                }
+                            </span>
                             <small class="text-muted">
                                 <i class="bi bi-person"></i> @log.UserFullName
                             </small>
@@ -120,7 +131,7 @@ else
                         <i class="bi bi-clock"></i> @log.CreatedAt.ToString("dd.MM.yyyy HH:mm:ss")
                     </small>
                 </div>
-            </div>
+            </a>
         }
     </div>
 
@@ -197,6 +208,18 @@ else
 
     string TruncateValue(string value) =>
         value.Length > 150 ? value[..150] + "..." : value;
+
+    /// <summary>
+    /// Возвращает URL для перехода к сущности или null, если страница не существует
+    /// </summary>
+    string? GetEntityUrl(string entityType, int entityId) => entityType switch
+    {
+        "Ticket" => $"/Tickets/Details/{entityId}",
+        "Equipment" => $"/Equipment/Details/{entityId}",
+        "Client" => $"/Clients/Details/{entityId}",
+        "AppUser" => $"/Users/Details/{entityId}",
+        _ => null
+    };
 
     string BuildPageUrl(int page)
     {
