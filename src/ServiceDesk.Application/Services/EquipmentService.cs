@@ -167,4 +167,13 @@ public class EquipmentService : IEquipmentService
             EngineerName = t.AssignedEngineer?.FullName
         });
     }
+
+    public async Task SetPhotoAsync(int equipmentId, string photoPath)
+    {
+        var equipment = await _db.Equipment.FindAsync(equipmentId)
+            ?? throw new KeyNotFoundException($"Оборудование {equipmentId} не найдено");
+
+        equipment.PhotoPath = photoPath;
+        await _db.SaveChangesAsync();
+    }
 }

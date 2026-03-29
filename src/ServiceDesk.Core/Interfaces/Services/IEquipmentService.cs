@@ -16,4 +16,5 @@ public interface IEquipmentService
     Task UpdateAsync(int id, CreateEquipmentDto dto);
     Task<IEnumerable<EquipmentDto>> GetByServicePointAsync(int servicePointId);
     Task<IEnumerable<EquipmentHistoryDto>> GetRepairHistoryAsync(int equipmentId);
+    Task SetPhotoAsync(int equipmentId, string photoPath);
 }

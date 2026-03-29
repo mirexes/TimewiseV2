@@ -3,6 +3,7 @@ using ServiceDesk.Core.DTOs.Equipment;
 using ServiceDesk.Core.Interfaces.Services;
 using ServiceDesk.Web.Extensions;
 using ServiceDesk.Web.Filters;
+using Microsoft.AspNetCore.Hosting;
 
 namespace ServiceDesk.Web.Controllers;
 
@@ -14,11 +15,13 @@ public class EquipmentController : Controller
 {
     private readonly IEquipmentService _equipmentService;
     private readonly IClientService _clientService;
+    private readonly IWebHostEnvironment _env;
 
-    public EquipmentController(IEquipmentService equipmentService, IClientService clientService)
+    public EquipmentController(IEquipmentService equipmentService, IClientService clientService, IWebHostEnvironment env)
     {
         _equipmentService = equipmentService;
         _clientService = clientService;
+        _env = env;
     }
 
     [HttpGet]
@@ -50,7 +53,7 @@ public class EquipmentController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(CreateEquipmentDto dto)
+    public async Task<IActionResult> Create(CreateEquipmentDto dto, IFormFile? photo)
     {
         if (!ModelState.IsValid)
         {
@@ -59,6 +62,22 @@ public class EquipmentController : Controller
         }
 
         var id = await _equipmentService.CreateAsync(dto);
+
+        if (photo is { Length: > 0 })
+        {
+            var uploadsDir = Path.Combine(_env.WebRootPath, "uploads", "equipment");
+            Directory.CreateDirectory(uploadsDir);
+
+            var ext = Path.GetExtension(photo.FileName);
+            var uniqueName = $"{id}_{Guid.NewGuid():N}{ext}";
+            var filePath = Path.Combine(uploadsDir, uniqueName);
+
+            await using var stream = new FileStream(filePath, FileMode.Create);
+            await photo.CopyToAsync(stream);
+
+            await _equipmentService.SetPhotoAsync(id, $"/uploads/equipment/{uniqueName}");
+        }
+
         return RedirectToAction(nameof(Details), new { id });
     }
 }

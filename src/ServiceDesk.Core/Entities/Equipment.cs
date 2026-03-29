@@ -17,6 +17,9 @@ public class Equipment : BaseEntity
     /// <summary>Описание / заметки</summary>
     public string? Description { get; set; }
 
+    /// <summary>Путь к фото оборудования</summary>
+    public string? PhotoPath { get; set; }
+
     /// <summary>Активно ли оборудование</summary>
     public bool IsActive { get; set; } = true;
 

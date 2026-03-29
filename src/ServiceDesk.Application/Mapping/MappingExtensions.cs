@@ -79,6 +79,7 @@ public static class MappingExtensions
             SerialNumber = equipment.SerialNumber,
             InstalledAt = equipment.InstalledAt,
             Description = equipment.Description,
+            PhotoPath = equipment.PhotoPath,
             IsActive = equipment.IsActive,
             ServicePointId = equipment.ServicePointId,
             ServicePointName = equipment.ServicePoint?.Name ?? "",

@@ -14,7 +14,7 @@
 <div class="card" style="max-width: 600px;">
     <div class="card-header"><h5 class="mb-0">Новое оборудование</h5></div>
     <div class="card-body">
-        <form asp-action="Create" method="post">
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
             @Html.AntiForgeryToken()
             <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
@@ -28,17 +28,24 @@
                 <input asp-for="SerialNumber" class="form-control" placeholder="S/N" />
                 <span asp-validation-for="SerialNumber" class="text-danger small"></span>
             </div>
+
+            <!-- Точка обслуживания — поиск с фильтрацией -->
             <div class="mb-3">
                 <label asp-for="ServicePointId" class="form-label">Точка обслуживания</label>
-                <select asp-for="ServicePointId" class="form-select">
-                    <option value="">Выберите точку...</option>
-                    @foreach (var sp in servicePoints)
-                    {
-                        <option value="@sp.Id">@sp.Text</option>
-                    }
-                </select>
+                <input type="hidden" name="ServicePointId" id="servicePointValue"
+                       value="@(Model?.ServicePointId)" />
+                <div class="position-relative" id="spSearchWrapper">
+                    <input type="text" class="form-control" id="servicePointSearch"
+                           placeholder="Начните вводить адрес..." autocomplete="off" />
+                    <div id="servicePointList"
+                         class="list-group position-absolute w-100 shadow"
+                         style="z-index: 1050; display: none; max-height: 250px; overflow-y: auto;">
+                    </div>
+                </div>
+                <script id="spOptionsData" type="application/json">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(servicePoints.Select(sp => new { sp.Id, sp.Text })))</script>
                 <span asp-validation-for="ServicePointId" class="text-danger small"></span>
             </div>
+
             <div class="mb-3">
                 <label asp-for="InstalledAt" class="form-label">Дата установки</label>
                 <input asp-for="InstalledAt" type="date" class="form-control" />
@@ -48,6 +55,15 @@
                 <textarea asp-for="Description" class="form-control" rows="3"></textarea>
             </div>
 
+            <!-- Фото оборудования -->
+            <div class="mb-3">
+                <label class="form-label">Фото оборудования</label>
+                <input type="file" name="photo" id="photoInput"
+                       class="form-control" accept="image/*" />
+                <div class="form-text">Можно прикрепить фото кофемашины</div>
+                <div id="photoPreview" class="mt-2"></div>
+            </div>
+
             <button type="submit" class="btn btn-primary">
                 <i class="bi bi-check-lg"></i> Добавить
             </button>
@@ -55,3 +71,7 @@
         </form>
     </div>
 </div>
+
+@section Scripts {
+    <script src="~/js/equipment-create.js" asp-append-version="true"></script>
+}
