@@ -80,6 +80,7 @@ public static class MappingExtensions
             InstalledAt = equipment.InstalledAt,
             Description = equipment.Description,
             PhotoPath = equipment.PhotoPath,
+            IsCompanyOwned = equipment.IsCompanyOwned,
             IsActive = equipment.IsActive,
             ServicePointId = equipment.ServicePointId,
             ServicePointName = equipment.ServicePoint?.Name ?? "",

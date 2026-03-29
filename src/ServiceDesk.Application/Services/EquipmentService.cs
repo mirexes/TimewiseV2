@@ -166,6 +166,7 @@ public class EquipmentService : IEquipmentService
             SerialNumber = dto.SerialNumber,
             InstalledAt = dto.InstalledAt,
             Description = dto.Description,
+            IsCompanyOwned = dto.IsCompanyOwned,
             ServicePointId = servicePointId
         };
 
@@ -183,6 +184,7 @@ public class EquipmentService : IEquipmentService
         equipment.SerialNumber = dto.SerialNumber;
         equipment.InstalledAt = dto.InstalledAt;
         equipment.Description = dto.Description;
+        equipment.IsCompanyOwned = dto.IsCompanyOwned;
         equipment.ServicePointId = dto.ServicePointId;
 
         await _db.SaveChangesAsync();

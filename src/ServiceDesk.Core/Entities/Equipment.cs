@@ -20,6 +20,9 @@ public class Equipment : BaseEntity
     /// <summary>Путь к фото оборудования</summary>
     public string? PhotoPath { get; set; }
 
+    /// <summary>Подменное оборудование (собственность компании, используется на период ремонта)</summary>
+    public bool IsCompanyOwned { get; set; }
+
     /// <summary>Активно ли оборудование</summary>
     public bool IsActive { get; set; } = true;
 

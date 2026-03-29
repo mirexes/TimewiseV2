@@ -84,6 +84,14 @@
                 <textarea asp-for="Description" class="form-control" rows="3"></textarea>
             </div>
 
+            <div class="mb-3 form-check">
+                <input asp-for="IsCompanyOwned" class="form-check-input" type="checkbox" />
+                <label asp-for="IsCompanyOwned" class="form-check-label">
+                    Подменное оборудование (собственность компании)
+                </label>
+                <div class="form-text">Используется для подмены на период ремонта оборудования клиента</div>
+            </div>
+
             <!-- Фото оборудования -->
             <div class="mb-3">
                 <label class="form-label">Фото оборудования</label>

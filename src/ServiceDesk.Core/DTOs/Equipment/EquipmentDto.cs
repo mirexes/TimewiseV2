@@ -11,6 +11,7 @@ public class EquipmentDto
     public DateTime? InstalledAt { get; set; }
     public string? Description { get; set; }
     public string? PhotoPath { get; set; }
+    public bool IsCompanyOwned { get; set; }
     public bool IsActive { get; set; }
     public int ServicePointId { get; set; }
     public string ServicePointName { get; set; } = string.Empty;
