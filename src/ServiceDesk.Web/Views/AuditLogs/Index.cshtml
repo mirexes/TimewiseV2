@@ -80,9 +80,7 @@ else
     <div class="list-group">
         @foreach (var log in Model.Items)
         {
-            @{
-                var entityUrl = GetEntityUrl(log.EntityType, log.EntityId);
-            }
+            var entityUrl = GetEntityUrl(log.EntityType, log.EntityId);
             <a href="@(entityUrl ?? "#")"
                class="list-group-item list-group-item-action @(entityUrl == null ? "pe-none" : "")"
                @(entityUrl == null ? "tabindex=-1" : "")>
