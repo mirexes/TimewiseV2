@@ -1,0 +1,16 @@
+@model TicketType
+
+@{
+    var (cssClass, label) = Model switch
+    {
+        TicketType.Repair => ("badge-type-repair", "Ремонт"),
+        TicketType.Maintenance => ("badge-type-maintenance", "ТО"),
+        TicketType.Installation => ("badge-type-installation", "Установка"),
+        TicketType.Dismantling => ("badge-type-dismantling", "Демонтаж"),
+        TicketType.Delivery => ("badge-type-delivery", "Поставка"),
+        TicketType.Consultation => ("badge-type-consultation", "Консультация"),
+        _ => ("bg-secondary", Model.ToString())
+    };
+}
+
+<span class="badge @cssClass">@label</span>

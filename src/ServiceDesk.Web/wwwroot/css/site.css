@@ -133,6 +133,14 @@ body {
 .badge-status-inprogress { background: var(--status-inprogress) !important; color: #000; }
 .badge-status-approved { background: var(--status-approved) !important; }
 
+/* === Бейджи типов заявок === */
+.badge-type-repair { background: var(--type-repair) !important; }
+.badge-type-maintenance { background: var(--type-maintenance) !important; }
+.badge-type-installation { background: var(--type-installation) !important; }
+.badge-type-dismantling { background: var(--type-dismantling) !important; color: #000; }
+.badge-type-delivery { background: var(--type-delivery) !important; }
+.badge-type-consultation { background: var(--type-consultation) !important; }
+
 /* === Уведомления === */
 .notification-badge {
     position: absolute;
