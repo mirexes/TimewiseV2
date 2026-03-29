@@ -170,19 +170,26 @@ public class TicketService : ITicketService
                 }
                 clientId = defaultClient.Id;
             }
-
-            var newPoint = new ServicePoint
+            var ad = _db.ServicePoints.FirstOrDefault(n=>n.Address== dto.NewAddress);
+            if (ad == null)
             {
-                Name = dto.NewAddress,
-                Address = dto.NewAddress,
-                Latitude = lat != 0 ? lat : null,
-                Longitude = lng != 0 ? lng : null,
-                IsActive = true,
-                ClientId = clientId.Value
-            };
-            _db.ServicePoints.Add(newPoint);
-            await _db.SaveChangesAsync();
-            servicePointId = newPoint.Id;
+                var newPoint = new ServicePoint
+                {
+                    Name = dto.NewAddress,
+                    Address = dto.NewAddress,
+                    Latitude = lat != 0 ? lat : null,
+                    Longitude = lng != 0 ? lng : null,
+                    IsActive = true,
+                    ClientId = clientId.Value
+                };
+                _db.ServicePoints.Add(newPoint);
+                await _db.SaveChangesAsync();
+                servicePointId = newPoint.Id;
+            }
+            else
+            {
+                servicePointId = ad.Id;
+            }
         }
 
         // Генерация номера заявки
