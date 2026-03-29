@@ -96,6 +96,14 @@ body {
     box-shadow: var(--shadow-md);
 }
 
+.stat-card-link {
+    cursor: pointer;
+}
+
+.stat-card-link .stat-number {
+    color: var(--bs-body-color);
+}
+
 .stat-number {
     font-size: 2rem;
     font-weight: 700;

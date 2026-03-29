@@ -6,48 +6,56 @@
 <!-- Карточки статистики -->
 <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
-        <div class="card stat-card">
-            <div class="card-body text-center">
-                <div class="stat-icon text-primary mb-2">
-                    <i class="bi bi-ticket-detailed fs-1"></i>
+        <a href="/Tickets/Index" class="text-decoration-none">
+            <div class="card stat-card stat-card-link">
+                <div class="card-body text-center">
+                    <div class="stat-icon text-primary mb-2">
+                        <i class="bi bi-ticket-detailed fs-1"></i>
+                    </div>
+                    <h2 class="stat-number">@Model.TotalTickets</h2>
+                    <p class="stat-label text-muted mb-0">Всего заявок</p>
                 </div>
-                <h2 class="stat-number">@Model.TotalTickets</h2>
-                <p class="stat-label text-muted mb-0">Всего заявок</p>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-6 col-md-3">
-        <div class="card stat-card">
-            <div class="card-body text-center">
-                <div class="stat-icon text-info mb-2">
-                    <i class="bi bi-plus-circle fs-1"></i>
+        <a href="/Tickets/Index?Status=New" class="text-decoration-none">
+            <div class="card stat-card stat-card-link">
+                <div class="card-body text-center">
+                    <div class="stat-icon text-info mb-2">
+                        <i class="bi bi-plus-circle fs-1"></i>
+                    </div>
+                    <h2 class="stat-number">@Model.NewTickets</h2>
+                    <p class="stat-label text-muted mb-0">Новые</p>
                 </div>
-                <h2 class="stat-number">@Model.NewTickets</h2>
-                <p class="stat-label text-muted mb-0">Новые</p>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-6 col-md-3">
-        <div class="card stat-card">
-            <div class="card-body text-center">
-                <div class="stat-icon text-warning mb-2">
-                    <i class="bi bi-arrow-repeat fs-1"></i>
+        <a href="/Tickets/Index?Status=InProgress" class="text-decoration-none">
+            <div class="card stat-card stat-card-link">
+                <div class="card-body text-center">
+                    <div class="stat-icon text-warning mb-2">
+                        <i class="bi bi-arrow-repeat fs-1"></i>
+                    </div>
+                    <h2 class="stat-number">@Model.InProgressTickets</h2>
+                    <p class="stat-label text-muted mb-0">В работе</p>
                 </div>
-                <h2 class="stat-number">@Model.InProgressTickets</h2>
-                <p class="stat-label text-muted mb-0">В работе</p>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-6 col-md-3">
-        <div class="card stat-card">
-            <div class="card-body text-center">
-                <div class="stat-icon text-success mb-2">
-                    <i class="bi bi-check-circle fs-1"></i>
+        <a href="/Tickets/Index?Status=Completed" class="text-decoration-none">
+            <div class="card stat-card stat-card-link">
+                <div class="card-body text-center">
+                    <div class="stat-icon text-success mb-2">
+                        <i class="bi bi-check-circle fs-1"></i>
+                    </div>
+                    <h2 class="stat-number">@Model.CompletedTickets</h2>
+                    <p class="stat-label text-muted mb-0">Выполнены</p>
                 </div>
-                <h2 class="stat-number">@Model.CompletedTickets</h2>
-                <p class="stat-label text-muted mb-0">Выполнены</p>
             </div>
-        </div>
+        </a>
     </div>
 </div>
 
