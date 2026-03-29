@@ -23,7 +23,17 @@
                 <div class="mb-3">
                     <small class="text-muted">Точка обслуживания</small>
                     <p class="mb-0">@Model.ServicePointName</p>
-                    <small class="text-muted"><i class="bi bi-geo-alt"></i> @Model.ServicePointAddress</small>
+                    @if (!string.IsNullOrEmpty(Model.ServicePointAddress))
+                    {
+                        <a href="https://yandex.ru/maps/?text=@(Uri.EscapeDataString(Model.ServicePointAddress))"
+                           target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+                            <small class="link-primary"><i class="bi bi-geo-alt"></i> @Model.ServicePointAddress</small>
+                        </a>
+                    }
+                    else
+                    {
+                        <small class="text-muted"><i class="bi bi-geo-alt"></i> Адрес не указан</small>
+                    }
                 </div>
                 @if (Model.InstalledAt.HasValue)
                 {
