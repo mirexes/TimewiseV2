@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Application.Helpers;
 using ServiceDesk.Application.Mapping;
+using ServiceDesk.Core.DTOs.Common;
 using ServiceDesk.Core.DTOs.Equipment;
 using ServiceDesk.Core.Enums;
 using ServiceDesk.Core.Interfaces.Services;
@@ -67,6 +68,32 @@ public class EquipmentService : IEquipmentService
             .ToListAsync();
 
         return items.Select(e => e.ToDto());
+    }
+
+    public async Task<PagedResultDto<EquipmentDto>> GetPagedAsync(
+        int currentUserId, UserRole currentUserRole, string? search, int page, int pageSize)
+    {
+        var query = _db.Equipment
+            .Include(e => e.ServicePoint)
+            .Where(e => e.IsActive)
+            .AsQueryable();
+
+        query = ApplyRoleFilter(query, currentUserId, currentUserRole);
+
+        // Поиск по серийному номеру
+        if (!string.IsNullOrWhiteSpace(search))
+            query = query.Where(e => e.SerialNumber.Contains(search));
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .OrderBy(e => e.Model)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PagedResultDto<EquipmentDto>(
+            items.Select(e => e.ToDto()), totalCount, page, pageSize);
     }
 
     public async Task<EquipmentDto?> GetByIdAsync(int id, int currentUserId, UserRole currentUserRole)

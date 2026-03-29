@@ -22,10 +22,13 @@ public class EquipmentController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? search, int page = 1)
     {
-        var items = await _equipmentService.GetAllAsync(User.GetUserId(), User.GetRole());
-        return View(items);
+        var result = await _equipmentService.GetPagedAsync(
+            User.GetUserId(), User.GetRole(), search, page, pageSize: 24);
+
+        ViewBag.Search = search;
+        return View(result);
     }
 
     [HttpGet]
