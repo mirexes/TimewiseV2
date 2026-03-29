@@ -38,14 +38,17 @@
                 <!-- Точка обслуживания (адрес выезда) -->
                 <div class="col-12">
                     <label asp-for="ServicePointId" class="form-label">Точка обслуживания (адрес выезда)</label>
-                    <select name="ServicePointId" class="form-select" id="servicePointSelect">
-                        <option value="">Выберите точку...</option>
-                        @foreach (var sp in servicePoints)
-                        {
-                            <option value="@sp.Id"
-                                    selected="@(Model?.ServicePointId == sp.Id ? "selected" : null)">@sp.Text</option>
-                        }
-                    </select>
+                    <input type="hidden" name="ServicePointId" id="servicePointValue"
+                           value="@(Model?.ServicePointId)" />
+                    <div class="position-relative" id="spSearchWrapper">
+                        <input type="text" class="form-control" id="servicePointSearch"
+                               placeholder="Начните вводить адрес..." autocomplete="off" />
+                        <div id="servicePointList"
+                             class="list-group position-absolute w-100 shadow"
+                             style="z-index: 1050; display: none; max-height: 250px; overflow-y: auto;">
+                        </div>
+                    </div>
+                    <script id="spOptionsData" type="application/json">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(servicePoints.Select(sp => new { sp.Id, sp.Text })))</script>
                     <span asp-validation-for="ServicePointId" class="text-danger small"></span>
 
                     @if (!string.IsNullOrEmpty(yandexApiKey))

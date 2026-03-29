@@ -43,18 +43,136 @@
     });
 })();
 
-// === При выборе точки из списка — сбрасываем новый адрес ===
+// === Поиск по точкам обслуживания с фильтрацией ===
 (function () {
-    var spSelect = document.getElementById('servicePointSelect');
-    if (!spSelect) return;
-    spSelect.addEventListener('change', function () {
-        if (spSelect.value) {
-            var h = document.getElementById('newAddress');
-            if (h) h.value = '';
-            var lat = document.getElementById('newLatitude');
-            if (lat) lat.value = '';
-            var lng = document.getElementById('newLongitude');
-            if (lng) lng.value = '';
+    var searchInput = document.getElementById('servicePointSearch');
+    var hiddenInput = document.getElementById('servicePointValue');
+    var listEl = document.getElementById('servicePointList');
+    var dataScript = document.getElementById('spOptionsData');
+    if (!searchInput || !hiddenInput || !listEl || !dataScript) return;
+
+    var allOptions = [];
+    try { allOptions = JSON.parse(dataScript.textContent); } catch (e) { return; }
+
+    // Если уже есть выбранное значение — показать текст
+    if (hiddenInput.value) {
+        var sel = allOptions.find(function (o) { return o.Id == hiddenInput.value; });
+        if (sel) searchInput.value = sel.Text;
+    }
+
+    var activeIndex = -1;
+
+    function clearSelection() {
+        hiddenInput.value = '';
+        // Сбрасываем новый адрес
+        var h = document.getElementById('newAddress');
+        if (h) h.value = '';
+        var lat = document.getElementById('newLatitude');
+        if (lat) lat.value = '';
+        var lng = document.getElementById('newLongitude');
+        if (lng) lng.value = '';
+    }
+
+    function selectOption(opt) {
+        searchInput.value = opt.Text;
+        hiddenInput.value = opt.Id;
+        hideList();
+        // Сбрасываем новый адрес при выборе существующей точки
+        var h = document.getElementById('newAddress');
+        if (h) h.value = '';
+        var lat = document.getElementById('newLatitude');
+        if (lat) lat.value = '';
+        var lng = document.getElementById('newLongitude');
+        if (lng) lng.value = '';
+    }
+
+    function renderList(items) {
+        listEl.innerHTML = '';
+        activeIndex = -1;
+        if (items.length === 0) {
+            var empty = document.createElement('div');
+            empty.className = 'list-group-item text-muted small py-2';
+            empty.textContent = 'Ничего не найдено';
+            listEl.appendChild(empty);
+            listEl.style.display = 'block';
+            return;
+        }
+        items.forEach(function (opt, idx) {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'list-group-item list-group-item-action small py-2';
+            btn.textContent = opt.Text;
+            btn.addEventListener('mousedown', function (e) {
+                e.preventDefault();
+                selectOption(opt);
+            });
+            listEl.appendChild(btn);
+        });
+        listEl.style.display = 'block';
+    }
+
+    function hideList() {
+        listEl.style.display = 'none';
+        listEl.innerHTML = '';
+        activeIndex = -1;
+    }
+
+    function filterAndShow() {
+        var query = searchInput.value.trim().toLowerCase();
+        var filtered;
+        if (query.length === 0) {
+            // Показываем все (максимум 50)
+            filtered = allOptions.slice(0, 50);
+        } else {
+            filtered = allOptions.filter(function (o) {
+                return o.Text.toLowerCase().indexOf(query) !== -1;
+            }).slice(0, 50);
+        }
+        renderList(filtered);
+    }
+
+    searchInput.addEventListener('focus', function () {
+        filterAndShow();
+    });
+
+    searchInput.addEventListener('input', function () {
+        clearSelection();
+        filterAndShow();
+    });
+
+    searchInput.addEventListener('keydown', function (e) {
+        var items = listEl.querySelectorAll('.list-group-item-action');
+        if (!items.length) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            activeIndex = Math.min(activeIndex + 1, items.length - 1);
+            updateActive(items);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            activeIndex = Math.max(activeIndex - 1, 0);
+            updateActive(items);
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (activeIndex >= 0 && activeIndex < items.length) {
+                items[activeIndex].dispatchEvent(new MouseEvent('mousedown'));
+            }
+        } else if (e.key === 'Escape') {
+            hideList();
+        }
+    });
+
+    function updateActive(items) {
+        items.forEach(function (el, i) {
+            el.classList.toggle('active', i === activeIndex);
+            if (i === activeIndex) el.scrollIntoView({ block: 'nearest' });
+        });
+    }
+
+    // Скрываем список при клике вне
+    document.addEventListener('mousedown', function (e) {
+        if (!searchInput.contains(e.target) && !listEl.contains(e.target)) {
+            hideList();
         }
     });
 })();
@@ -260,10 +378,12 @@
         if (hiddenLng && coords) hiddenLng.value = coords[1];
 
         // Сбрасываем выбор существующей точки — используется новый адрес
-        var spSelect = document.getElementById('servicePointSelect');
-        if (spSelect) {
-            spSelect.value = '';
-            spSelect.classList.remove('input-validation-error');
+        var spHidden = document.getElementById('servicePointValue');
+        var spSearch = document.getElementById('servicePointSearch');
+        if (spHidden) spHidden.value = '';
+        if (spSearch) {
+            spSearch.value = '';
+            spSearch.classList.remove('input-validation-error');
         }
 
         // Убираем текст ошибки валидации если был
