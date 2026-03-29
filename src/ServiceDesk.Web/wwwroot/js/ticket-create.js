@@ -43,7 +43,7 @@
     });
 })();
 
-// === При выборе точки из списка — сбрасываем новый адрес ===
+// === При выборе точки из списка — сбрасываем новый адрес и загружаем оборудование ===
 (function () {
     var spSelect = document.getElementById('servicePointSelect');
     if (!spSelect) return;
@@ -55,8 +55,55 @@
             if (lat) lat.value = '';
             var lng = document.getElementById('newLongitude');
             if (lng) lng.value = '';
+
+            // Загружаем оборудование для выбранной точки
+            loadEquipmentForCreate(spSelect.value);
+        } else {
+            // Точка не выбрана — скрываем блок оборудования
+            var block = document.getElementById('equipmentBlock');
+            if (block) block.style.display = 'none';
+            var eqSelect = document.getElementById('equipmentSelect');
+            if (eqSelect) {
+                eqSelect.innerHTML = '<option value="">Выберите оборудование...</option>';
+            }
         }
     });
+
+    // Загрузка оборудования по точке обслуживания
+    async function loadEquipmentForCreate(servicePointId) {
+        var eqSelect = document.getElementById('equipmentSelect');
+        var block = document.getElementById('equipmentBlock');
+        if (!eqSelect || !block) return;
+
+        // Сбрасываем список
+        eqSelect.innerHTML = '<option value="">Выберите оборудование...</option>';
+
+        try {
+            var response = await fetch('/api/tickets/equipment/by-service-point/' + servicePointId);
+            if (!response.ok) {
+                block.style.display = 'none';
+                return;
+            }
+
+            var items = await response.json();
+            if (items.length === 0) {
+                block.style.display = 'none';
+                return;
+            }
+
+            items.forEach(function (eq) {
+                var option = document.createElement('option');
+                option.value = eq.id;
+                option.textContent = eq.model + ' (' + eq.serialNumber + ')';
+                eqSelect.appendChild(option);
+            });
+
+            block.style.display = '';
+        } catch (e) {
+            console.error('Ошибка загрузки оборудования:', e);
+            block.style.display = 'none';
+        }
+    }
 })();
 
 // === Яндекс Карты — выбор нового адреса ===
@@ -265,6 +312,12 @@
             spSelect.value = '';
             spSelect.classList.remove('input-validation-error');
         }
+
+        // Скрываем оборудование — для нового адреса оно не привязано
+        var eqBlock = document.getElementById('equipmentBlock');
+        if (eqBlock) eqBlock.style.display = 'none';
+        var eqSelect = document.getElementById('equipmentSelect');
+        if (eqSelect) eqSelect.innerHTML = '<option value="">Выберите оборудование...</option>';
 
         // Убираем текст ошибки валидации если был
         var validationSpan = document.querySelector('[data-valmsg-for="ServicePointId"]');

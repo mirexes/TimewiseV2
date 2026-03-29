@@ -102,7 +102,8 @@ public class TicketsApiController : ControllerBase
     [HttpGet("equipment/by-service-point/{servicePointId}")]
     public async Task<IActionResult> GetEquipmentByServicePoint(int servicePointId)
     {
-        if (!PermissionChecker.CanEditEquipment(User.GetRole()))
+        var role = User.GetRole();
+        if (!PermissionChecker.CanEditEquipment(role) && !PermissionChecker.CanCreateTicket(role))
             return Forbid();
 
         var items = await _equipmentService.GetByServicePointAsync(servicePointId);

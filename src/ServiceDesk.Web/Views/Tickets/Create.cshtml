@@ -77,6 +77,14 @@
                     }
                 </div>
 
+                <!-- Оборудование (загружается при выборе точки) -->
+                <div class="col-12" id="equipmentBlock" style="display:none;">
+                    <label asp-for="EquipmentId" class="form-label">Оборудование</label>
+                    <select name="EquipmentId" class="form-select" id="equipmentSelect">
+                        <option value="">Выберите оборудование...</option>
+                    </select>
+                </div>
+
                 <!-- Описание проблемы -->
                 <div class="col-12">
                     <label asp-for="Description" class="form-label">Описание проблемы</label>
