@@ -48,13 +48,14 @@ public class UserService : IUserService
 
         var totalCount = await query.CountAsync();
 
-        var items = await query
+        var users = await query
             .OrderBy(u => u.LastName)
             .ThenBy(u => u.FirstName)
             .Skip((filter.Page - 1) * filter.PageSize)
             .Take(filter.PageSize)
-            .Select(u => u.ToListDto())
             .ToListAsync();
+
+        var items = users.Select(u => u.ToListDto()).ToList();
 
         return new PagedResultDto<UserListDto>(items, totalCount, filter.Page, filter.PageSize);
     }

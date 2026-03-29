@@ -73,12 +73,13 @@ public class AuditService : IAuditService
 
         var totalCount = await query.CountAsync();
 
-        var items = await query
+        var logs = await query
             .OrderByDescending(l => l.CreatedAt)
             .Skip((filter.Page - 1) * filter.PageSize)
             .Take(filter.PageSize)
-            .Select(l => l.ToListDto())
             .ToListAsync();
+
+        var items = logs.Select(l => l.ToListDto()).ToList();
 
         return new PagedResultDto<AuditLogListDto>(items, totalCount, filter.Page, filter.PageSize);
     }
