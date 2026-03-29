@@ -95,6 +95,10 @@ public class UserService : IUserService
         var user = await _db.Users.FindAsync(id)
             ?? throw new KeyNotFoundException($"Пользователь {id} не найден");
 
+        // Если роль изменилась — обновляем SecurityStamp для инвалидации сессии
+        if (user.Role != dto.Role)
+            user.SecurityStamp = Guid.NewGuid().ToString();
+
         user.LastName = dto.LastName;
         user.FirstName = dto.FirstName;
         user.MiddleName = dto.MiddleName;
