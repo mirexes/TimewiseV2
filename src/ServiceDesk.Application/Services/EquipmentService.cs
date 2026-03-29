@@ -1,8 +1,10 @@
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using ServiceDesk.Application.Helpers;
 using ServiceDesk.Application.Mapping;
 using ServiceDesk.Core.DTOs.Common;
 using ServiceDesk.Core.DTOs.Equipment;
+using ServiceDesk.Core.Entities;
 using ServiceDesk.Core.Enums;
 using ServiceDesk.Core.Interfaces.Services;
 using ServiceDesk.Infrastructure.Data;
@@ -108,15 +110,63 @@ public class EquipmentService : IEquipmentService
         return equipment?.ToDto();
     }
 
-    public async Task<int> CreateAsync(CreateEquipmentDto dto)
+    public async Task<int> CreateAsync(CreateEquipmentDto dto, int currentUserId)
     {
+        var servicePointId = dto.ServicePointId;
+
+        // Если точка не выбрана, но указан новый адрес — создаём точку обслуживания
+        if (servicePointId == 0 && !string.IsNullOrWhiteSpace(dto.NewAddress))
+        {
+            double.TryParse(dto.Latitude, CultureInfo.InvariantCulture, out var lat);
+            double.TryParse(dto.Longitude, CultureInfo.InvariantCulture, out var lng);
+
+            var clientId = await _db.Users
+                .Where(u => u.Id == currentUserId)
+                .Select(u => u.ClientId)
+                .FirstOrDefaultAsync();
+
+            if (clientId is null or 0)
+            {
+                var defaultClient = await _db.Clients
+                    .FirstOrDefaultAsync(c => c.Name == "Без организации");
+                if (defaultClient == null)
+                {
+                    defaultClient = new Client { Name = "Без организации", IsActive = true };
+                    _db.Clients.Add(defaultClient);
+                    await _db.SaveChangesAsync();
+                }
+                clientId = defaultClient.Id;
+            }
+
+            var existing = await _db.ServicePoints.FirstOrDefaultAsync(n => n.Address == dto.NewAddress);
+            if (existing == null)
+            {
+                var newPoint = new ServicePoint
+                {
+                    Name = dto.NewAddress,
+                    Address = dto.NewAddress,
+                    Latitude = lat != 0 ? lat : null,
+                    Longitude = lng != 0 ? lng : null,
+                    IsActive = true,
+                    ClientId = clientId.Value
+                };
+                _db.ServicePoints.Add(newPoint);
+                await _db.SaveChangesAsync();
+                servicePointId = newPoint.Id;
+            }
+            else
+            {
+                servicePointId = existing.Id;
+            }
+        }
+
         var equipment = new Core.Entities.Equipment
         {
             Model = dto.Model,
             SerialNumber = dto.SerialNumber,
             InstalledAt = dto.InstalledAt,
             Description = dto.Description,
-            ServicePointId = dto.ServicePointId
+            ServicePointId = servicePointId
         };
 
         _db.Equipment.Add(equipment);

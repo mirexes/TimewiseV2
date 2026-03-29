@@ -3,7 +3,6 @@ using ServiceDesk.Core.DTOs.Equipment;
 using ServiceDesk.Core.Interfaces.Services;
 using ServiceDesk.Web.Extensions;
 using ServiceDesk.Web.Filters;
-using Microsoft.AspNetCore.Hosting;
 
 namespace ServiceDesk.Web.Controllers;
 
@@ -16,12 +15,18 @@ public class EquipmentController : Controller
     private readonly IEquipmentService _equipmentService;
     private readonly IClientService _clientService;
     private readonly IWebHostEnvironment _env;
+    private readonly IConfiguration _config;
 
-    public EquipmentController(IEquipmentService equipmentService, IClientService clientService, IWebHostEnvironment env)
+    public EquipmentController(
+        IEquipmentService equipmentService,
+        IClientService clientService,
+        IWebHostEnvironment env,
+        IConfiguration config)
     {
         _equipmentService = equipmentService;
         _clientService = clientService;
         _env = env;
+        _config = config;
     }
 
     [HttpGet]
@@ -48,6 +53,7 @@ public class EquipmentController : Controller
     public async Task<IActionResult> Create()
     {
         ViewBag.ServicePoints = await _clientService.GetServicePointsForSelectAsync(User.GetUserId(), User.GetRole());
+        ViewBag.YandexMapsApiKey = _config["YandexMaps:ApiKey"] ?? "";
         return View();
     }
 
@@ -55,13 +61,20 @@ public class EquipmentController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateEquipmentDto dto, IFormFile? photo)
     {
+        // ServicePointId может быть 0, если указан новый адрес
+        ModelState.Remove("ServicePointId");
+
+        if (dto.ServicePointId == 0 && string.IsNullOrWhiteSpace(dto.NewAddress))
+            ModelState.AddModelError("ServicePointId", "Выберите точку обслуживания или укажите новый адрес на карте");
+
         if (!ModelState.IsValid)
         {
             ViewBag.ServicePoints = await _clientService.GetServicePointsForSelectAsync(User.GetUserId(), User.GetRole());
+            ViewBag.YandexMapsApiKey = _config["YandexMaps:ApiKey"] ?? "";
             return View(dto);
         }
 
-        var id = await _equipmentService.CreateAsync(dto);
+        var id = await _equipmentService.CreateAsync(dto, User.GetUserId());
 
         if (photo is { Length: > 0 })
         {

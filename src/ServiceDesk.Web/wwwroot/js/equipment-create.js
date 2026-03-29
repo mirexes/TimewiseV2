@@ -45,12 +45,26 @@
 
     function clearSelection() {
         hiddenInput.value = '';
+        // Сбрасываем новый адрес
+        var h = document.getElementById('newAddress');
+        if (h) h.value = '';
+        var lat = document.getElementById('newLatitude');
+        if (lat) lat.value = '';
+        var lng = document.getElementById('newLongitude');
+        if (lng) lng.value = '';
     }
 
     function selectOption(opt) {
         searchInput.value = opt.Text;
         hiddenInput.value = opt.Id;
         hideList();
+        // Сбрасываем новый адрес при выборе существующей точки
+        var h = document.getElementById('newAddress');
+        if (h) h.value = '';
+        var lat = document.getElementById('newLatitude');
+        if (lat) lat.value = '';
+        var lng = document.getElementById('newLongitude');
+        if (lng) lng.value = '';
     }
 
     function renderList(items) {
@@ -141,4 +155,224 @@
             hideList();
         }
     });
+})();
+
+// === Яндекс Карты — выбор нового адреса ===
+(function () {
+    var btnShow = document.getElementById('btnShowMap');
+    var mapContainer = document.getElementById('mapContainer');
+    if (!btnShow || !mapContainer) return;
+
+    if (typeof ymaps === 'undefined') {
+        console.warn('[equipment-create] ymaps не загружен — проверьте API-ключ Яндекс Карт');
+        return;
+    }
+
+    var mapInitialized = false;
+    var yMap = null;
+    var placemark = null;
+
+    btnShow.addEventListener('click', function () {
+        if (mapContainer.style.display === 'none') {
+            mapContainer.style.display = 'block';
+            btnShow.innerHTML = '<i class="bi bi-x-lg"></i> Скрыть карту';
+
+            if (!mapInitialized) {
+                mapInitialized = true;
+                ymaps.ready(initMap);
+            }
+        } else {
+            mapContainer.style.display = 'none';
+            btnShow.innerHTML = '<i class="bi bi-geo-alt"></i> Указать новый адрес на карте';
+        }
+    });
+
+    function initMap() {
+        yMap = new ymaps.Map('yandexMap', {
+            center: [55.751574, 37.573856],
+            zoom: 10,
+            controls: ['zoomControl', 'geolocationControl']
+        });
+
+        // Клик по карте — установка метки
+        yMap.events.add('click', function (e) {
+            var coords = e.get('coords');
+            setPlacemark(coords);
+            reverseGeocode(coords);
+        });
+
+        initAddressSearch();
+    }
+
+    function initAddressSearch() {
+        var searchInput = document.getElementById('addressSearch');
+        var suggestList = document.getElementById('suggestList');
+        if (!searchInput || !suggestList) return;
+
+        var debounceTimer = null;
+
+        searchInput.addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+            var query = searchInput.value.trim();
+
+            if (query.length < 3) {
+                hideSuggestions();
+                return;
+            }
+
+            debounceTimer = setTimeout(function () {
+                fetchSuggestions(query);
+            }, 350);
+        });
+
+        searchInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                hideSuggestions();
+                geocodeAddress(searchInput.value);
+            }
+        });
+
+        document.addEventListener('mousedown', function (e) {
+            if (!searchInput.contains(e.target) && !suggestList.contains(e.target)) {
+                hideSuggestions();
+            }
+        });
+
+        function fetchSuggestions(query) {
+            var suggestPromise = (typeof ymaps.suggest === 'function')
+                ? ymaps.suggest(query)
+                : null;
+
+            if (suggestPromise) {
+                suggestPromise.then(function (items) {
+                    renderSuggestItems(items);
+                }).catch(function () {
+                    geocodeFallback(query);
+                });
+            } else {
+                geocodeFallback(query);
+            }
+        }
+
+        function geocodeFallback(query) {
+            ymaps.geocode(query, { results: 5 }).then(function (res) {
+                var items = [];
+                res.geoObjects.each(function (obj) {
+                    items.push({
+                        displayName: obj.getAddressLine(),
+                        value: obj.getAddressLine()
+                    });
+                });
+                renderSuggestItems(items);
+            }).catch(function (err) {
+                console.error('[equipment-create] Ошибка геокодирования:', err);
+                hideSuggestions();
+            });
+        }
+
+        function renderSuggestItems(items) {
+            suggestList.innerHTML = '';
+            if (!items || items.length === 0) {
+                hideSuggestions();
+                return;
+            }
+            items.forEach(function (item) {
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'list-group-item list-group-item-action small py-2';
+                btn.textContent = item.displayName;
+                btn.addEventListener('mousedown', function (e) {
+                    e.preventDefault();
+                    searchInput.value = item.value;
+                    hideSuggestions();
+                    geocodeAddress(item.value);
+                });
+                suggestList.appendChild(btn);
+            });
+            suggestList.style.display = 'block';
+        }
+
+        function hideSuggestions() {
+            suggestList.style.display = 'none';
+            suggestList.innerHTML = '';
+        }
+    }
+
+    function setPlacemark(coords) {
+        if (placemark) {
+            placemark.geometry.setCoordinates(coords);
+        } else {
+            placemark = new ymaps.Placemark(coords, {}, {
+                draggable: true,
+                preset: 'islands#redDotIcon'
+            });
+            placemark.events.add('dragend', function () {
+                reverseGeocode(placemark.geometry.getCoordinates());
+            });
+            yMap.geoObjects.add(placemark);
+        }
+    }
+
+    function reverseGeocode(coords) {
+        ymaps.geocode(coords).then(function (res) {
+            var firstGeoObject = res.geoObjects.get(0);
+            if (!firstGeoObject) return;
+            showAddress(firstGeoObject.getAddressLine(), coords);
+        });
+    }
+
+    function geocodeAddress(address) {
+        if (!address) return;
+        ymaps.geocode(address, { results: 1 }).then(function (res) {
+            var firstGeoObject = res.geoObjects.get(0);
+            if (!firstGeoObject) return;
+
+            var coords = firstGeoObject.geometry.getCoordinates();
+            setPlacemark(coords);
+            yMap.setCenter(coords, 16);
+            showAddress(firstGeoObject.getAddressLine(), coords);
+        });
+    }
+
+    function showAddress(address, coords) {
+        // Подставляем адрес в поле поиска
+        var searchInput = document.getElementById('addressSearch');
+        if (searchInput) {
+            searchInput.value = address;
+        }
+
+        // Заполняем hidden-поля для отправки на сервер
+        var hiddenAddress = document.getElementById('newAddress');
+        var hiddenLat = document.getElementById('newLatitude');
+        var hiddenLng = document.getElementById('newLongitude');
+        if (hiddenAddress) hiddenAddress.value = address;
+        if (hiddenLat && coords) hiddenLat.value = coords[0];
+        if (hiddenLng && coords) hiddenLng.value = coords[1];
+
+        // Сбрасываем выбор существующей точки — используется новый адрес
+        var spHidden = document.getElementById('servicePointValue');
+        var spSearch = document.getElementById('servicePointSearch');
+        if (spHidden) spHidden.value = '';
+        if (spSearch) {
+            spSearch.value = '';
+            spSearch.classList.remove('input-validation-error');
+        }
+
+        // Убираем текст ошибки валидации если был
+        var validationSpan = document.querySelector('[data-valmsg-for="ServicePointId"]');
+        if (validationSpan) validationSpan.textContent = '';
+
+        // Показываем адрес и координаты под картой
+        var addrBlock = document.getElementById('selectedAddress');
+        var addrText = document.getElementById('addressText');
+        if (addrBlock && addrText) {
+            var text = address;
+            if (coords) {
+                text += ' (' + coords[0].toFixed(6) + ', ' + coords[1].toFixed(6) + ')';
+            }
+            addrText.textContent = text;
+            addrBlock.style.display = 'block';
+        }
+    }
 })();

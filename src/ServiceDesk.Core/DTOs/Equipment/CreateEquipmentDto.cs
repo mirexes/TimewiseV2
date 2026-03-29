@@ -18,4 +18,9 @@ public class CreateEquipmentDto
 
     [Required(ErrorMessage = "Укажите точку обслуживания")]
     public int ServicePointId { get; set; }
+
+    /// <summary>Новый адрес (если точка не выбрана из списка)</summary>
+    public string? NewAddress { get; set; }
+    public string? Latitude { get; set; }
+    public string? Longitude { get; set; }
 }

@@ -3,6 +3,7 @@
     ViewData["Title"] = "Добавить оборудование";
     var servicePoints = ViewBag.ServicePoints as IEnumerable<SelectOptionDto>
         ?? Enumerable.Empty<SelectOptionDto>();
+    var yandexApiKey = (string)(ViewBag.YandexMapsApiKey ?? "");
 }
 
 <div class="mb-3">
@@ -44,6 +45,34 @@
                 </div>
                 <script id="spOptionsData" type="application/json">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(servicePoints.Select(sp => new { sp.Id, sp.Text })))</script>
                 <span asp-validation-for="ServicePointId" class="text-danger small"></span>
+
+                @if (!string.IsNullOrEmpty(yandexApiKey))
+                {
+                    <div class="mt-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="btnShowMap">
+                            <i class="bi bi-geo-alt"></i> Указать новый адрес на карте
+                        </button>
+                    </div>
+
+                    <!-- Скрытые поля для нового адреса -->
+                    <input type="hidden" name="NewAddress" id="newAddress" />
+                    <input type="hidden" name="Latitude" id="newLatitude" />
+                    <input type="hidden" name="Longitude" id="newLongitude" />
+
+                    <!-- Блок карты (скрыт по умолчанию) -->
+                    <div id="mapContainer" class="mt-2" style="display: none;">
+                        <div class="mb-2 position-relative">
+                            <input type="text" id="addressSearch" class="form-control"
+                                   placeholder="Введите адрес для поиска..." autocomplete="off" />
+                            <div id="suggestList" class="list-group position-absolute w-100 shadow"
+                                 style="z-index: 1050; display: none; max-height: 250px; overflow-y: auto;"></div>
+                        </div>
+                        <div id="yandexMap" style="width: 100%; height: 350px; border-radius: 8px;"></div>
+                        <div id="selectedAddress" class="mt-2 text-muted small" style="display: none;">
+                            <i class="bi bi-geo-alt-fill"></i> <span id="addressText"></span>
+                        </div>
+                    </div>
+                }
             </div>
 
             <div class="mb-3">
@@ -73,5 +102,9 @@
 </div>
 
 @section Scripts {
+    @if (!string.IsNullOrEmpty(yandexApiKey))
+    {
+        <script src="https://api-maps.yandex.ru/2.1/?apikey=@yandexApiKey&lang=ru_RU&load=package.full"></script>
+    }
     <script src="~/js/equipment-create.js" asp-append-version="true"></script>
 }
