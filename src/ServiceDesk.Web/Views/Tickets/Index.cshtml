@@ -23,7 +23,22 @@
                     <option value="">Все</option>
                     @foreach (var status in Enum.GetValues<TicketStatus>())
                     {
-                        <option value="@status" selected="@(filter.Status == status)">@status</option>
+                        var statusName = status switch
+                        {
+                            TicketStatus.New => "Новая",
+                            TicketStatus.Processed => "Взяли в работу",
+                            TicketStatus.CompletedRemotely => "Дистанционно",
+                            TicketStatus.PartsApproval => "Согласование",
+                            TicketStatus.RepairApproved => "Согласована",
+                            TicketStatus.DepartureConfirmation => "Подтверждение",
+                            TicketStatus.EngineerEnRoute => "В пути",
+                            TicketStatus.InProgress => "Выполнение",
+                            TicketStatus.Completed => "Выполнена",
+                            TicketStatus.ContinuationRequired => "Продолжение",
+                            TicketStatus.Cancelled => "Отменена",
+                            _ => status.ToString()
+                        };
+                        <option value="@status" selected="@(filter.Status == status)">@statusName</option>
                     }
                 </select>
             </div>
@@ -33,7 +48,17 @@
                     <option value="">Все</option>
                     @foreach (var type in Enum.GetValues<TicketType>())
                     {
-                        <option value="@type" selected="@(filter.Type == type)">@type</option>
+                        var typeName = type switch
+                        {
+                            TicketType.Repair => "Ремонт",
+                            TicketType.Maintenance => "ТО",
+                            TicketType.Installation => "Установка",
+                            TicketType.Dismantling => "Демонтаж",
+                            TicketType.Delivery => "Поставка",
+                            TicketType.Consultation => "Консультация",
+                            _ => type.ToString()
+                        };
+                        <option value="@type" selected="@(filter.Type == type)">@typeName</option>
                     }
                 </select>
             </div>
