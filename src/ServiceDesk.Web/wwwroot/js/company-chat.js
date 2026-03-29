@@ -284,7 +284,17 @@ async function ccLoadMessages() {
                 _ccLastMessageCount = messages.length;
                 ccRenderMessages(messages);
             }
+            // Отмечаем сообщения как прочитанные
+            ccMarkAsRead();
         }
+    } catch (e) { }
+}
+
+// Отметить все сообщения в чате как прочитанные
+async function ccMarkAsRead() {
+    if (!_ccChatId) return;
+    try {
+        await fetch('/api/company-chat/' + _ccChatId + '/read', { method: 'POST' });
     } catch (e) { }
 }
 
