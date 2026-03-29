@@ -21,6 +21,13 @@
         <i class="bi bi-cpu"></i>
         <span>Оборудование</span>
     </a>
+    @if (userRole is not UserRole.Client and not UserRole.ManagerClient)
+    {
+        <a class="bottom-nav-item @(currentController == "Chats" ? "active" : "")" href="/Chats/Index">
+            <i class="bi bi-chat-left-text"></i>
+            <span>Чаты</span>
+        </a>
+    }
     @if (showClients)
     {
         <a class="bottom-nav-item @(currentController == "Clients" ? "active" : "")" href="/Clients/Index">
