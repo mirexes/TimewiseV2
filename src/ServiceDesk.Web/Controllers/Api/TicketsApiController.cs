@@ -134,7 +134,7 @@ public class TicketsApiController : ControllerBase
             ServicePointId = request.ServicePointId
         };
 
-        var equipmentId = await _equipmentService.CreateAsync(dto);
+        var equipmentId = await _equipmentService.CreateAsync(dto, User.GetUserId());
         await _ticketService.UpdateEquipmentAsync(request.TicketId, equipmentId, User.GetUserId());
         return Ok(new { success = true, equipmentId });
     }
