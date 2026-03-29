@@ -188,11 +188,22 @@
     });
 
     function initMap() {
+        var defaultCenter = [55.751574, 37.573856];
+        var defaultZoom = 10;
+
         yMap = new ymaps.Map('yandexMap', {
-            center: [55.751574, 37.573856],
-            zoom: 10,
+            center: defaultCenter,
+            zoom: defaultZoom,
             controls: ['zoomControl', 'geolocationControl']
         });
+
+        // Центрируем карту по текущему местоположению пользователя
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function (pos) {
+                var userCoords = [pos.coords.latitude, pos.coords.longitude];
+                yMap.setCenter(userCoords, 14);
+            });
+        }
 
         // Клик по карте — установка метки
         yMap.events.add('click', function (e) {
