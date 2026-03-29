@@ -13,6 +13,7 @@ public class EquipmentConfiguration : IEntityTypeConfiguration<Equipment>
         builder.Property(e => e.Model).HasMaxLength(200).IsRequired();
         builder.Property(e => e.SerialNumber).HasMaxLength(100).IsRequired();
         builder.Property(e => e.Description).HasMaxLength(1000);
+        builder.Property(e => e.PhotoPath).HasMaxLength(500);
 
         builder.HasIndex(e => e.SerialNumber).IsUnique();
 
