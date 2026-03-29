@@ -188,7 +188,7 @@
     });
 
     function initMap() {
-        var defaultCenter = [55.751574, 37.573856];
+        var defaultCenter = [53.346785, 83.776856];
         var defaultZoom = 10;
 
         yMap = new ymaps.Map('yandexMap', {
