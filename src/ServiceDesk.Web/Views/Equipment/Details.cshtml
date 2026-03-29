@@ -23,6 +23,15 @@
                              style="max-width:100%;max-height:300px;border-radius:8px;object-fit:contain;" />
                     </div>
                 }
+                @if (Model.IsCompanyOwned)
+                {
+                    <div class="mb-3">
+                        <span class="badge bg-info">
+                            <i class="bi bi-arrow-repeat"></i> Подменное оборудование
+                        </span>
+                        <div class="form-text">Собственность компании, используется для подмены на период ремонта</div>
+                    </div>
+                }
                 <div class="mb-3">
                     <small class="text-muted">Серийный номер</small>
                     <p class="mb-0 fw-bold">@Model.SerialNumber</p>

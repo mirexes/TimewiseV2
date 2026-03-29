@@ -16,6 +16,9 @@ public class CreateEquipmentDto
     public DateTime? InstalledAt { get; set; }
     public string? Description { get; set; }
 
+    /// <summary>Подменное оборудование (собственность компании)</summary>
+    public bool IsCompanyOwned { get; set; }
+
     [Required(ErrorMessage = "Укажите точку обслуживания")]
     public int ServicePointId { get; set; }
 
