@@ -1,7 +1,9 @@
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @{
     var chatId = (int)ViewBag.ChatId;
     var userId = (int)ViewBag.UserId;
     var isModerator = (bool)ViewBag.IsModerator;
+    var pollingInterval = Configuration.GetValue<int>("Chat:PollingIntervalMs", 2000);
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -80,6 +82,6 @@
 @section Scripts {
     <script src="~/js/company-chat.js?dd=1" asp-append-version="true"></script>
     <script>
-        initCompanyChat(@chatId, @userId);
+        initCompanyChat(@chatId, @userId, @pollingInterval);
     </script>
 }

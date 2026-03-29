@@ -105,9 +105,11 @@ const EMOJI_CATEGORIES = [
 ];
 
 // Инициализация чата
-function initChat(ticketId, userId) {
+function initChat(ticketId, userId, pollingMs) {
     currentTicketId = ticketId;
     currentUserId = userId;
+
+    var interval = pollingMs || 2000;
 
     var container = document.getElementById('chatMessages');
     // Отслеживаем положение скролла
@@ -124,8 +126,8 @@ function initChat(ticketId, userId) {
     setupFileAttach();
     setupReplyCancel();
 
-    // Обновляем сообщения каждые 5 секунд
-    setInterval(loadMessages, 5000);
+    // Обновляем сообщения с настраиваемым интервалом
+    setInterval(loadMessages, interval);
 }
 
 // Настройка формы отправки

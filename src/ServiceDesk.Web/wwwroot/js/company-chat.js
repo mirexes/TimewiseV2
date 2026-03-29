@@ -49,9 +49,11 @@ const CC_EMOJI_CATEGORIES = [
 ];
 
 // Инициализация группового чата
-function initCompanyChat(chatId, userId) {
+function initCompanyChat(chatId, userId, pollingMs) {
     _ccChatId = chatId;
     _ccUserId = userId;
+
+    var interval = pollingMs || 2000;
 
     var container = document.getElementById('chatMessages');
     if (container) {
@@ -67,8 +69,8 @@ function initCompanyChat(chatId, userId) {
     ccSetupFileAttach();
     ccSetupReplyCancel();
 
-    // Обновляем сообщения каждые 5 секунд
-    setInterval(ccLoadMessages, 5000);
+    // Обновляем сообщения с настраиваемым интервалом
+    setInterval(ccLoadMessages, interval);
 }
 
 function ccSetupChatForm() {

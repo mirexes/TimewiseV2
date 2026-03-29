@@ -19,13 +19,13 @@ const ROLE_NAMES = {
     7: 'Модератор'
 };
 
-function initChats(userId) {
+function initChats(userId, pollingMs) {
     _chatsUserId = userId;
     loadChatList();
     setupNewChatModal();
 
-    // Обновляем список чатов каждые 10 секунд
-    setInterval(loadChatList, 10000);
+    // Обновляем список чатов с настраиваемым интервалом
+    setInterval(loadChatList, pollingMs || 2000);
 }
 
 // === Загрузка списка чатов ===
