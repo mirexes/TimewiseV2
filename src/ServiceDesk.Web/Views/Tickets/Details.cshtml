@@ -1,6 +1,8 @@
 @model TicketDetailDto
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @{
     ViewData["Title"] = $"Заявка {Model.TicketNumber}";
+    var pollingInterval = Configuration.GetValue<int>("Chat:PollingIntervalMs", 2000);
 }
 
 <div class="mb-3">
@@ -402,7 +404,7 @@
     <script src="~/js/tickets.js?dd=1" asp-append-version="true"></script>
     <script>
         // Инициализация чата для текущей заявки
-        initChat(@Model.Id, @User.GetUserId());
+        initChat(@Model.Id, @User.GetUserId(), @pollingInterval);
 
         // Загрузка оборудования точки обслуживания
         @if (Model.CanEditEquipment)
