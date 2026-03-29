@@ -71,6 +71,7 @@ else
                         <div>
                             <span class="fw-bold">@ticket.TicketNumber</span>
                             @await Html.PartialAsync("_StatusBadge", ticket.Status)
+                            @await Html.PartialAsync("_TypeBadge", ticket.Type)
                         </div>
                         <small class="text-muted">@ticket.CreatedAt.ToString("dd.MM.yy HH:mm")</small>
                     </div>
