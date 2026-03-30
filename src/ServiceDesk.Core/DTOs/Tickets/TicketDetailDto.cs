@@ -36,6 +36,7 @@ public class TicketDetailDto
     public string? EquipmentSerialNumber { get; set; }
 
     // Создатель
+    public int CreatedByUserId { get; set; }
     public string CreatedByName { get; set; } = string.Empty;
 
     // АВР
@@ -74,6 +75,9 @@ public class TicketDetailDto
 
     /// <summary>Может ли текущий пользователь привязывать/менять оборудование</summary>
     public bool CanEditEquipment { get; set; }
+
+    /// <summary>Может ли текущий пользователь редактировать заявку (только создатель)</summary>
+    public bool CanEdit { get; set; }
 }
 
 /// <summary>
