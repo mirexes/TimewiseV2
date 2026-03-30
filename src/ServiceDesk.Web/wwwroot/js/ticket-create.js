@@ -49,10 +49,14 @@
     var hiddenInput = document.getElementById('servicePointValue');
     var listEl = document.getElementById('servicePointList');
     var dataScript = document.getElementById('spOptionsData');
+    var clientSelect = document.getElementById('clientSelect');
     if (!searchInput || !hiddenInput || !listEl || !dataScript) return;
 
     var allOptions = [];
     try { allOptions = JSON.parse(dataScript.textContent); } catch (e) { return; }
+
+    // Текущие опции (могут быть отфильтрованы по клиенту)
+    var currentOptions = allOptions;
 
     // Если уже есть выбранное значение — показать текст
     if (hiddenInput.value) {
@@ -121,14 +125,44 @@
         var query = searchInput.value.trim().toLowerCase();
         var filtered;
         if (query.length === 0) {
-            // Показываем все (максимум 50)
-            filtered = allOptions.slice(0, 50);
+            filtered = currentOptions.slice(0, 50);
         } else {
-            filtered = allOptions.filter(function (o) {
+            filtered = currentOptions.filter(function (o) {
                 return o.Text.toLowerCase().indexOf(query) !== -1;
             }).slice(0, 50);
         }
         renderList(filtered);
+    }
+
+    // Загрузка точек обслуживания по выбранному клиенту
+    function loadServicePointsByClient(clientId) {
+        // Сбрасываем текущий выбор точки
+        searchInput.value = '';
+        clearSelection();
+
+        if (!clientId) {
+            // Клиент не выбран — показываем все точки
+            currentOptions = allOptions;
+            return;
+        }
+
+        fetch('/api/clients/' + clientId + '/service-points')
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                currentOptions = (data || []).map(function (sp) {
+                    return { Id: sp.id, Text: sp.text };
+                });
+            })
+            .catch(function () {
+                currentOptions = allOptions;
+            });
+    }
+
+    // Обработчик изменения клиента
+    if (clientSelect) {
+        clientSelect.addEventListener('change', function () {
+            loadServicePointsByClient(clientSelect.value);
+        });
     }
 
     searchInput.addEventListener('focus', function () {
