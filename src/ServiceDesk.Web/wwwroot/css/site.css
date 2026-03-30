@@ -239,9 +239,15 @@ body {
 
 @media (max-width: 767.98px) {
     .notification-panel {
-        width: calc(100vw - 24px);
-        right: -60px;
-        max-height: 350px;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        right: auto;
+        margin-top: 0;
+        width: calc(100vw - 32px);
+        max-width: 400px;
+        max-height: 70vh;
     }
 }
 
