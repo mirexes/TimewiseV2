@@ -124,15 +124,21 @@
 
                 @if (engineers != null && engineers.Any())
                 {
+                    var userRole = User.GetRole();
+                    var specialistRequired = userRole is UserRole.Technician or UserRole.Engineer;
                     <div class="col-md-6">
-                        <label asp-for="AssignedEngineerId" class="form-label">Специалист (необязательно)</label>
-                        <select asp-for="AssignedEngineerId" class="form-select">
-                            <option value="">Не назначен</option>
+                        <label asp-for="AssignedEngineerId" class="form-label">
+                            Специалист @(specialistRequired ? "" : "(необязательно)")
+                        </label>
+                        <select asp-for="AssignedEngineerId" class="form-select"
+                                required="@(specialistRequired ? "required" : null)">
+                            <option value="">@(specialistRequired ? "Выберите специалиста..." : "Не назначен")</option>
                             @foreach (var eng in engineers)
                             {
                                 <option value="@eng.Id">@eng.FullName — @eng.Role</option>
                             }
                         </select>
+                        <span asp-validation-for="AssignedEngineerId" class="text-danger small"></span>
                     </div>
                 }
             </div>

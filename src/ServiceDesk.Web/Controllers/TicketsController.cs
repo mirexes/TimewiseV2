@@ -83,11 +83,15 @@ public class TicketsController : Controller
         if (!dto.ServicePointId.HasValue && string.IsNullOrWhiteSpace(dto.NewAddress))
             ModelState.AddModelError("ServicePointId", "Выберите точку обслуживания или укажите новый адрес на карте");
 
+        // Для техника и инженера специалист обязателен
+        var role = User.GetRole();
+        if (role is (UserRole.Technician or UserRole.Engineer) && !dto.AssignedEngineerId.HasValue)
+            ModelState.AddModelError("AssignedEngineerId", "Укажите специалиста");
+
         if (!ModelState.IsValid)
         {
             ViewBag.ServicePoints = await _clientService.GetServicePointsForSelectAsync(User.GetUserId(), User.GetRole());
             ViewBag.YandexMapsApiKey = _config["YandexMaps:ApiKey"] ?? "";
-            var role = User.GetRole();
             if (role is not UserRole.Client and not UserRole.ManagerClient)
             {
                 ViewBag.Engineers = await _ticketService.GetEngineersAsync();
