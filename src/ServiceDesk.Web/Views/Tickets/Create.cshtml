@@ -40,15 +40,22 @@
                 {
                     <!-- Клиент (торговая сеть) -->
                     <div class="col-12">
-                        <label asp-for="ClientId" class="form-label">Клиент (торговая сеть)</label>
-                        <select asp-for="ClientId" class="form-select" id="clientSelect">
-                            <option value="">Не указан</option>
-                            @foreach (var c in clients)
-                            {
-                                <option value="@c.Id">@c.Text</option>
-                            }
-                        </select>
-                        <div class="form-text">При выборе клиента точки обслуживания будут отфильтрованы. Новый адрес будет привязан к выбранному клиенту.</div>
+                        <label asp-for="ClientId" class="form-label">Клиент (торговая сеть) <span class="text-danger">*</span></label>
+                        <input type="hidden" name="ClientId" id="clientValue" value="@(Model?.ClientId)" />
+                        <div class="position-relative" id="clientSearchWrapper">
+                            <input type="text" class="form-control" id="clientSearch"
+                                   placeholder="Начните вводить название..." autocomplete="off" required />
+                            <div id="clientList"
+                                 class="list-group position-absolute w-100 shadow"
+                                 style="z-index: 1050; display: none; max-height: 250px; overflow-y: auto;">
+                            </div>
+                        </div>
+                        <script id="clientOptionsData" type="application/json">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(clients.Select(c => new { c.Id, c.Text })))</script>
+                        <div class="form-text">
+                            При выборе клиента точки обслуживания будут отфильтрованы.
+                            <a href="/Clients/Create" target="_blank">Создать нового клиента</a>, если нужного нет в списке.
+                        </div>
+                        <div id="clientValidationError" class="text-danger small" style="display: none;">Выберите клиента из списка</div>
                     </div>
                 }
 

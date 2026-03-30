@@ -43,13 +43,151 @@
     });
 })();
 
+// === Поиск по клиентам (торговая сеть) с валидацией ===
+(function () {
+    var searchInput = document.getElementById('clientSearch');
+    var hiddenInput = document.getElementById('clientValue');
+    var listEl = document.getElementById('clientList');
+    var dataScript = document.getElementById('clientOptionsData');
+    var validationError = document.getElementById('clientValidationError');
+    if (!searchInput || !hiddenInput || !listEl || !dataScript) return;
+
+    var clientOptions = [];
+    try { clientOptions = JSON.parse(dataScript.textContent); } catch (e) { return; }
+
+    // Если уже есть выбранное значение — показать текст
+    if (hiddenInput.value) {
+        var sel = clientOptions.find(function (o) { return o.Id == hiddenInput.value; });
+        if (sel) searchInput.value = sel.Text;
+    }
+
+    var activeIndex = -1;
+
+    function selectClient(opt) {
+        searchInput.value = opt.Text;
+        hiddenInput.value = opt.Id;
+        hideList();
+        if (validationError) validationError.style.display = 'none';
+        searchInput.classList.remove('is-invalid');
+        // Уведомляем об изменении клиента для фильтрации точек обслуживания
+        searchInput.dispatchEvent(new CustomEvent('clientChanged', { detail: { clientId: opt.Id } }));
+    }
+
+    function clearClient() {
+        hiddenInput.value = '';
+        searchInput.dispatchEvent(new CustomEvent('clientChanged', { detail: { clientId: '' } }));
+    }
+
+    function renderList(items) {
+        listEl.innerHTML = '';
+        activeIndex = -1;
+        if (items.length === 0) {
+            var empty = document.createElement('div');
+            empty.className = 'list-group-item text-muted small py-2';
+            empty.innerHTML = 'Ничего не найдено. <a href="/Clients/Create" target="_blank">Создать нового клиента</a>';
+            listEl.appendChild(empty);
+            listEl.style.display = 'block';
+            return;
+        }
+        items.forEach(function (opt) {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'list-group-item list-group-item-action small py-2';
+            btn.textContent = opt.Text;
+            btn.addEventListener('mousedown', function (e) {
+                e.preventDefault();
+                selectClient(opt);
+            });
+            listEl.appendChild(btn);
+        });
+        listEl.style.display = 'block';
+    }
+
+    function hideList() {
+        listEl.style.display = 'none';
+        listEl.innerHTML = '';
+        activeIndex = -1;
+    }
+
+    function filterAndShow() {
+        var query = searchInput.value.trim().toLowerCase();
+        var filtered;
+        if (query.length === 0) {
+            filtered = clientOptions.slice(0, 50);
+        } else {
+            filtered = clientOptions.filter(function (o) {
+                return o.Text.toLowerCase().indexOf(query) !== -1;
+            }).slice(0, 50);
+        }
+        renderList(filtered);
+    }
+
+    searchInput.addEventListener('focus', function () {
+        filterAndShow();
+    });
+
+    searchInput.addEventListener('input', function () {
+        clearClient();
+        filterAndShow();
+    });
+
+    searchInput.addEventListener('keydown', function (e) {
+        var items = listEl.querySelectorAll('.list-group-item-action');
+        if (!items.length) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            activeIndex = Math.min(activeIndex + 1, items.length - 1);
+            updateActive(items);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            activeIndex = Math.max(activeIndex - 1, 0);
+            updateActive(items);
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (activeIndex >= 0 && activeIndex < items.length) {
+                items[activeIndex].dispatchEvent(new MouseEvent('mousedown'));
+            }
+        } else if (e.key === 'Escape') {
+            hideList();
+        }
+    });
+
+    function updateActive(items) {
+        items.forEach(function (el, i) {
+            el.classList.toggle('active', i === activeIndex);
+            if (i === activeIndex) el.scrollIntoView({ block: 'nearest' });
+        });
+    }
+
+    // Скрываем список при клике вне
+    document.addEventListener('mousedown', function (e) {
+        if (!searchInput.contains(e.target) && !listEl.contains(e.target)) {
+            hideList();
+        }
+    });
+
+    // Валидация при отправке формы — клиент обязателен
+    var form = searchInput.closest('form');
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            if (!hiddenInput.value) {
+                e.preventDefault();
+                searchInput.classList.add('is-invalid');
+                if (validationError) validationError.style.display = 'block';
+                searchInput.focus();
+            }
+        });
+    }
+})();
+
 // === Поиск по точкам обслуживания с фильтрацией ===
 (function () {
     var searchInput = document.getElementById('servicePointSearch');
     var hiddenInput = document.getElementById('servicePointValue');
     var listEl = document.getElementById('servicePointList');
     var dataScript = document.getElementById('spOptionsData');
-    var clientSelect = document.getElementById('clientSelect');
+    var clientSearchInput = document.getElementById('clientSearch');
     if (!searchInput || !hiddenInput || !listEl || !dataScript) return;
 
     var allOptions = [];
@@ -158,10 +296,10 @@
             });
     }
 
-    // Обработчик изменения клиента
-    if (clientSelect) {
-        clientSelect.addEventListener('change', function () {
-            loadServicePointsByClient(clientSelect.value);
+    // Обработчик изменения клиента (событие из блока поиска клиента)
+    if (clientSearchInput) {
+        clientSearchInput.addEventListener('clientChanged', function (e) {
+            loadServicePointsByClient(e.detail.clientId);
         });
     }
 
