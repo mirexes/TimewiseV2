@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using ServiceDesk.Core.Interfaces.Services;
 using ServiceDesk.Infrastructure.Data;
 using ServiceDesk.Web.Extensions;
 
@@ -8,15 +9,17 @@ namespace ServiceDesk.Web.Filters;
 
 /// <summary>
 /// Глобальный фильтр: проверяет, что пользователь активен и сессия валидна.
-/// При деактивации — принудительно разлогинивает пользователя.
+/// При деактивации — отзывает все сессии и принудительно разлогинивает.
 /// </summary>
 public class DeactivatedUserFilter : IAsyncActionFilter
 {
     private readonly AppDbContext _db;
+    private readonly ISessionService _sessionService;
 
-    public DeactivatedUserFilter(AppDbContext db)
+    public DeactivatedUserFilter(AppDbContext db, ISessionService sessionService)
     {
         _db = db;
+        _sessionService = sessionService;
     }
 
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
@@ -41,18 +44,20 @@ public class DeactivatedUserFilter : IAsyncActionFilter
         var userId = principal.GetUserId();
         var user = await _db.Users.FindAsync(userId);
 
-        // Пользователь удалён или деактивирован — разлогиниваем
+        // Пользователь удалён или деактивирован — отзываем все сессии и разлогиниваем
         if (user is null || !user.IsActive)
         {
+            await _sessionService.RevokeAllSessionsAsync(userId);
             await context.HttpContext.SignOutAsync("Cookies");
             context.Result = new RedirectToActionResult("Login", "Account", null);
             return;
         }
 
-        // Проверяем метку безопасности (изменилась при деактивации/реактивации)
+        // Проверяем метку безопасности (изменилась при смене роли/деактивации)
         var stampClaim = principal.FindFirst("SecurityStamp")?.Value;
         if (stampClaim != null && stampClaim != user.SecurityStamp)
         {
+            await _sessionService.RevokeAllSessionsAsync(userId);
             await context.HttpContext.SignOutAsync("Cookies");
             context.Result = new RedirectToActionResult("Login", "Account", null);
             return;

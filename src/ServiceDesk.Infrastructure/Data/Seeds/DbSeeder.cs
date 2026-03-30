@@ -28,6 +28,28 @@ public static class DbSeeder
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
             """);
 
+        // Таблица сессий пользователей — хранение аутентификационных тикетов в БД
+        await db.Database.ExecuteSqlRawAsync(
+            """
+            CREATE TABLE IF NOT EXISTS UserSessions (
+                Id INT AUTO_INCREMENT PRIMARY KEY,
+                SessionToken VARCHAR(44) NOT NULL,
+                TicketData LONGBLOB NOT NULL,
+                ExpiresAt DATETIME(6) NOT NULL,
+                LastActivityAt DATETIME(6) NOT NULL,
+                IpAddress VARCHAR(45) NULL,
+                UserAgent VARCHAR(512) NULL,
+                IsRevoked TINYINT(1) NOT NULL DEFAULT 0,
+                UserId INT NOT NULL,
+                CreatedAt DATETIME(6) NOT NULL,
+                UpdatedAt DATETIME(6) NULL,
+                UNIQUE INDEX IX_UserSessions_SessionToken (SessionToken),
+                INDEX IX_UserSessions_UserId (UserId),
+                INDEX IX_UserSessions_ExpiresAt (ExpiresAt),
+                CONSTRAINT FK_UserSessions_Users_UserId FOREIGN KEY (UserId) REFERENCES Users (Id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+            """);
+
         // Создаём модератора (администратора) если нет пользователей
         if (!await db.Users.AnyAsync())
         {

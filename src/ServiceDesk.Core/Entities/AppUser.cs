@@ -68,4 +68,5 @@ public class AppUser : BaseEntity
     public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
     public ICollection<UserConsent> Consents { get; set; } = new List<UserConsent>();
     public ICollection<PersonalDataRequest> PersonalDataRequests { get; set; } = new List<PersonalDataRequest>();
+    public ICollection<UserSession> Sessions { get; set; } = new List<UserSession>();
 }

@@ -37,6 +37,7 @@ public class AppDbContext : DbContext, IDataProtectionKeyContext
     public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
     public DbSet<UserConsent> UserConsents => Set<UserConsent>();
     public DbSet<PersonalDataRequest> PersonalDataRequests => Set<PersonalDataRequest>();
+    public DbSet<UserSession> UserSessions => Set<UserSession>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
