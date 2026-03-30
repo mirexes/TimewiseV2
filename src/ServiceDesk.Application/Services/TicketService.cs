@@ -139,6 +139,10 @@ public class TicketService : ITicketService
         dto.AllowedTransitions = TicketStatusTransitions.GetAllowedTransitions(ticket.Status);
         dto.CanAssignEngineer = PermissionChecker.CanAssignEngineer(currentUserRole);
         dto.CanEditEquipment = PermissionChecker.CanEditEquipment(currentUserRole);
+        dto.CanEdit = ticket.CreatedByUserId == currentUserId
+            && ticket.Status is not TicketStatus.Completed
+                and not TicketStatus.CompletedRemotely
+                and not TicketStatus.Cancelled;
         return dto;
     }
 
@@ -217,6 +221,81 @@ public class TicketService : ITicketService
             null, ticketNumber, currentUserId);
 
         return ticket.Id;
+    }
+
+    public async Task UpdateAsync(EditTicketDto dto, int currentUserId)
+    {
+        var ticket = await _db.Tickets.FindAsync(dto.Id)
+            ?? throw new KeyNotFoundException($"Заявка {dto.Id} не найдена");
+
+        // Только создатель может редактировать
+        if (ticket.CreatedByUserId != currentUserId)
+            throw new UnauthorizedAccessException("Редактировать заявку может только её создатель");
+
+        // Нельзя редактировать завершённые и отменённые заявки
+        if (ticket.Status is TicketStatus.Completed or TicketStatus.CompletedRemotely or TicketStatus.Cancelled)
+            throw new InvalidOperationException("Нельзя редактировать завершённую или отменённую заявку");
+
+        // Обработка точки обслуживания
+        if (dto.ServicePointId.HasValue && dto.ServicePointId.Value > 0)
+        {
+            ticket.ServicePointId = dto.ServicePointId.Value;
+        }
+        else if (!string.IsNullOrWhiteSpace(dto.NewAddress))
+        {
+            double.TryParse(dto.Latitude, CultureInfo.InvariantCulture, out var lat);
+            double.TryParse(dto.Longitude, CultureInfo.InvariantCulture, out var lng);
+
+            var clientId = await _db.Users
+                .Where(u => u.Id == currentUserId)
+                .Select(u => u.ClientId)
+                .FirstOrDefaultAsync();
+
+            if (clientId is null or 0)
+            {
+                var defaultClient = await _db.Clients
+                    .FirstOrDefaultAsync(c => c.Name == "Без организации");
+                if (defaultClient == null)
+                {
+                    defaultClient = new Client { Name = "Без организации", IsActive = true };
+                    _db.Clients.Add(defaultClient);
+                    await _db.SaveChangesAsync();
+                }
+                clientId = defaultClient.Id;
+            }
+
+            var existing = await _db.ServicePoints
+                .FirstOrDefaultAsync(n => n.Address == dto.NewAddress);
+            if (existing == null)
+            {
+                var newPoint = new ServicePoint
+                {
+                    Name = dto.NewAddress,
+                    Address = dto.NewAddress,
+                    Latitude = lat != 0 ? lat : null,
+                    Longitude = lng != 0 ? lng : null,
+                    IsActive = true,
+                    ClientId = clientId.Value
+                };
+                _db.ServicePoints.Add(newPoint);
+                await _db.SaveChangesAsync();
+                ticket.ServicePointId = newPoint.Id;
+            }
+            else
+            {
+                ticket.ServicePointId = existing.Id;
+            }
+        }
+
+        ticket.Type = dto.Type;
+        ticket.Priority = dto.Priority;
+        ticket.Description = dto.Description;
+        ticket.Deadline = dto.Deadline;
+
+        await _db.SaveChangesAsync();
+
+        await _audit.LogAsync(AuditAction.Updated, "Ticket", ticket.Id,
+            null, ticket.TicketNumber, currentUserId);
     }
 
     public async Task SaveAttachmentsAsync(int ticketId, IEnumerable<TicketAttachmentFile> files)

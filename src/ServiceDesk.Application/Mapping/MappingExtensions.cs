@@ -57,6 +57,7 @@ public static class MappingExtensions
             EquipmentId = ticket.EquipmentId,
             EquipmentModel = ticket.Equipment?.Model,
             EquipmentSerialNumber = ticket.Equipment?.SerialNumber,
+            CreatedByUserId = ticket.CreatedByUserId,
             CreatedByName = ticket.CreatedByUser?.FullName ?? "",
             AvrPhotoPath = ticket.AvrPhotoPath,
             CompletionPhotos = ticket.CompletionPhotos?.Select(p => new TicketPhotoDto

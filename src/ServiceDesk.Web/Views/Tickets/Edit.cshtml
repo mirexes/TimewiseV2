@@ -1,0 +1,113 @@
+@model EditTicketDto
+@{
+    ViewData["Title"] = $"Редактирование заявки {ViewBag.TicketNumber}";
+    var servicePoints = ViewBag.ServicePoints as IEnumerable<SelectOptionDto>
+        ?? Enumerable.Empty<SelectOptionDto>();
+    var yandexApiKey = (string)(ViewBag.YandexMapsApiKey ?? "");
+}
+
+<div class="mb-3">
+    <a href="/Tickets/Details/@Model.Id" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> К заявке
+    </a>
+</div>
+
+<div class="card" style="max-width: 700px;">
+    <div class="card-header">
+        <h5 class="mb-0">Редактирование заявки @ViewBag.TicketNumber</h5>
+    </div>
+    <div class="card-body">
+        <form asp-action="Edit" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="Type" class="form-label">Тип заявки</label>
+                    <select asp-for="Type" asp-items="Html.GetEnumSelectList<TicketType>()"
+                            class="form-select"></select>
+                    <span asp-validation-for="Type" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Priority" class="form-label">Приоритет</label>
+                    <select asp-for="Priority" asp-items="Html.GetEnumSelectList<TicketPriority>()"
+                            class="form-select"></select>
+                </div>
+
+                <!-- Точка обслуживания (адрес выезда) -->
+                <div class="col-12">
+                    <label asp-for="ServicePointId" class="form-label">Точка обслуживания (адрес выезда)</label>
+                    <input type="hidden" name="ServicePointId" id="servicePointValue"
+                           value="@(Model?.ServicePointId)" />
+                    <div class="position-relative" id="spSearchWrapper">
+                        <input type="text" class="form-control" id="servicePointSearch"
+                               placeholder="Начните вводить адрес..." autocomplete="off" />
+                        <div id="servicePointList"
+                             class="list-group position-absolute w-100 shadow"
+                             style="z-index: 1050; display: none; max-height: 250px; overflow-y: auto;">
+                        </div>
+                    </div>
+                    <script id="spOptionsData" type="application/json">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(servicePoints.Select(sp => new { sp.Id, sp.Text })))</script>
+                    <span asp-validation-for="ServicePointId" class="text-danger small"></span>
+
+                    @if (!string.IsNullOrEmpty(yandexApiKey))
+                    {
+                        <div class="mt-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="btnShowMap">
+                                <i class="bi bi-geo-alt"></i> Указать новый адрес на карте
+                            </button>
+                        </div>
+
+                        <!-- Скрытые поля для нового адреса -->
+                        <input type="hidden" name="NewAddress" id="newAddress" />
+                        <input type="hidden" name="Latitude" id="newLatitude" />
+                        <input type="hidden" name="Longitude" id="newLongitude" />
+
+                        <!-- Блок карты (скрыт по умолчанию) -->
+                        <div id="mapContainer" class="mt-2" style="display: none;">
+                            <div class="mb-2 position-relative">
+                                <input type="text" id="addressSearch" class="form-control"
+                                       placeholder="Введите адрес для поиска..." autocomplete="off" />
+                                <div id="suggestList" class="list-group position-absolute w-100 shadow"
+                                     style="z-index: 1050; display: none; max-height: 250px; overflow-y: auto;"></div>
+                            </div>
+                            <div id="yandexMap" style="width: 100%; height: 350px; border-radius: 8px;"></div>
+                            <div id="selectedAddress" class="mt-2 text-muted small" style="display: none;">
+                                <i class="bi bi-geo-alt-fill"></i> <span id="addressText"></span>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Описание проблемы -->
+                <div class="col-12">
+                    <label asp-for="Description" class="form-label">Описание проблемы</label>
+                    <textarea asp-for="Description" class="form-control" rows="4"
+                              placeholder="Опишите проблему подробно..."></textarea>
+                    <span asp-validation-for="Description" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Deadline" class="form-label">Дедлайн (необязательно)</label>
+                    <input asp-for="Deadline" type="datetime-local" class="form-control" />
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> Сохранить
+                </button>
+                <a href="/Tickets/Details/@Model.Id" class="btn btn-outline-secondary ms-2">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @if (!string.IsNullOrEmpty(yandexApiKey))
+    {
+        <script src="https://api-maps.yandex.ru/2.1/?apikey=@yandexApiKey&lang=ru_RU&load=package.full"></script>
+    }
+    <script src="~/js/ticket-create.js" asp-append-version="true"></script>
+}

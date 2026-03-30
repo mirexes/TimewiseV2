@@ -133,4 +133,47 @@ public class TicketsController : Controller
 
         return RedirectToAction(nameof(Details), new { id });
     }
+
+    [HttpGet]
+    public async Task<IActionResult> Edit(int id)
+    {
+        var ticket = await _ticketService.GetByIdAsync(id, User.GetUserId(), User.GetRole());
+        if (ticket is null) return NotFound();
+        if (!ticket.CanEdit) return Forbid();
+
+        var dto = new EditTicketDto
+        {
+            Id = ticket.Id,
+            Type = ticket.Type,
+            Priority = ticket.Priority,
+            Description = ticket.Description,
+            ServicePointId = ticket.ServicePointId,
+            Deadline = ticket.Deadline
+        };
+
+        ViewBag.ServicePoints = await _clientService.GetServicePointsForSelectAsync(User.GetUserId(), User.GetRole());
+        ViewBag.YandexMapsApiKey = _config["YandexMaps:ApiKey"] ?? "";
+        ViewBag.TicketNumber = ticket.TicketNumber;
+        return View(dto);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(EditTicketDto dto)
+    {
+        ModelState.Remove("ServicePointId");
+
+        if (!dto.ServicePointId.HasValue && string.IsNullOrWhiteSpace(dto.NewAddress))
+            ModelState.AddModelError("ServicePointId", "Выберите точку обслуживания или укажите новый адрес на карте");
+
+        if (!ModelState.IsValid)
+        {
+            ViewBag.ServicePoints = await _clientService.GetServicePointsForSelectAsync(User.GetUserId(), User.GetRole());
+            ViewBag.YandexMapsApiKey = _config["YandexMaps:ApiKey"] ?? "";
+            return View(dto);
+        }
+
+        await _ticketService.UpdateAsync(dto, User.GetUserId());
+        return RedirectToAction(nameof(Details), new { id = dto.Id });
+    }
 }
