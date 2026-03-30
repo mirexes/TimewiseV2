@@ -59,10 +59,13 @@ public class TicketsController : Controller
         ViewBag.ServicePoints = await _clientService.GetServicePointsForSelectAsync(User.GetUserId(), User.GetRole());
         ViewBag.YandexMapsApiKey = _config["YandexMaps:ApiKey"] ?? "";
 
-        // Специалисты доступны всем, кроме клиента и менеджера клиента
+        // Специалисты и клиенты доступны всем, кроме клиента и менеджера клиента
         var role = User.GetRole();
         if (role is not UserRole.Client and not UserRole.ManagerClient)
+        {
             ViewBag.Engineers = await _ticketService.GetEngineersAsync();
+            ViewBag.Clients = await _clientService.GetClientsForSelectAsync();
+        }
 
         return View();
     }
@@ -86,7 +89,10 @@ public class TicketsController : Controller
             ViewBag.YandexMapsApiKey = _config["YandexMaps:ApiKey"] ?? "";
             var role = User.GetRole();
             if (role is not UserRole.Client and not UserRole.ManagerClient)
+            {
                 ViewBag.Engineers = await _ticketService.GetEngineersAsync();
+                ViewBag.Clients = await _clientService.GetClientsForSelectAsync();
+            }
             return View(dto);
         }
 

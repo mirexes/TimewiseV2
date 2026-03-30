@@ -4,6 +4,7 @@
     var servicePoints = ViewBag.ServicePoints as IEnumerable<SelectOptionDto>
         ?? Enumerable.Empty<SelectOptionDto>();
     var engineers = ViewBag.Engineers as IEnumerable<EngineerSelectDto>;
+    var clients = ViewBag.Clients as IEnumerable<SelectOptionDto>;
     var yandexApiKey = (string)(ViewBag.YandexMapsApiKey ?? "");
 }
 
@@ -34,6 +35,22 @@
                     <select asp-for="Priority" asp-items="Html.GetEnumSelectList<TicketPriority>()"
                             class="form-select"></select>
                 </div>
+
+                @if (clients != null && clients.Any())
+                {
+                    <!-- Клиент (торговая сеть) -->
+                    <div class="col-12">
+                        <label asp-for="ClientId" class="form-label">Клиент (торговая сеть)</label>
+                        <select asp-for="ClientId" class="form-select" id="clientSelect">
+                            <option value="">Не указан</option>
+                            @foreach (var c in clients)
+                            {
+                                <option value="@c.Id">@c.Text</option>
+                            }
+                        </select>
+                        <div class="form-text">При выборе клиента точки обслуживания будут отфильтрованы. Новый адрес будет привязан к выбранному клиенту.</div>
+                    </div>
+                }
 
                 <!-- Точка обслуживания (адрес выезда) -->
                 <div class="col-12">

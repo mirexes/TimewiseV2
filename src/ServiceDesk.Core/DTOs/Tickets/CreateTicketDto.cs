@@ -29,6 +29,9 @@ public class CreateTicketDto
     /// <summary>Долгота нового адреса</summary>
     public string? Longitude { get; set; }
 
+    /// <summary>Клиент (торговая сеть), к которому привязывается точка</summary>
+    public int? ClientId { get; set; }
+
     public int? EquipmentId { get; set; }
 
     /// <summary>Специалист, назначаемый при создании (необязательно)</summary>

@@ -155,11 +155,12 @@ public class TicketService : ITicketService
             double.TryParse(dto.Latitude, CultureInfo.InvariantCulture, out var lat);
             double.TryParse(dto.Longitude, CultureInfo.InvariantCulture, out var lng);
 
-            // Определяем ClientId: от пользователя, или «Без организации»
-            var clientId = await _db.Users
-                .Where(u => u.Id == currentUserId)
-                .Select(u => u.ClientId)
-                .FirstOrDefaultAsync();
+            // Определяем ClientId: из формы, от пользователя, или «Без организации»
+            var clientId = dto.ClientId
+                ?? await _db.Users
+                    .Where(u => u.Id == currentUserId)
+                    .Select(u => u.ClientId)
+                    .FirstOrDefaultAsync();
 
             if (clientId is null or 0)
             {
