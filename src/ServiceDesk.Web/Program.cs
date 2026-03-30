@@ -1,6 +1,9 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.Options;
 using ServiceDesk.Application;
 using ServiceDesk.Infrastructure;
 using ServiceDesk.Infrastructure.Data.Seeds;
+using ServiceDesk.Web.Auth;
 using ServiceDesk.Web.Filters;
 using ServiceDesk.Web.Middleware;
 using Serilog;
@@ -24,7 +27,11 @@ builder.Services.AddControllersWithViews(options =>
     options.Filters.Add<ConsentRequiredFilter>();
 });
 
-// Аутентификация через Cookies (бессрочная сессия)
+// Хранилище сессий в БД — кука содержит только ID сессии
+builder.Services.AddSingleton<ITicketStore, DatabaseTicketStore>();
+builder.Services.AddHttpContextAccessor();
+
+// Аутентификация через Cookies (сессии хранятся в БД)
 builder.Services.AddAuthentication("Cookies")
     .AddCookie("Cookies", options =>
     {
@@ -33,6 +40,10 @@ builder.Services.AddAuthentication("Cookies")
         options.ExpireTimeSpan = TimeSpan.FromDays(365);
         options.SlidingExpiration = true;
     });
+
+// Подключаем хранилище сессий через IPostConfigureOptions (без BuildServiceProvider)
+builder.Services.AddSingleton<IPostConfigureOptions<CookieAuthenticationOptions>,
+    ConfigureCookieTicketStore>();
 
 var app = builder.Build();
 
