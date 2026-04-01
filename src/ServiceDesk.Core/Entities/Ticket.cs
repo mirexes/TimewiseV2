@@ -50,6 +50,10 @@ public class Ticket : BaseEntity
     public int CreatedByUserId { get; set; }
     public AppUser CreatedByUser { get; set; } = null!;
 
+    /// <summary>Клиент (организация), к которой относится заявка</summary>
+    public int? ClientId { get; set; }
+    public Client? Client { get; set; }
+
     /// <summary>Фото АВР (путь к файлу)</summary>
     public string? AvrPhotoPath { get; set; }
 

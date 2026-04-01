@@ -113,6 +113,7 @@ public class TicketService : ITicketService
             .Include(t => t.Equipment)
             .Include(t => t.CreatedByUser)
             .Include(t => t.CompletionPhotos)
+            .Include(t => t.Client)
             .FirstOrDefaultAsync(t => t.Id == id);
 
         if (ticket is null) return null;
@@ -149,29 +150,11 @@ public class TicketService : ITicketService
 
         var dto = ticket.ToDetailDto();
 
-        // Загрузка клиента: сначала по привязке создателя, затем через точку обслуживания
-        var creatorClientId = await _db.Users
-            .Where(u => u.Id == ticket.CreatedByUserId)
-            .Select(u => u.ClientId)
-            .FirstOrDefaultAsync();
-
-        Client? client;
-        if (creatorClientId != null)
+        // Клиент загружен через Include(t => t.Client)
+        if (ticket.Client != null)
         {
-            client = await _db.Clients.FindAsync(creatorClientId.Value);
-        }
-        else
-        {
-            client = await _db.ClientServicePoints
-                .Where(csp => csp.ServicePointId == ticket.ServicePointId)
-                .Select(csp => csp.Client)
-                .FirstOrDefaultAsync();
-        }
-
-        if (client != null)
-        {
-            dto.ClientName = client.Name;
-            dto.ClientTtkFilePath = client.TtkFilePath;
+            dto.ClientName = ticket.Client.Name;
+            dto.ClientTtkFilePath = ticket.Client.TtkFilePath;
         }
 
         dto.AllowedTransitions = TicketStatusTransitions.GetAllowedTransitions(ticket.Status);
@@ -186,6 +169,13 @@ public class TicketService : ITicketService
 
     public async Task<int> CreateAsync(CreateTicketDto dto, int currentUserId)
     {
+        // Определяем ClientId: из формы, от пользователя, или «Без организации»
+        var resolvedClientId = dto.ClientId
+            ?? await _db.Users
+                .Where(u => u.Id == currentUserId)
+                .Select(u => u.ClientId)
+                .FirstOrDefaultAsync();
+
         // Если указан новый адрес — создаём точку обслуживания
         var servicePointId = dto.ServicePointId ?? 0;
         if (servicePointId == 0 && !string.IsNullOrWhiteSpace(dto.NewAddress))
@@ -193,13 +183,7 @@ public class TicketService : ITicketService
             double.TryParse(dto.Latitude, CultureInfo.InvariantCulture, out var lat);
             double.TryParse(dto.Longitude, CultureInfo.InvariantCulture, out var lng);
 
-            // Определяем ClientId: из формы, от пользователя, или «Без организации»
-            var clientId = dto.ClientId
-                ?? await _db.Users
-                    .Where(u => u.Id == currentUserId)
-                    .Select(u => u.ClientId)
-                    .FirstOrDefaultAsync();
-
+            var clientId = resolvedClientId;
             if (clientId is null or 0)
             {
                 // Ищем или создаём клиента-заглушку
@@ -270,7 +254,8 @@ public class TicketService : ITicketService
             EquipmentId = dto.EquipmentId,
             AssignedEngineerId = dto.AssignedEngineerId,
             Deadline = dto.Deadline,
-            CreatedByUserId = currentUserId
+            CreatedByUserId = currentUserId,
+            ClientId = resolvedClientId is > 0 ? resolvedClientId : null
         };
 
         _db.Tickets.Add(ticket);
