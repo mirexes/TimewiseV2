@@ -149,11 +149,25 @@ public class TicketService : ITicketService
 
         var dto = ticket.ToDetailDto();
 
-        // Загрузка клиента через связь с точкой обслуживания
-        var client = await _db.ClientServicePoints
-            .Where(csp => csp.ServicePointId == ticket.ServicePointId)
-            .Select(csp => csp.Client)
+        // Загрузка клиента: сначала по привязке создателя, затем через точку обслуживания
+        var creatorClientId = await _db.Users
+            .Where(u => u.Id == ticket.CreatedByUserId)
+            .Select(u => u.ClientId)
             .FirstOrDefaultAsync();
+
+        Client? client;
+        if (creatorClientId != null)
+        {
+            client = await _db.Clients.FindAsync(creatorClientId.Value);
+        }
+        else
+        {
+            client = await _db.ClientServicePoints
+                .Where(csp => csp.ServicePointId == ticket.ServicePointId)
+                .Select(csp => csp.Client)
+                .FirstOrDefaultAsync();
+        }
+
         if (client != null)
         {
             dto.ClientName = client.Name;
