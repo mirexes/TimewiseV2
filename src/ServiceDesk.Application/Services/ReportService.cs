@@ -37,9 +37,10 @@ public class ReportService : IReportService
             UserRole.Client =>
                 query.Where(t => t.CreatedByUserId == currentUserId),
             UserRole.ManagerClient =>
-                query.Where(t => t.ServicePoint.ClientId ==
-                    _db.Users.Where(u => u.Id == currentUserId)
-                        .Select(u => u.ClientId).FirstOrDefault()),
+                query.Where(t => t.ServicePoint.ClientServicePoints
+                    .Any(csp => csp.ClientId ==
+                        _db.Users.Where(u => u.Id == currentUserId)
+                            .Select(u => u.ClientId).FirstOrDefault())),
             _ => query
         };
     }

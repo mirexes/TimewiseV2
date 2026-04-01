@@ -105,14 +105,14 @@ public static class MappingExtensions
             TtkFilePath = client.TtkFilePath,
             CreatedAt = client.CreatedAt,
             UpdatedAt = client.UpdatedAt,
-            ServicePoints = client.ServicePoints?.Select(sp => new ClientServicePointDto
+            ServicePoints = client.ClientServicePoints?.Select(csp => new ClientServicePointDto
             {
-                Id = sp.Id,
-                Name = sp.Name,
-                Address = sp.Address,
-                Region = sp.Region,
-                IsActive = sp.IsActive,
-                EquipmentCount = sp.Equipment?.Count ?? 0
+                Id = csp.ServicePoint.Id,
+                Name = csp.ServicePoint.Name,
+                Address = csp.ServicePoint.Address,
+                Region = csp.ServicePoint.Region,
+                IsActive = csp.ServicePoint.IsActive,
+                EquipmentCount = csp.ServicePoint.Equipment?.Count ?? 0
             }).ToList() ?? new(),
             ContactPersons = client.ContactPersons?.Select(cp => new ClientContactPersonDto
             {

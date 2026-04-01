@@ -32,11 +32,8 @@ public class ServicePoint : BaseEntity
     /// <summary>Активна ли точка</summary>
     public bool IsActive { get; set; } = true;
 
-    /// <summary>Клиент (организация)</summary>
-    public int ClientId { get; set; }
-    public Client Client { get; set; } = null!;
-
     // Навигационные свойства
+    public ICollection<ClientServicePoint> ClientServicePoints { get; set; } = new List<ClientServicePoint>();
     public ICollection<Equipment> Equipment { get; set; } = new List<Equipment>();
     public ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 }

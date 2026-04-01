@@ -84,13 +84,23 @@ CREATE TABLE IF NOT EXISTS ServicePoints (
     ContactPhone VARCHAR(20) NULL COMMENT 'Контактный телефон',
     ContactPerson VARCHAR(200) NULL COMMENT 'Контактное лицо',
     IsActive TINYINT(1) NOT NULL DEFAULT 1,
-    ClientId INT NOT NULL,
     CreatedAt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     UpdatedAt DATETIME(6) NULL,
     INDEX idx_sp_region (Region),
-    INDEX idx_sp_network (Network),
-    CONSTRAINT fk_sp_client FOREIGN KEY (ClientId) REFERENCES Clients(Id) ON DELETE RESTRICT
+    INDEX idx_sp_network (Network)
 ) ENGINE=InnoDB COMMENT='Точки обслуживания';
+
+-- 4.1. Связь клиентов с точками обслуживания (многие-ко-многим)
+CREATE TABLE IF NOT EXISTS ClientServicePoints (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    ClientId INT NOT NULL,
+    ServicePointId INT NOT NULL,
+    CreatedAt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    UpdatedAt DATETIME(6) NULL,
+    UNIQUE INDEX idx_csp_client_sp (ClientId, ServicePointId),
+    CONSTRAINT fk_csp_client FOREIGN KEY (ClientId) REFERENCES Clients(Id) ON DELETE CASCADE,
+    CONSTRAINT fk_csp_sp FOREIGN KEY (ServicePointId) REFERENCES ServicePoints(Id) ON DELETE CASCADE
+) ENGINE=InnoDB COMMENT='Связь клиентов с точками обслуживания';
 
 -- ============================================================
 -- 5. Оборудование
@@ -293,8 +303,12 @@ INSERT INTO Clients (Name, Inn, Network, Phone, Email, CreatedAt)
 VALUES ('ООО «Тестовая компания»', '1234567890', 'Тестовая сеть', '+71111111111', 'test@example.com', NOW(6));
 
 -- Тестовая точка обслуживания
-INSERT INTO ServicePoints (Name, Address, Region, Network, Latitude, Longitude, ClientId, CreatedAt)
-VALUES ('Офис на Ленина', 'г. Москва, ул. Ленина, д. 1', 'Москва', 'Тестовая сеть', 55.7558, 37.6173, 1, NOW(6));
+INSERT INTO ServicePoints (Name, Address, Region, Network, Latitude, Longitude, CreatedAt)
+VALUES ('Офис на Ленина', 'г. Москва, ул. Ленина, д. 1', 'Москва', 'Тестовая сеть', 55.7558, 37.6173, NOW(6));
+
+-- Связь тестового клиента с точкой обслуживания
+INSERT INTO ClientServicePoints (ClientId, ServicePointId, CreatedAt)
+VALUES (1, 1, NOW(6));
 
 -- Тестовое оборудование
 INSERT INTO Equipment (Model, SerialNumber, InstalledAt, ServicePointId, Description, CreatedAt)

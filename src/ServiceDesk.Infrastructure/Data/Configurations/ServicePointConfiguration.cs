@@ -16,10 +16,5 @@ public class ServicePointConfiguration : IEntityTypeConfiguration<ServicePoint>
         builder.Property(sp => sp.Network).HasMaxLength(200);
         builder.Property(sp => sp.ContactPhone).HasMaxLength(20);
         builder.Property(sp => sp.ContactPerson).HasMaxLength(200);
-
-        builder.HasOne(sp => sp.Client)
-            .WithMany(c => c.ServicePoints)
-            .HasForeignKey(sp => sp.ClientId)
-            .OnDelete(DeleteBehavior.Restrict);
     }
 }

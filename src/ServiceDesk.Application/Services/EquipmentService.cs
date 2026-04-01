@@ -46,11 +46,12 @@ public class EquipmentService : IEquipmentService
                     .Any(t => t.CreatedByUserId == currentUserId &&
                               t.ServicePointId == e.ServicePointId)),
 
-            // Менеджер клиента — оборудование точек своей организации
+            // Менеджер клиента — оборудование точек своей организации через связующую таблицу
             UserRole.ManagerClient =>
-                query.Where(e => e.ServicePoint.ClientId ==
-                    _db.Users.Where(u => u.Id == currentUserId)
-                        .Select(u => u.ClientId).FirstOrDefault()),
+                query.Where(e => e.ServicePoint.ClientServicePoints
+                    .Any(csp => csp.ClientId ==
+                        _db.Users.Where(u => u.Id == currentUserId)
+                            .Select(u => u.ClientId).FirstOrDefault())),
 
             _ => query
         };
@@ -147,16 +148,36 @@ public class EquipmentService : IEquipmentService
                     Address = dto.NewAddress,
                     Latitude = lat != 0 ? lat : null,
                     Longitude = lng != 0 ? lng : null,
-                    IsActive = true,
-                    ClientId = clientId.Value
+                    IsActive = true
                 };
                 _db.ServicePoints.Add(newPoint);
                 await _db.SaveChangesAsync();
                 servicePointId = newPoint.Id;
+
+                // Создаём связь клиент — точка обслуживания
+                _db.ClientServicePoints.Add(new ClientServicePoint
+                {
+                    ClientId = clientId.Value,
+                    ServicePointId = newPoint.Id
+                });
+                await _db.SaveChangesAsync();
             }
             else
             {
                 servicePointId = existing.Id;
+
+                // Привязываем существующую точку к клиенту, если связь ещё не создана
+                var linkExists = await _db.ClientServicePoints
+                    .AnyAsync(csp => csp.ClientId == clientId.Value && csp.ServicePointId == existing.Id);
+                if (!linkExists)
+                {
+                    _db.ClientServicePoints.Add(new ClientServicePoint
+                    {
+                        ClientId = clientId.Value,
+                        ServicePointId = existing.Id
+                    });
+                    await _db.SaveChangesAsync();
+                }
             }
         }
 
