@@ -36,8 +36,10 @@ public class ClientService : IClientService
     {
         var query = _db.ServicePoints.Where(sp => sp.IsActive);
 
+        // Фильтрация по клиенту через связующую таблицу
         if (clientId.HasValue)
-            query = query.Where(sp => sp.ClientId == clientId.Value);
+            query = query.Where(sp => sp.ClientServicePoints
+                .Any(csp => csp.ClientId == clientId.Value));
 
         // Фильтрация по роли пользователя
         if (!PermissionChecker.CanViewAllTickets(currentUserRole))
@@ -56,11 +58,12 @@ public class ClientService : IClientService
                         .Any(t => t.CreatedByUserId == currentUserId &&
                                   t.ServicePointId == sp.Id)),
 
-                // Менеджер клиента — только точки своей организации
+                // Менеджер клиента — только точки своей организации через связующую таблицу
                 UserRole.ManagerClient =>
-                    query.Where(sp => sp.ClientId ==
-                        _db.Users.Where(u => u.Id == currentUserId)
-                            .Select(u => u.ClientId).FirstOrDefault()),
+                    query.Where(sp => sp.ClientServicePoints
+                        .Any(csp => csp.ClientId ==
+                            _db.Users.Where(u => u.Id == currentUserId)
+                                .Select(u => u.ClientId).FirstOrDefault())),
 
                 _ => query
             };
@@ -110,7 +113,7 @@ public class ClientService : IClientService
                 Phone = c.Phone,
                 Email = c.Email,
                 IsActive = c.IsActive,
-                ServicePointsCount = c.ServicePoints.Count,
+                ServicePointsCount = c.ClientServicePoints.Count,
                 ContactPersonsCount = c.ContactPersons.Count,
                 CreatedAt = c.CreatedAt
             })
@@ -122,8 +125,9 @@ public class ClientService : IClientService
     public async Task<ClientDetailDto?> GetByIdAsync(int id)
     {
         var client = await _db.Clients
-            .Include(c => c.ServicePoints)
-                .ThenInclude(sp => sp.Equipment)
+            .Include(c => c.ClientServicePoints)
+                .ThenInclude(csp => csp.ServicePoint)
+                    .ThenInclude(sp => sp.Equipment)
             .Include(c => c.ContactPersons)
             .Include(c => c.Managers)
             .FirstOrDefaultAsync(c => c.Id == id);

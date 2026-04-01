@@ -20,6 +20,7 @@ public class AppDbContext : DbContext, IDataProtectionKeyContext
     public DbSet<Equipment> Equipment => Set<Equipment>();
     public DbSet<ServicePoint> ServicePoints => Set<ServicePoint>();
     public DbSet<Client> Clients => Set<Client>();
+    public DbSet<ClientServicePoint> ClientServicePoints => Set<ClientServicePoint>();
     public DbSet<SparePart> SpareParts => Set<SparePart>();
     public DbSet<AppUser> Users => Set<AppUser>();
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();

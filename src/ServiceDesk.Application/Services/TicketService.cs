@@ -48,11 +48,12 @@ public class TicketService : ITicketService
                 UserRole.Client =>
                     query.Where(t => t.CreatedByUserId == currentUserId),
 
-                // Менеджер клиента видит заявки точек своей организации
+                // Менеджер клиента видит заявки точек своей организации через связующую таблицу
                 UserRole.ManagerClient =>
-                    query.Where(t => t.ServicePoint.ClientId ==
-                        _db.Users.Where(u => u.Id == currentUserId)
-                            .Select(u => u.ClientId).FirstOrDefault()),
+                    query.Where(t => t.ServicePoint.ClientServicePoints
+                        .Any(csp => csp.ClientId ==
+                            _db.Users.Where(u => u.Id == currentUserId)
+                                .Select(u => u.ClientId).FirstOrDefault())),
 
                 _ => query
             };
@@ -119,18 +120,29 @@ public class TicketService : ITicketService
         // Проверка доступа к конкретной заявке
         if (!PermissionChecker.CanViewAllTickets(currentUserRole))
         {
-            var hasAccess = currentUserRole switch
+            bool hasAccess;
+            if (currentUserRole is UserRole.Technician or UserRole.Engineer)
             {
-                UserRole.Technician or UserRole.Engineer =>
-                    ticket.AssignedEngineerId == currentUserId,
-                UserRole.Client =>
-                    ticket.CreatedByUserId == currentUserId,
-                UserRole.ManagerClient =>
-                    ticket.ServicePoint?.ClientId ==
-                        await _db.Users.Where(u => u.Id == currentUserId)
-                            .Select(u => u.ClientId).FirstOrDefaultAsync(),
-                _ => false
-            };
+                hasAccess = ticket.AssignedEngineerId == currentUserId;
+            }
+            else if (currentUserRole == UserRole.Client)
+            {
+                hasAccess = ticket.CreatedByUserId == currentUserId;
+            }
+            else if (currentUserRole == UserRole.ManagerClient)
+            {
+                var userClientId = await _db.Users
+                    .Where(u => u.Id == currentUserId)
+                    .Select(u => u.ClientId)
+                    .FirstOrDefaultAsync();
+                hasAccess = userClientId != null && await _db.ClientServicePoints
+                    .AnyAsync(csp => csp.ServicePointId == ticket.ServicePointId
+                                  && csp.ClientId == userClientId);
+            }
+            else
+            {
+                hasAccess = false;
+            }
 
             if (!hasAccess) return null;
         }
@@ -184,16 +196,36 @@ public class TicketService : ITicketService
                     Address = dto.NewAddress,
                     Latitude = lat != 0 ? lat : null,
                     Longitude = lng != 0 ? lng : null,
-                    IsActive = true,
-                    ClientId = clientId.Value
+                    IsActive = true
                 };
                 _db.ServicePoints.Add(newPoint);
                 await _db.SaveChangesAsync();
                 servicePointId = newPoint.Id;
+
+                // Создаём связь клиент — точка обслуживания
+                _db.ClientServicePoints.Add(new ClientServicePoint
+                {
+                    ClientId = clientId.Value,
+                    ServicePointId = newPoint.Id
+                });
+                await _db.SaveChangesAsync();
             }
             else
             {
                 servicePointId = ad.Id;
+
+                // Привязываем существующую точку к клиенту, если связь ещё не создана
+                var linkExists = await _db.ClientServicePoints
+                    .AnyAsync(csp => csp.ClientId == clientId.Value && csp.ServicePointId == ad.Id);
+                if (!linkExists)
+                {
+                    _db.ClientServicePoints.Add(new ClientServicePoint
+                    {
+                        ClientId = clientId.Value,
+                        ServicePointId = ad.Id
+                    });
+                    await _db.SaveChangesAsync();
+                }
             }
         }
 
@@ -275,16 +307,36 @@ public class TicketService : ITicketService
                     Address = dto.NewAddress,
                     Latitude = lat != 0 ? lat : null,
                     Longitude = lng != 0 ? lng : null,
-                    IsActive = true,
-                    ClientId = clientId.Value
+                    IsActive = true
                 };
                 _db.ServicePoints.Add(newPoint);
                 await _db.SaveChangesAsync();
                 ticket.ServicePointId = newPoint.Id;
+
+                // Создаём связь клиент — точка обслуживания
+                _db.ClientServicePoints.Add(new ClientServicePoint
+                {
+                    ClientId = clientId.Value,
+                    ServicePointId = newPoint.Id
+                });
+                await _db.SaveChangesAsync();
             }
             else
             {
                 ticket.ServicePointId = existing.Id;
+
+                // Привязываем существующую точку к клиенту, если связь ещё не создана
+                var linkExists = await _db.ClientServicePoints
+                    .AnyAsync(csp => csp.ClientId == clientId.Value && csp.ServicePointId == existing.Id);
+                if (!linkExists)
+                {
+                    _db.ClientServicePoints.Add(new ClientServicePoint
+                    {
+                        ClientId = clientId.Value,
+                        ServicePointId = existing.Id
+                    });
+                    await _db.SaveChangesAsync();
+                }
             }
         }
 

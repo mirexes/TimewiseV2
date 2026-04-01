@@ -82,11 +82,18 @@ public static class DbSeeder
                 Address = "г. Москва, ул. Ленина, д. 1",
                 Region = "Москва",
                 Network = "Тестовая сеть",
-                ClientId = client.Id,
                 Latitude = 55.7558,
                 Longitude = 37.6173
             };
             db.ServicePoints.Add(servicePoint);
+            await db.SaveChangesAsync();
+
+            // Связь клиента с точкой обслуживания
+            db.ClientServicePoints.Add(new ClientServicePoint
+            {
+                ClientId = client.Id,
+                ServicePointId = servicePoint.Id
+            });
             await db.SaveChangesAsync();
 
             // Тестовое оборудование

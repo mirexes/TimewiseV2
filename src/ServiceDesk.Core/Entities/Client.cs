@@ -30,7 +30,7 @@ public class Client : BaseEntity
     public string? TtkFilePath { get; set; }
 
     // Навигационные свойства
-    public ICollection<ServicePoint> ServicePoints { get; set; } = new List<ServicePoint>();
+    public ICollection<ClientServicePoint> ClientServicePoints { get; set; } = new List<ClientServicePoint>();
     public ICollection<ContactPerson> ContactPersons { get; set; } = new List<ContactPerson>();
     public ICollection<AppUser> Managers { get; set; } = new List<AppUser>();
 }
