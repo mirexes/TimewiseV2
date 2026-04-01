@@ -148,6 +148,18 @@ public class TicketService : ITicketService
         }
 
         var dto = ticket.ToDetailDto();
+
+        // Загрузка клиента через связь с точкой обслуживания
+        var client = await _db.ClientServicePoints
+            .Where(csp => csp.ServicePointId == ticket.ServicePointId)
+            .Select(csp => csp.Client)
+            .FirstOrDefaultAsync();
+        if (client != null)
+        {
+            dto.ClientName = client.Name;
+            dto.ClientTtkFilePath = client.TtkFilePath;
+        }
+
         dto.AllowedTransitions = TicketStatusTransitions.GetAllowedTransitions(ticket.Status);
         dto.CanAssignEngineer = PermissionChecker.CanAssignEngineer(currentUserRole);
         dto.CanEditEquipment = PermissionChecker.CanEditEquipment(currentUserRole);

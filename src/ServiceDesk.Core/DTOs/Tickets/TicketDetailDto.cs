@@ -30,6 +30,10 @@ public class TicketDetailDto
     public double? Latitude { get; set; }
     public double? Longitude { get; set; }
 
+    // Клиент (через точку обслуживания)
+    public string? ClientName { get; set; }
+    public string? ClientTtkFilePath { get; set; }
+
     // Оборудование
     public int? EquipmentId { get; set; }
     public string? EquipmentModel { get; set; }
