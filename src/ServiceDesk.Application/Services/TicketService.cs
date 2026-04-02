@@ -33,6 +33,7 @@ public class TicketService : ITicketService
         var query = _db.Tickets
             .Include(t => t.ServicePoint)
             .Include(t => t.AssignedEngineer)
+            .Include(t => t.CompletionPhotos)
             .AsQueryable();
 
         // Фильтрация по роли — ограничиваем видимость заявок

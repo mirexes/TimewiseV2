@@ -18,6 +18,15 @@ public class TicketListDto
     public DateTime CreatedAt { get; set; }
     public DateTime? Deadline { get; set; }
 
+    /// <summary>Путь к фото АВР</summary>
+    public string? AvrPhotoPath { get; set; }
+
+    /// <summary>Фото акта выполненных работ</summary>
+    public List<TicketPhotoDto> CompletionPhotos { get; set; } = new();
+
+    /// <summary>Есть ли прикреплённый акт выполненных работ</summary>
+    public bool HasWorkAct => !string.IsNullOrEmpty(AvrPhotoPath) || CompletionPhotos.Count > 0;
+
     /// <summary>Отображаемое название статуса</summary>
     public string StatusDisplayName => Status switch
     {
