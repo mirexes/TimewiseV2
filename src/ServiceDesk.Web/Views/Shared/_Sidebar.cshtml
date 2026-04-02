@@ -26,12 +26,15 @@
             </a>
         </li>
 
-        <li class="nav-item">
-            <a class="nav-link @(currentController == "Equipment" ? "active" : "")" href="/Equipment/Index">
-                <i class="bi bi-cpu"></i>
-                <span>Оборудование</span>
-            </a>
-        </li>
+        @if (userRole is not UserRole.Technician)
+        {
+            <li class="nav-item">
+                <a class="nav-link @(currentController == "Equipment" ? "active" : "")" href="/Equipment/Index">
+                    <i class="bi bi-cpu"></i>
+                    <span>Оборудование</span>
+                </a>
+            </li>
+        }
 
         @if (userRole is not UserRole.Client and not UserRole.ManagerClient)
         {
