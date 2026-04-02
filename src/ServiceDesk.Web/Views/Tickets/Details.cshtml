@@ -11,323 +11,314 @@
     </a>
 </div>
 
-<div class="row g-4">
-    <!-- Основная информация -->
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center gap-2">
-                    <h5 class="mb-0">@Model.TicketNumber</h5>
-                    @if (Model.CanEdit)
-                    {
-                        <a href="/Tickets/Edit/@Model.Id" class="btn btn-outline-secondary btn-sm" title="Редактировать">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-                    }
-                </div>
-                @await Html.PartialAsync("_StatusBadge", Model.Status)
+<!-- Основная информация -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+            <h5 class="mb-0">@Model.TicketNumber</h5>
+            @if (Model.CanEdit)
+            {
+                <a href="/Tickets/Edit/@Model.Id" class="btn btn-outline-secondary btn-sm" title="Редактировать">
+                    <i class="bi bi-pencil"></i>
+                </a>
+            }
+        </div>
+        @await Html.PartialAsync("_StatusBadge", Model.Status)
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label small text-muted">Тип</label>
+                <p class="mb-2">@Model.TypeDisplayName</p>
             </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label small text-muted">Тип</label>
-                        <p class="mb-2">@Model.TypeDisplayName</p>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label small text-muted">Приоритет</label>
-                        <p class="mb-2">@Model.PriorityDisplayName</p>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label small text-muted">Описание</label>
-                        <p class="mb-2">@Model.Description</p>
-                    </div>
-                    @if (!string.IsNullOrEmpty(Model.Comment))
-                    {
-                        <div class="col-12">
-                            <label class="form-label small text-muted">Комментарий</label>
-                            <p class="mb-2">@Model.Comment</p>
+            <div class="col-md-6">
+                <label class="form-label small text-muted">Приоритет</label>
+                <p class="mb-2">@Model.PriorityDisplayName</p>
+            </div>
+            <div class="col-12">
+                <label class="form-label small text-muted">Описание</label>
+                <p class="mb-2">@Model.Description</p>
+            </div>
+            @if (!string.IsNullOrEmpty(Model.Comment))
+            {
+                <div class="col-12">
+                    <label class="form-label small text-muted">Комментарий</label>
+                    <p class="mb-2">@Model.Comment</p>
+                </div>
+            }
+        </div>
+
+        <hr />
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <small class="text-muted">Точка обслуживания</small>
+                @if (!string.IsNullOrEmpty(Model.ClientName))
+                {
+                    <p class="mb-1"><i class="bi bi-building"></i> @Model.ClientName</p>
+                }
+                @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
+                {
+                    <a href="https://yandex.ru/maps/?pt=@(Model.Longitude.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)),@(Model.Latitude.Value.ToString(System.Globalization.CultureInfo.InvariantCulture))&z=17&l=map"
+                       target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+                        <small class="link-primary"><i class="bi bi-geo-alt"></i> @Model.Address</small>
+                    </a>
+                }
+                else if (!string.IsNullOrEmpty(Model.Address))
+                {
+                    <a href="https://yandex.ru/maps/?text=@(Uri.EscapeDataString(Model.Address))"
+                       target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+                        <small class="link-primary"><i class="bi bi-geo-alt"></i> @Model.Address</small>
+                    </a>
+                }
+                else
+                {
+                    <small class="text-muted"><i class="bi bi-geo-alt"></i> Адрес не указан</small>
+                }
+                @if (!string.IsNullOrEmpty(Model.ClientTtkFilePath))
+                {
+                    <div class="mt-2">
+                        <small class="text-muted">ТТК настроек</small>
+                        <div class="mt-1">
+                            <img src="@Model.ClientTtkFilePath" alt="Фото ТТК настроек"
+                                 class="img-fluid rounded"
+                                 style="max-width: 100%; max-height: 200px; cursor: pointer;"
+                                 onclick="window.open(this.src, '_blank')" />
                         </div>
+                    </div>
+                }
+            </div>
+            <div class="col-md-6">
+                <small class="text-muted">Оборудование</small>
+                <div id="equipmentDisplay">
+                    @if (Model.EquipmentModel is not null)
+                    {
+                        <p class="mb-0">
+                            <i class="bi bi-gear"></i> @Model.EquipmentModel
+                            <span class="text-muted">(@Model.EquipmentSerialNumber)</span>
+                        </p>
+                    }
+                    else
+                    {
+                        <p class="mb-0 text-muted fst-italic">Не указано</p>
                     }
                 </div>
+                @if (Model.CanEditEquipment)
+                {
+                    <div class="mt-2">
+                        <select id="equipmentSelect" class="form-select form-select-sm">
+                            <option value="">Выберите оборудование...</option>
+                        </select>
+                        <div class="d-flex gap-1 mt-1">
+                            <button class="btn btn-sm btn-primary flex-grow-1"
+                                    onclick="assignEquipment(@Model.Id)">
+                                <i class="bi bi-link-45deg"></i> Привязать
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary"
+                                    onclick="showNewEquipmentForm()" title="Добавить новое">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Форма добавления нового оборудования -->
+                    <div id="newEquipmentForm" class="mt-2 p-2 border rounded bg-body-secondary" style="display:none">
+                        <h6 class="small fw-bold mb-2">Новое оборудование</h6>
+                        <div class="mb-2">
+                            <input type="text" id="newEquipmentModel" class="form-control form-control-sm"
+                                   placeholder="Модель *" />
+                        </div>
+                        <div class="mb-2">
+                            <input type="text" id="newEquipmentSerial" class="form-control form-control-sm"
+                                   placeholder="Серийный номер *" />
+                        </div>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-sm btn-success flex-grow-1"
+                                    onclick="createAndAssignEquipment(@Model.Id, @Model.ServicePointId)">
+                                <i class="bi bi-plus-circle"></i> Создать и привязать
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary"
+                                    onclick="hideNewEquipmentForm()">
+                                Отмена
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="col-md-6">
+                <small class="text-muted">Специалист</small>
+                @if (Model.EngineerName is not null)
+                {
+                    <p class="mb-0"><i class="bi bi-person"></i> @Model.EngineerName</p>
+                }
+                else
+                {
+                    <p class="mb-0 text-muted fst-italic">Не назначен</p>
+                }
+                @if (Model.CanAssignEngineer)
+                {
+                    <div class="mt-2">
+                        <select id="engineerSelect" class="form-select form-select-sm">
+                            <option value="">Выберите специалиста...</option>
+                        </select>
+                        <button class="btn btn-sm btn-primary mt-1 w-100"
+                                onclick="assignEngineer(@Model.Id)">
+                            <i class="bi bi-person-plus"></i> Назначить
+                        </button>
+                    </div>
+                }
+            </div>
+            <div class="col-md-6">
+                <small class="text-muted">Создал</small>
+                <p class="mb-0">@Model.CreatedByName</p>
             </div>
         </div>
 
-        <!-- Фото акта выполненных работ -->
-        @if (Model.CompletionPhotos.Count > 0)
-        {
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h6 class="mb-0"><i class="bi bi-camera"></i> Фото акта выполненных работ</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row g-2">
-                        @for (var i = 0; i < Model.CompletionPhotos.Count; i++)
-                        {
-                            var photo = Model.CompletionPhotos[i];
-                            <div class="col-4 col-md-3">
-                                <a href="@photo.FilePath" target="_blank"
-                                   class="completion-photo-link"
-                                   data-index="@i"
-                                   onclick="openCompletionGallery(@i); return false;">
-                                    <img src="@photo.FilePath" alt="@photo.FileName"
-                                         class="img-fluid rounded shadow-sm"
-                                         style="width:100%;height:120px;object-fit:cover;cursor:pointer;" />
-                                </a>
-                            </div>
-                        }
-                    </div>
-                </div>
-            </div>
-        }
+        <hr />
 
-        <!-- Допустимые переходы -->
-        @if (Model.AllowedTransitions.Length > 0)
-        {
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h6 class="mb-0">Действия</h6>
-                </div>
-                <div class="card-body d-flex gap-2 flex-wrap">
-                    @foreach (var transition in Model.AllowedTransitions)
-                    {
-                        var label = transition switch
-                        {
-                            TicketStatus.New => "Новая",
-                            TicketStatus.Processed => "Взяли в работу",
-                            TicketStatus.CompletedRemotely => "Дистанционно",
-                            TicketStatus.PartsApproval => "Согласование",
-                            TicketStatus.RepairApproved => "Согласована",
-                            TicketStatus.DepartureConfirmation => "Подтверждение",
-                            TicketStatus.EngineerEnRoute => "В пути",
-                            TicketStatus.InProgress => "Выполнение",
-                            TicketStatus.Completed => "Выполнена",
-                            TicketStatus.ContinuationRequired => "Продолжение",
-                            TicketStatus.Cancelled => "Отменена",
-                            _ => transition.ToString()
-                        };
-
-                        var isCompletion = transition is TicketStatus.Completed or TicketStatus.CompletedRemotely;
-                        if (isCompletion)
-                        {
-                            <button class="btn btn-outline-success btn-sm"
-                                    onclick="showCompletionModal(@Model.Id, @((int)transition))">
-                                <i class="bi bi-check-circle"></i> @label
-                            </button>
-                        }
-                        else
-                        {
-                            <button class="btn btn-outline-primary btn-sm"
-                                    onclick="updateStatus(@Model.Id, @((int)transition))">
-                                @label
-                            </button>
-                        }
-                    }
-                </div>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <small class="text-muted">Создана</small>
+                <p class="mb-0">@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
             </div>
-        }
+            @if (Model.Deadline.HasValue)
+            {
+                <div class="col-md-3">
+                    <small class="text-muted">Дедлайн</small>
+                    <p class="mb-0 @(Model.Deadline < DateTime.Now ? "text-danger" : "")">
+                        @Model.Deadline.Value.ToString("dd.MM.yyyy HH:mm")
+                    </p>
+                </div>
+            }
+            @if (Model.WorkStartedAt.HasValue)
+            {
+                <div class="col-md-3">
+                    <small class="text-muted">Начало работ</small>
+                    <p class="mb-0">@Model.WorkStartedAt.Value.ToString("dd.MM.yyyy HH:mm")</p>
+                </div>
+            }
+            @if (Model.WorkCompletedAt.HasValue)
+            {
+                <div class="col-md-3">
+                    <small class="text-muted">Завершена</small>
+                    <p class="mb-0 text-success">@Model.WorkCompletedAt.Value.ToString("dd.MM.yyyy HH:mm")</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
 
-        <!-- Чат -->
-        <div class="card mt-3">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h6 class="mb-0"><i class="bi bi-chat-dots"></i> Чат</h6>
-                <span id="chatOnlineCount" class="small text-muted"></span>
-            </div>
-            <div class="chat-container">
-                <div id="chatMessages" class="chat-messages">
-                    <div class="chat-empty">
-                        <i class="bi bi-chat-text"></i>
-                        <span>Загрузка сообщений...</span>
+<!-- Фото акта выполненных работ -->
+@if (Model.CompletionPhotos.Count > 0)
+{
+    <div class="card mt-3">
+        <div class="card-header">
+            <h6 class="mb-0"><i class="bi bi-camera"></i> Фото акта выполненных работ</h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-2">
+                @for (var i = 0; i < Model.CompletionPhotos.Count; i++)
+                {
+                    var photo = Model.CompletionPhotos[i];
+                    <div class="col-4 col-md-3">
+                        <a href="@photo.FilePath" target="_blank"
+                           class="completion-photo-link"
+                           data-index="@i"
+                           onclick="openCompletionGallery(@i); return false;">
+                            <img src="@photo.FilePath" alt="@photo.FileName"
+                                 class="img-fluid rounded shadow-sm"
+                                 style="width:100%;height:120px;object-fit:cover;cursor:pointer;" />
+                        </a>
                     </div>
-                </div>
-                <div id="emojiPicker" class="emoji-picker"></div>
-                <!-- Превью ответа на сообщение -->
-                <div id="chatReplyPreview" class="chat-reply-preview" style="display:none">
-                    <div class="chat-reply-preview-content">
-                        <div class="chat-reply-preview-sender" id="replyPreviewSender"></div>
-                        <div class="chat-reply-preview-text" id="replyPreviewText"></div>
-                    </div>
-                    <button type="button" class="chat-reply-preview-close" id="cancelReply" title="Отменить ответ">&times;</button>
-                </div>
-                <!-- Превью выбранных файлов -->
-                <div id="chatFilePreview" class="chat-file-preview"></div>
-                <form id="chatForm" class="chat-input-area">
-                    <button type="button" class="btn-emoji" id="emojiToggle" title="Эмодзи">
-                        <i class="bi bi-emoji-smile"></i>
-                    </button>
-                    <button type="button" class="btn-emoji" id="chatAttachBtn" title="Прикрепить файл">
-                        <i class="bi bi-paperclip"></i>
-                    </button>
-                    <input type="file" id="chatFileInput" multiple accept="image/*,video/*" style="display:none" />
-                    <textarea id="chatInput" rows="1" placeholder="Сообщение..." autocomplete="off"></textarea>
-                    <button type="submit" class="btn-send" title="Отправить">
-                        <i class="bi bi-send-fill"></i>
-                    </button>
-                </form>
+                }
             </div>
         </div>
     </div>
+}
 
-    <!-- Боковая панель -->
-    <div class="col-md-4">
-        <div class="card mb-3">
-            <div class="card-header"><h6 class="mb-0">Детали</h6></div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <small class="text-muted">Точка обслуживания</small>
-                    @if (!string.IsNullOrEmpty(Model.ClientName))
-                    {
-                        <p class="mb-1"><i class="bi bi-building"></i> @Model.ClientName</p>
-                    }
-                    @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
-                    {
-                        <a href="https://yandex.ru/maps/?pt=@(Model.Longitude.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)),@(Model.Latitude.Value.ToString(System.Globalization.CultureInfo.InvariantCulture))&z=17&l=map"
-                           target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-                            <small class="link-primary"><i class="bi bi-geo-alt"></i> @Model.Address</small>
-                        </a>
-                    }
-                    else if (!string.IsNullOrEmpty(Model.Address))
-                    {
-                        <a href="https://yandex.ru/maps/?text=@(Uri.EscapeDataString(Model.Address))"
-                           target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-                            <small class="link-primary"><i class="bi bi-geo-alt"></i> @Model.Address</small>
-                        </a>
-                    }
-                    else
-                    {
-                        <small class="text-muted"><i class="bi bi-geo-alt"></i> Адрес не указан</small>
-                    }
-                    @if (!string.IsNullOrEmpty(Model.ClientTtkFilePath))
-                    {
-                        <div class="mt-2">
-                            <small class="text-muted">ТТК настроек</small>
-                            <div class="mt-1">
-                                <img src="@Model.ClientTtkFilePath" alt="Фото ТТК настроек"
-                                     class="img-fluid rounded"
-                                     style="max-width: 100%; max-height: 200px; cursor: pointer;"
-                                     onclick="window.open(this.src, '_blank')" />
-                            </div>
-                        </div>
-                    }
-                </div>
-                <div class="mb-3">
-                    <small class="text-muted">Оборудование</small>
-                    <div id="equipmentDisplay">
-                        @if (Model.EquipmentModel is not null)
-                        {
-                            <p class="mb-0">
-                                <i class="bi bi-gear"></i> @Model.EquipmentModel
-                                <span class="text-muted">(@Model.EquipmentSerialNumber)</span>
-                            </p>
-                        }
-                        else
-                        {
-                            <p class="mb-0 text-muted fst-italic">Не указано</p>
-                        }
-                    </div>
-                    @if (Model.CanEditEquipment)
-                    {
-                        <div class="mt-2">
-                            <select id="equipmentSelect" class="form-select form-select-sm">
-                                <option value="">Выберите оборудование...</option>
-                            </select>
-                            <div class="d-flex gap-1 mt-1">
-                                <button class="btn btn-sm btn-primary flex-grow-1"
-                                        onclick="assignEquipment(@Model.Id)">
-                                    <i class="bi bi-link-45deg"></i> Привязать
-                                </button>
-                                <button class="btn btn-sm btn-outline-secondary"
-                                        onclick="showNewEquipmentForm()" title="Добавить новое">
-                                    <i class="bi bi-plus-lg"></i>
-                                </button>
-                            </div>
-                        </div>
+<!-- Допустимые переходы -->
+@if (Model.AllowedTransitions.Length > 0)
+{
+    <div class="card mt-3">
+        <div class="card-header">
+            <h6 class="mb-0">Действия</h6>
+        </div>
+        <div class="card-body d-flex gap-2 flex-wrap">
+            @foreach (var transition in Model.AllowedTransitions)
+            {
+                var label = transition switch
+                {
+                    TicketStatus.New => "Новая",
+                    TicketStatus.Processed => "Взяли в работу",
+                    TicketStatus.CompletedRemotely => "Дистанционно",
+                    TicketStatus.PartsApproval => "Согласование",
+                    TicketStatus.RepairApproved => "Согласована",
+                    TicketStatus.DepartureConfirmation => "Подтверждение",
+                    TicketStatus.EngineerEnRoute => "В пути",
+                    TicketStatus.InProgress => "Выполнение",
+                    TicketStatus.Completed => "Выполнена",
+                    TicketStatus.ContinuationRequired => "Продолжение",
+                    TicketStatus.Cancelled => "Отменена",
+                    _ => transition.ToString()
+                };
 
-                        <!-- Форма добавления нового оборудования -->
-                        <div id="newEquipmentForm" class="mt-2 p-2 border rounded bg-body-secondary" style="display:none">
-                            <h6 class="small fw-bold mb-2">Новое оборудование</h6>
-                            <div class="mb-2">
-                                <input type="text" id="newEquipmentModel" class="form-control form-control-sm"
-                                       placeholder="Модель *" />
-                            </div>
-                            <div class="mb-2">
-                                <input type="text" id="newEquipmentSerial" class="form-control form-control-sm"
-                                       placeholder="Серийный номер *" />
-                            </div>
-                            <div class="d-flex gap-1">
-                                <button class="btn btn-sm btn-success flex-grow-1"
-                                        onclick="createAndAssignEquipment(@Model.Id, @Model.ServicePointId)">
-                                    <i class="bi bi-plus-circle"></i> Создать и привязать
-                                </button>
-                                <button class="btn btn-sm btn-outline-secondary"
-                                        onclick="hideNewEquipmentForm()">
-                                    Отмена
-                                </button>
-                            </div>
-                        </div>
-                    }
-                </div>
-                <div class="mb-3">
-                    <small class="text-muted">Специалист</small>
-                    @if (Model.EngineerName is not null)
-                    {
-                        <p class="mb-0"><i class="bi bi-person"></i> @Model.EngineerName</p>
-                    }
-                    else
-                    {
-                        <p class="mb-0 text-muted fst-italic">Не назначен</p>
-                    }
-                    @if (Model.CanAssignEngineer)
-                    {
-                        <div class="mt-2">
-                            <select id="engineerSelect" class="form-select form-select-sm">
-                                <option value="">Выберите специалиста...</option>
-                            </select>
-                            <button class="btn btn-sm btn-primary mt-1 w-100"
-                                    onclick="assignEngineer(@Model.Id)">
-                                <i class="bi bi-person-plus"></i> Назначить
-                            </button>
-                        </div>
-                    }
-                </div>
-                <div class="mb-3">
-                    <small class="text-muted">Создал</small>
-                    <p class="mb-0">@Model.CreatedByName</p>
-                </div>
+                var isCompletion = transition is TicketStatus.Completed or TicketStatus.CompletedRemotely;
+                if (isCompletion)
+                {
+                    <button class="btn btn-outline-success btn-sm"
+                            onclick="showCompletionModal(@Model.Id, @((int)transition))">
+                        <i class="bi bi-check-circle"></i> @label
+                    </button>
+                }
+                else
+                {
+                    <button class="btn btn-outline-primary btn-sm"
+                            onclick="updateStatus(@Model.Id, @((int)transition))">
+                        @label
+                    </button>
+                }
+            }
+        </div>
+    </div>
+}
+
+<!-- Чат -->
+<div class="card mt-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-chat-dots"></i> Чат</h6>
+        <span id="chatOnlineCount" class="small text-muted"></span>
+    </div>
+    <div class="chat-container">
+        <div id="chatMessages" class="chat-messages">
+            <div class="chat-empty">
+                <i class="bi bi-chat-text"></i>
+                <span>Загрузка сообщений...</span>
             </div>
         </div>
-
-        <div class="card">
-            <div class="card-header"><h6 class="mb-0">Даты</h6></div>
-            <div class="card-body">
-                <div class="mb-2">
-                    <small class="text-muted">Создана</small>
-                    <p class="mb-0">@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
-                </div>
-                @if (Model.Deadline.HasValue)
-                {
-                    <div class="mb-2">
-                        <small class="text-muted">Дедлайн</small>
-                        <p class="mb-0 @(Model.Deadline < DateTime.Now ? "text-danger" : "")">
-                            @Model.Deadline.Value.ToString("dd.MM.yyyy HH:mm")
-                        </p>
-                    </div>
-                }
-                @if (Model.WorkStartedAt.HasValue)
-                {
-                    <div class="mb-2">
-                        <small class="text-muted">Начало работ</small>
-                        <p class="mb-0">@Model.WorkStartedAt.Value.ToString("dd.MM.yyyy HH:mm")</p>
-                    </div>
-                }
-                @if (Model.WorkCompletedAt.HasValue)
-                {
-                    <div class="mb-2">
-                        <small class="text-muted">Завершена</small>
-                        <p class="mb-0 text-success">@Model.WorkCompletedAt.Value.ToString("dd.MM.yyyy HH:mm")</p>
-                    </div>
-                }
+        <div id="emojiPicker" class="emoji-picker"></div>
+        <!-- Превью ответа на сообщение -->
+        <div id="chatReplyPreview" class="chat-reply-preview" style="display:none">
+            <div class="chat-reply-preview-content">
+                <div class="chat-reply-preview-sender" id="replyPreviewSender"></div>
+                <div class="chat-reply-preview-text" id="replyPreviewText"></div>
             </div>
+            <button type="button" class="chat-reply-preview-close" id="cancelReply" title="Отменить ответ">&times;</button>
         </div>
+        <!-- Превью выбранных файлов -->
+        <div id="chatFilePreview" class="chat-file-preview"></div>
+        <form id="chatForm" class="chat-input-area">
+            <button type="button" class="btn-emoji" id="emojiToggle" title="Эмодзи">
+                <i class="bi bi-emoji-smile"></i>
+            </button>
+            <button type="button" class="btn-emoji" id="chatAttachBtn" title="Прикрепить файл">
+                <i class="bi bi-paperclip"></i>
+            </button>
+            <input type="file" id="chatFileInput" multiple accept="image/*,video/*" style="display:none" />
+            <textarea id="chatInput" rows="1" placeholder="Сообщение..." autocomplete="off"></textarea>
+            <button type="submit" class="btn-send" title="Отправить">
+                <i class="bi bi-send-fill"></i>
+            </button>
+        </form>
     </div>
 </div>
 
