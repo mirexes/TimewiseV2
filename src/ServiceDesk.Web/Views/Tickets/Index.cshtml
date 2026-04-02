@@ -99,6 +99,25 @@ else
                             @await Html.PartialAsync("_TypeBadge", ticket.Type)
                             <br /><span class="text-muted">Создана - @ticket.CreatedAt.ToString("dd.MM.yy HH:mm")</span>
                         </div>
+                        @if (ticket.HasWorkAct)
+                        {
+                            var photosJson = System.Text.Json.JsonSerializer.Serialize(
+                                ticket.CompletionPhotos.Select(p => new { filePath = p.FilePath, fileName = p.FileName }));
+                            <div class="text-end flex-shrink-0 ms-3">
+                                <button class="btn btn-outline-success btn-sm"
+                                        onclick="event.stopPropagation(); openWorkActSlider(@ticket.Id, '@(ticket.AvrPhotoPath ?? "")', @photosJson)">
+                                    <i class="bi bi-file-earmark-check"></i> АВР
+                                </button>
+                                @if (ticket.WorkCompletedAt.HasValue)
+                                {
+                                    <div class="mt-1">
+                                        <small class="text-muted">
+                                            <i class="bi bi-check-circle"></i> @ticket.WorkCompletedAt.Value.ToString("dd.MM.yy HH:mm")
+                                        </small>
+                                    </div>
+                                }
+                            </div>
+                        }
                     </div>
 
                     <p class="mb-1 text-truncate">@ticket.Description</p>
@@ -131,18 +150,6 @@ else
                                 Дедлайн: @ticket.Deadline.Value.ToString("dd.MM.yy HH:mm")
                                 @if (isOverdue) { <span>— ПРОСРОЧЕНА</span> }
                             </small>
-                        </div>
-                    }
-
-                    @if (ticket.HasWorkAct)
-                    {
-                        var photosJson = System.Text.Json.JsonSerializer.Serialize(
-                            ticket.CompletionPhotos.Select(p => new { filePath = p.FilePath, fileName = p.FileName }));
-                        <div class="mt-2">
-                            <button class="btn btn-outline-success btn-sm"
-                                    onclick="event.stopPropagation(); openWorkActSlider(@ticket.Id, '@(ticket.AvrPhotoPath ?? "")', @photosJson)">
-                                <i class="bi bi-file-earmark-check"></i> АВР
-                            </button>
                         </div>
                     }
                 </div>

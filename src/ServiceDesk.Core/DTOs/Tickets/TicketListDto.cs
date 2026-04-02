@@ -18,6 +18,9 @@ public class TicketListDto
     public DateTime CreatedAt { get; set; }
     public DateTime? Deadline { get; set; }
 
+    /// <summary>Дата завершения работ</summary>
+    public DateTime? WorkCompletedAt { get; set; }
+
     /// <summary>Путь к фото АВР</summary>
     public string? AvrPhotoPath { get; set; }
 
