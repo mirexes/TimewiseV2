@@ -47,7 +47,37 @@
                 </div>
             }
         </div>
+        <hr />
 
+        <div class="row g-3">
+            <div class="col-md-3">
+                <small class="text-muted">Создана</small>
+                <p class="mb-0">@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
+            </div>
+            @if (Model.Deadline.HasValue)
+            {
+                <div class="col-md-3">
+                    <small class="text-muted">Дедлайн</small>
+                    <p class="mb-0 @(Model.Deadline < DateTime.Now ? "text-danger" : "")">
+                        @Model.Deadline.Value.ToString("dd.MM.yyyy HH:mm")
+                    </p>
+                </div>
+            }
+            @if (Model.WorkStartedAt.HasValue)
+            {
+                <div class="col-md-3">
+                    <small class="text-muted">Начало работ</small>
+                    <p class="mb-0">@Model.WorkStartedAt.Value.ToString("dd.MM.yyyy HH:mm")</p>
+                </div>
+            }
+            @if (Model.WorkCompletedAt.HasValue)
+            {
+                <div class="col-md-3">
+                    <small class="text-muted">Завершена</small>
+                    <p class="mb-0 text-success">@Model.WorkCompletedAt.Value.ToString("dd.MM.yyyy HH:mm")</p>
+                </div>
+            }
+        </div>
         <hr />
 
         <div class="row g-3">
@@ -87,6 +117,10 @@
                         </div>
                     </div>
                 }
+            </div>
+            <div class="col-md-6">
+                <small class="text-muted">Создал</small>
+                <p class="mb-0">@Model.CreatedByName</p>
             </div>
             <div class="col-md-6">
                 <small class="text-muted">Оборудование</small>
@@ -168,43 +202,10 @@
                     </div>
                 }
             </div>
-            <div class="col-md-6">
-                <small class="text-muted">Создал</small>
-                <p class="mb-0">@Model.CreatedByName</p>
-            </div>
+            
         </div>
 
-        <hr />
-
-        <div class="row g-3">
-            <div class="col-md-3">
-                <small class="text-muted">Создана</small>
-                <p class="mb-0">@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
-            </div>
-            @if (Model.Deadline.HasValue)
-            {
-                <div class="col-md-3">
-                    <small class="text-muted">Дедлайн</small>
-                    <p class="mb-0 @(Model.Deadline < DateTime.Now ? "text-danger" : "")">
-                        @Model.Deadline.Value.ToString("dd.MM.yyyy HH:mm")
-                    </p>
-                </div>
-            }
-            @if (Model.WorkStartedAt.HasValue)
-            {
-                <div class="col-md-3">
-                    <small class="text-muted">Начало работ</small>
-                    <p class="mb-0">@Model.WorkStartedAt.Value.ToString("dd.MM.yyyy HH:mm")</p>
-                </div>
-            }
-            @if (Model.WorkCompletedAt.HasValue)
-            {
-                <div class="col-md-3">
-                    <small class="text-muted">Завершена</small>
-                    <p class="mb-0 text-success">@Model.WorkCompletedAt.Value.ToString("dd.MM.yyyy HH:mm")</p>
-                </div>
-            }
-        </div>
+        
     </div>
 </div>
 
