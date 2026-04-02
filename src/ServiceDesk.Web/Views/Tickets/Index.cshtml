@@ -133,6 +133,18 @@ else
                             </small>
                         </div>
                     }
+
+                    @if (ticket.HasWorkAct)
+                    {
+                        var photosJson = System.Text.Json.JsonSerializer.Serialize(
+                            ticket.CompletionPhotos.Select(p => new { filePath = p.FilePath, fileName = p.FileName }));
+                        <div class="mt-2">
+                            <button class="btn btn-outline-success btn-sm"
+                                    onclick="event.stopPropagation(); openWorkActSlider(@ticket.Id, '@(ticket.AvrPhotoPath ?? "")', @photosJson)">
+                                <i class="bi bi-file-earmark-check"></i> АВР
+                            </button>
+                        </div>
+                    }
                 </div>
             </div>
         }
@@ -140,3 +152,76 @@ else
 
     @await Html.PartialAsync("_Pagination", Model)
 }
+
+<!-- Слайдер просмотра АВР -->
+<div class="modal fade" id="workActSliderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark border-0">
+            <div class="modal-header border-0 py-2">
+                <span class="text-white small" id="workActSliderCounter"></span>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0 text-center position-relative" style="min-height:300px;">
+                <button id="workActSliderPrev" class="btn btn-dark rounded-circle position-absolute start-0 top-50 translate-middle-y ms-2"
+                        style="width:40px;height:40px;z-index:10;opacity:0.7;"
+                        onclick="workActSliderNav(-1)">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <div id="workActSliderContent" class="d-flex align-items-center justify-content-center" style="min-height:300px;">
+                </div>
+                <button id="workActSliderNext" class="btn btn-dark rounded-circle position-absolute end-0 top-50 translate-middle-y me-2"
+                        style="width:40px;height:40px;z-index:10;opacity:0.7;"
+                        onclick="workActSliderNav(1)">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Слайдер АВР на странице списка заявок
+    var workActSliderPhotos = [];
+    var workActSliderIndex = 0;
+
+    function openWorkActSlider(ticketId, avrPath, completionPhotos) {
+        workActSliderPhotos = [];
+
+        // Добавляем основное фото АВР
+        if (avrPath) {
+            workActSliderPhotos.push({ filePath: avrPath, fileName: 'АВР' });
+        }
+
+        // Добавляем фото акта выполненных работ
+        if (completionPhotos && completionPhotos.length > 0) {
+            completionPhotos.forEach(function(p) {
+                workActSliderPhotos.push(p);
+            });
+        }
+
+        if (workActSliderPhotos.length === 0) return;
+
+        workActSliderIndex = 0;
+        renderWorkActSlider();
+        new bootstrap.Modal(document.getElementById('workActSliderModal')).show();
+    }
+
+    function renderWorkActSlider() {
+        var photo = workActSliderPhotos[workActSliderIndex];
+        var content = document.getElementById('workActSliderContent');
+        content.innerHTML = '<img src="' + photo.filePath + '" alt="' + photo.fileName + '" class="img-fluid" style="max-height:70vh;" />';
+
+        var counter = document.getElementById('workActSliderCounter');
+        counter.textContent = (workActSliderIndex + 1) + ' / ' + workActSliderPhotos.length;
+
+        document.getElementById('workActSliderPrev').style.display = workActSliderIndex > 0 ? '' : 'none';
+        document.getElementById('workActSliderNext').style.display = workActSliderIndex < workActSliderPhotos.length - 1 ? '' : 'none';
+    }
+
+    function workActSliderNav(direction) {
+        workActSliderIndex += direction;
+        if (workActSliderIndex < 0) workActSliderIndex = 0;
+        if (workActSliderIndex >= workActSliderPhotos.length) workActSliderIndex = workActSliderPhotos.length - 1;
+        renderWorkActSlider();
+    }
+</script>

@@ -27,7 +27,15 @@ public static class MappingExtensions
             Address = ticket.ServicePoint?.Address ?? "",
             EngineerName = ticket.AssignedEngineer?.FullName,
             CreatedAt = ticket.CreatedAt,
-            Deadline = ticket.Deadline
+            Deadline = ticket.Deadline,
+            AvrPhotoPath = ticket.AvrPhotoPath,
+            CompletionPhotos = ticket.CompletionPhotos?.Select(p => new TicketPhotoDto
+            {
+                Id = p.Id,
+                FileName = p.FileName,
+                FilePath = p.FilePath,
+                FileSize = p.FileSize
+            }).ToList() ?? new()
         };
     }
 
