@@ -28,6 +28,7 @@ public static class MappingExtensions
             EngineerName = ticket.AssignedEngineer?.FullName,
             CreatedAt = ticket.CreatedAt,
             Deadline = ticket.Deadline,
+            WorkCompletedAt = ticket.WorkCompletedAt,
             AvrPhotoPath = ticket.AvrPhotoPath,
             CompletionPhotos = ticket.CompletionPhotos?.Select(p => new TicketPhotoDto
             {
