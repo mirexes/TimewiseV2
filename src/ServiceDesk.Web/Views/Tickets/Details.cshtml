@@ -178,7 +178,6 @@
                     {
                         <p class="mb-1"><i class="bi bi-building"></i> @Model.ClientName</p>
                     }
-                    <p class="mb-1 fw-bold">@Model.ServicePointName</p>
                     @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
                     {
                         <a href="https://yandex.ru/maps/?pt=@(Model.Longitude.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)),@(Model.Latitude.Value.ToString(System.Globalization.CultureInfo.InvariantCulture))&z=17&l=map"
