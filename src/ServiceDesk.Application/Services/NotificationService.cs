@@ -22,13 +22,9 @@ public class NotificationService : INotificationService
 
     public async Task OnTicketStatusChangedAsync(Ticket ticket, TicketStatus oldStatus)
     {
-        // Уведомляем назначенного специалиста (кроме техников — они получают только уведомления о назначении)
+        // Уведомляем назначенного специалиста о смене статуса
         if (ticket.AssignedEngineerId.HasValue)
         {
-            var user = await _db.Users.FindAsync(ticket.AssignedEngineerId.Value);
-            if (user?.Role == UserRole.Technician)
-                return;
-
             var notification = new Notification
             {
                 Title = $"Заявка {ticket.TicketNumber}",
