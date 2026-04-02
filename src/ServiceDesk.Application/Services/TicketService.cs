@@ -264,6 +264,10 @@ public class TicketService : ITicketService
         await _audit.LogAsync(AuditAction.Created, "Ticket", ticket.Id,
             null, ticketNumber, currentUserId);
 
+        // Уведомляем назначенного специалиста при создании заявки
+        if (ticket.AssignedEngineerId.HasValue)
+            await _notifications.OnTicketAssignedAsync(ticket);
+
         return ticket.Id;
     }
 
