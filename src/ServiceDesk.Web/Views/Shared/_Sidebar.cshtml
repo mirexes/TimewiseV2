@@ -66,6 +66,12 @@
         @if (userRole is UserRole.ChiefEngineer or UserRole.ManagerTimewise or UserRole.Moderator)
         {
             <li class="nav-item">
+                <a class="nav-link @(currentController == "Employees" ? "active" : "")" href="/Employees/Index">
+                    <i class="bi bi-person-badge"></i>
+                    <span>Сотрудники</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link @(currentController == "Reports" ? "active" : "")" href="/Reports/Dashboard">
                     <i class="bi bi-bar-chart-line"></i>
                     <span>Отчёты</span>

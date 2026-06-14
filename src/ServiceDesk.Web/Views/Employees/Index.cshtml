@@ -1,0 +1,156 @@
+@model EmployeeWorkReportDto
+@using System.Globalization
+@{
+    ViewData["Title"] = "Сотрудники";
+
+    var culture = new CultureInfo("ru-RU");
+    var monthName = culture.DateTimeFormat.GetMonthName(Model.Month);
+    monthName = char.ToUpper(monthName[0]) + monthName[1..];
+
+    var current = new DateTime(Model.Year, Model.Month, 1);
+    var prev = current.AddMonths(-1);
+    var next = current.AddMonths(1);
+
+    // Не даём листать в будущее дальше текущего месяца
+    var now = DateTime.UtcNow;
+    var thisMonth = new DateTime(now.Year, now.Month, 1);
+    var canGoNext = next <= thisMonth;
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-person-badge"></i> Сотрудники</h4>
+        <small class="text-muted">Наработка за месяц (период с 1-го числа)</small>
+    </div>
+
+    <!-- Навигация по месяцам -->
+    <div class="d-flex align-items-center gap-2">
+        <a class="btn btn-outline-secondary btn-sm" href="/Employees/Index?year=@prev.Year&month=@prev.Month"
+           title="Предыдущий месяц">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        <span class="fw-bold px-2">@monthName @Model.Year</span>
+        @if (canGoNext)
+        {
+            <a class="btn btn-outline-secondary btn-sm" href="/Employees/Index?year=@next.Year&month=@next.Month"
+               title="Следующий месяц">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        }
+        else
+        {
+            <button class="btn btn-outline-secondary btn-sm" disabled>
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        }
+    </div>
+</div>
+
+<!-- Сводка по периоду -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="card h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <i class="bi bi-people fs-2 text-primary"></i>
+                <div>
+                    <div class="fs-4 fw-bold">@Model.Employees.Count</div>
+                    <small class="text-muted">Сотрудников</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <i class="bi bi-clock-history fs-2 text-success"></i>
+                <div>
+                    <div class="fs-4 fw-bold">@Model.TotalWorkedHours ч</div>
+                    <small class="text-muted">Отработано всего</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <i class="bi bi-truck fs-2 text-warning"></i>
+                <div>
+                    <div class="fs-4 fw-bold">@Model.TotalTravelHours ч</div>
+                    <small class="text-muted">В дороге всего</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <i class="bi bi-check2-circle fs-2 text-info"></i>
+                <div>
+                    <div class="fs-4 fw-bold">@Model.Employees.Sum(e => e.CompletedTickets)</div>
+                    <small class="text-muted">Завершено заявок</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!Model.Employees.Any())
+{
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-people fs-1"></i>
+        <p class="mt-2">Нет сотрудников для отображения</p>
+    </div>
+}
+else
+{
+    <div class="card">
+        <!-- Заголовок списка -->
+        <div class="card-header d-none d-md-flex fw-semibold text-muted small">
+            <div class="flex-grow-1">Сотрудник</div>
+            <div class="text-center" style="width: 140px;">Отработано</div>
+            <div class="text-center" style="width: 140px;">В дороге</div>
+            <div class="text-center" style="width: 110px;">Завершено</div>
+            <div class="text-center" style="width: 110px;">Заявок</div>
+        </div>
+
+        <div class="list-group list-group-flush">
+            @foreach (var emp in Model.Employees)
+            {
+                <div class="list-group-item">
+                    <div class="d-flex flex-wrap align-items-center">
+                        <div class="flex-grow-1 d-flex align-items-center gap-2 mb-2 mb-md-0">
+                            <i class="bi bi-person-circle fs-4 text-primary"></i>
+                            <div>
+                                <div class="fw-semibold">@emp.EmployeeName</div>
+                                <small class="text-muted">@emp.RoleName</small>
+                            </div>
+                        </div>
+
+                        <div class="text-center" style="min-width: 140px;">
+                            <span class="d-md-none text-muted small">Отработано: </span>
+                            <span class="fw-bold text-success">@emp.WorkedHours ч</span>
+                        </div>
+                        <div class="text-center" style="min-width: 140px;">
+                            <span class="d-md-none text-muted small">В дороге: </span>
+                            <span class="fw-bold text-warning">@emp.TravelHours ч</span>
+                        </div>
+                        <div class="text-center" style="min-width: 110px;">
+                            <span class="d-md-none text-muted small">Завершено: </span>
+                            <span class="fw-bold">@emp.CompletedTickets</span>
+                        </div>
+                        <div class="text-center" style="min-width: 110px;">
+                            <span class="d-md-none text-muted small">Заявок: </span>
+                            <span class="fw-bold text-secondary">@emp.HandledTickets</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <small class="text-muted d-block mt-2">
+        <i class="bi bi-info-circle"></i>
+        «Отработано» — суммарное время в статусе «Выполнение», «В дороге» — время в статусе «Техник в пути».
+        Учитываются заявки, назначенные сотруднику, за выбранный месяц.
+    </small>
+}
