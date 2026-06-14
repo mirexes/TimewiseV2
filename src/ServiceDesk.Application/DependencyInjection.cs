@@ -19,6 +19,7 @@ public static class DependencyInjection
         services.AddScoped<IDirectChatService, DirectChatService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IReportService, ReportService>();
+        services.AddScoped<IEmployeeService, EmployeeService>();
         services.AddScoped<IAuditService, AuditService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IUserService, UserService>();
