@@ -34,6 +34,7 @@ public class TicketService : ITicketService
             .Include(t => t.ServicePoint)
             .Include(t => t.AssignedEngineer)
             .Include(t => t.CompletionPhotos)
+            .Include(t => t.Client)
             .AsQueryable();
 
         // Фильтрация по роли — ограничиваем видимость заявок
@@ -482,6 +483,7 @@ public class TicketService : ITicketService
         var tickets = await _db.Tickets
             .Include(t => t.ServicePoint)
             .Include(t => t.AssignedEngineer)
+            .Include(t => t.Client)
             .Where(t => t.AssignedEngineerId == engineerId)
             .OrderByDescending(t => t.CreatedAt)
             .ToListAsync();
