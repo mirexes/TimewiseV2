@@ -149,7 +149,11 @@ else
 
                     @if (ticket.Deadline.HasValue)
                     {
-                        var isOverdue = ticket.Deadline < DateTime.Now;
+                        // Закрытые заявки не считаем просроченными
+                        var isClosed = ticket.Status is TicketStatus.Completed
+                            or TicketStatus.CompletedRemotely
+                            or TicketStatus.Cancelled;
+                        var isOverdue = !isClosed && ticket.Deadline < DateTime.Now;
                         <div class="mt-1">
                             <small class="@(isOverdue ? "text-danger fw-bold" : "text-muted")">
                                 <i class="bi bi-clock"></i>
