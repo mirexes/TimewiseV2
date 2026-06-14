@@ -265,6 +265,98 @@ async function createAndAssignEquipment(ticketId, servicePointId) {
     }
 }
 
+// === История ремонтов оборудования ===
+
+// Русские названия статусов заявок (синхронно с _StatusBadge.cshtml)
+const EQUIPMENT_STATUS_LABELS = {
+    New: 'Новая',
+    Processed: 'Взяли в работу',
+    CompletedRemotely: 'Дистанционно',
+    PartsApproval: 'Согласование',
+    RepairApproved: 'Согласована',
+    DepartureConfirmation: 'Подтверждение',
+    EngineerEnRoute: 'В пути',
+    InProgress: 'Выполнение',
+    Completed: 'Выполнена',
+    ContinuationRequired: 'Продолжение',
+    Cancelled: 'Отменена'
+};
+
+// Показать историю ремонтов оборудования в модальном окне
+async function showEquipmentHistory(equipmentId) {
+    if (!equipmentId) {
+        alert('Выберите оборудование');
+        return;
+    }
+
+    const body = document.getElementById('equipmentHistoryBody');
+    body.innerHTML = '<p class="text-muted text-center mb-0">Загрузка...</p>';
+
+    const modal = new bootstrap.Modal(document.getElementById('equipmentHistoryModal'));
+    modal.show();
+
+    try {
+        const response = await fetch(`/api/tickets/equipment/${equipmentId}/history`);
+        if (!response.ok) {
+            body.innerHTML = '<p class="text-danger text-center mb-0">Не удалось загрузить историю</p>';
+            return;
+        }
+
+        const records = await response.json();
+        body.innerHTML = renderEquipmentHistory(records);
+    } catch (e) {
+        body.innerHTML = '<p class="text-danger text-center mb-0">Ошибка соединения</p>';
+    }
+}
+
+// Показать историю ремонтов оборудования, выбранного в выпадающем списке
+function showSelectedEquipmentHistory() {
+    const select = document.getElementById('equipmentSelect');
+    const equipmentId = select && select.value ? parseInt(select.value) : null;
+    showEquipmentHistory(equipmentId);
+}
+
+// Сформировать HTML списка истории ремонтов
+function renderEquipmentHistory(records) {
+    if (!records || records.length === 0) {
+        return '<p class="text-muted text-center mb-0">Нет записей о ремонтах</p>';
+    }
+
+    return records.map(r => {
+        const status = EQUIPMENT_STATUS_LABELS[r.status] || r.status;
+        const created = formatHistoryDate(r.createdAt);
+        const completed = r.completedAt ? formatHistoryDate(r.completedAt) : null;
+        const period = completed ? `${created} → ${completed}` : created;
+        const engineer = r.engineerName
+            ? `<span class="text-muted"><i class="bi bi-person"></i> ${escapeHtml(r.engineerName)}</span>`
+            : '<span></span>';
+        const desc = r.description
+            ? `<p class="small text-muted mb-1">${escapeHtml(r.description)}</p>`
+            : '';
+
+        return `
+            <div class="border-bottom py-2">
+                <div class="d-flex justify-content-between align-items-start">
+                    <a href="/Tickets/Details/${r.ticketId}" class="text-decoration-none fw-bold">${escapeHtml(r.ticketNumber)}</a>
+                    <span class="badge text-bg-secondary">${escapeHtml(status)}</span>
+                </div>
+                ${desc}
+                <div class="d-flex justify-content-between align-items-center small">
+                    ${engineer}
+                    <span class="text-muted text-nowrap">${period}</span>
+                </div>
+            </div>`;
+    }).join('');
+}
+
+// Форматирование даты для истории ремонтов (дд.мм.гггг)
+function formatHistoryDate(value) {
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return '';
+    const pad = n => String(n).padStart(2, '0');
+    return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+}
+
 // Загружаем специалистов при наличии выпадающего списка
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', loadEngineers);

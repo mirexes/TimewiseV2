@@ -131,6 +131,13 @@
                             <i class="bi bi-gear"></i> @Model.EquipmentModel
                             <span class="text-muted">(@Model.EquipmentSerialNumber)</span>
                         </p>
+                        @if (Model.EquipmentId is not null)
+                        {
+                            <button class="btn btn-sm btn-outline-info mt-1"
+                                    onclick="showEquipmentHistory(@Model.EquipmentId)">
+                                <i class="bi bi-clock-history"></i> История ремонтов
+                            </button>
+                        }
                     }
                     else
                     {
@@ -147,6 +154,10 @@
                             <button class="btn btn-sm btn-primary flex-grow-1"
                                     onclick="assignEquipment(@Model.Id)">
                                 <i class="bi bi-link-45deg"></i> Привязать
+                            </button>
+                            <button class="btn btn-sm btn-outline-info"
+                                    onclick="showSelectedEquipmentHistory()" title="История ремонтов выбранного">
+                                <i class="bi bi-clock-history"></i>
                             </button>
                             <button class="btn btn-sm btn-outline-secondary"
                                     onclick="showNewEquipmentForm()" title="Добавить новое">
@@ -409,6 +420,21 @@
                         style="width:40px;height:40px;z-index:10;" onclick="completionGalleryNav(1)">
                     <i class="bi bi-chevron-right"></i>
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно истории ремонтов оборудования -->
+<div class="modal fade" id="equipmentHistoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header py-2">
+                <h6 class="modal-title"><i class="bi bi-clock-history"></i> История ремонтов оборудования</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body" id="equipmentHistoryBody">
+                <p class="text-muted text-center mb-0">Загрузка...</p>
             </div>
         </div>
     </div>

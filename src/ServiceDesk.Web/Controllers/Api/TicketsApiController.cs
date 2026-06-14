@@ -109,6 +109,17 @@ public class TicketsApiController : ControllerBase
         return Ok(items);
     }
 
+    /// <summary>Получить историю ремонтов оборудования</summary>
+    [HttpGet("equipment/{equipmentId}/history")]
+    public async Task<IActionResult> GetEquipmentHistory(int equipmentId)
+    {
+        if (!PermissionChecker.CanEditEquipment(User.GetRole()))
+            return Forbid();
+
+        var history = await _equipmentService.GetRepairHistoryAsync(equipmentId);
+        return Ok(history);
+    }
+
     /// <summary>Привязать оборудование к заявке</summary>
     [HttpPost("equipment/assign")]
     public async Task<IActionResult> AssignEquipment([FromBody] AssignEquipmentRequest request)
