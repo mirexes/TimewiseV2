@@ -161,10 +161,11 @@ public class TicketService : ITicketService
         dto.AllowedTransitions = TicketStatusTransitions.GetAllowedTransitions(ticket.Status);
         dto.CanAssignEngineer = PermissionChecker.CanAssignEngineer(currentUserRole);
         dto.CanEditEquipment = PermissionChecker.CanEditEquipment(currentUserRole);
+        // Создатель может редактировать заявку в любом статусе, кроме отменённой.
+        // Завершённые заявки (Completed/CompletedRemotely) можно открыть повторно,
+        // отредактировать и дополнить акт фотографиями.
         dto.CanEdit = ticket.CreatedByUserId == currentUserId
-            && ticket.Status is not TicketStatus.Completed
-                and not TicketStatus.CompletedRemotely
-                and not TicketStatus.Cancelled;
+            && ticket.Status is not TicketStatus.Cancelled;
         return dto;
     }
 
@@ -281,9 +282,10 @@ public class TicketService : ITicketService
         if (ticket.CreatedByUserId != currentUserId)
             throw new UnauthorizedAccessException("Редактировать заявку может только её создатель");
 
-        // Нельзя редактировать завершённые и отменённые заявки
-        if (ticket.Status is TicketStatus.Completed or TicketStatus.CompletedRemotely or TicketStatus.Cancelled)
-            throw new InvalidOperationException("Нельзя редактировать завершённую или отменённую заявку");
+        // Нельзя редактировать только отменённые заявки.
+        // Завершённую заявку разрешено открыть повторно и сохранить изменения.
+        if (ticket.Status is TicketStatus.Cancelled)
+            throw new InvalidOperationException("Нельзя редактировать отменённую заявку");
 
         // Обработка точки обслуживания
         if (dto.ServicePointId.HasValue && dto.ServicePointId.Value > 0)

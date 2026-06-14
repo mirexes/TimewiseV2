@@ -164,12 +164,13 @@ public class TicketsController : Controller
         ViewBag.ServicePoints = await _clientService.GetServicePointsForSelectAsync(User.GetUserId(), User.GetRole());
         ViewBag.YandexMapsApiKey = _config["YandexMaps:ApiKey"] ?? "";
         ViewBag.TicketNumber = ticket.TicketNumber;
+        ViewBag.CompletionPhotos = ticket.CompletionPhotos;
         return View(dto);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(EditTicketDto dto)
+    public async Task<IActionResult> Edit(EditTicketDto dto, List<IFormFile>? completionPhotos)
     {
         ModelState.Remove("ServicePointId");
 
@@ -180,10 +181,50 @@ public class TicketsController : Controller
         {
             ViewBag.ServicePoints = await _clientService.GetServicePointsForSelectAsync(User.GetUserId(), User.GetRole());
             ViewBag.YandexMapsApiKey = _config["YandexMaps:ApiKey"] ?? "";
+            var current = await _ticketService.GetByIdAsync(dto.Id, User.GetUserId(), User.GetRole());
+            ViewBag.TicketNumber = current?.TicketNumber;
+            ViewBag.CompletionPhotos = current?.CompletionPhotos;
             return View(dto);
         }
 
         await _ticketService.UpdateAsync(dto, User.GetUserId());
+
+        // Сохраняем добавленные фото акта (можно прикрепить сразу несколько)
+        await SaveCompletionPhotosAsync(dto.Id, completionPhotos);
+
         return RedirectToAction(nameof(Details), new { id = dto.Id });
+    }
+
+    /// <summary>Сохраняет загруженные фото акта выполненных работ</summary>
+    private async Task SaveCompletionPhotosAsync(int ticketId, List<IFormFile>? photos)
+    {
+        if (photos is not { Count: > 0 }) return;
+
+        var uploadsDir = Path.Combine(_env.WebRootPath, "uploads", "completion-photos");
+        Directory.CreateDirectory(uploadsDir);
+
+        var photoFiles = new List<TicketAttachmentFile>();
+        foreach (var photo in photos)
+        {
+            if (photo.Length == 0) continue;
+
+            var ext = Path.GetExtension(photo.FileName);
+            var uniqueName = $"{ticketId}_{Guid.NewGuid():N}{ext}";
+            var filePath = Path.Combine(uploadsDir, uniqueName);
+
+            await using var stream = new FileStream(filePath, FileMode.Create);
+            await photo.CopyToAsync(stream);
+
+            photoFiles.Add(new TicketAttachmentFile
+            {
+                FileName = photo.FileName,
+                FilePath = $"/uploads/completion-photos/{uniqueName}",
+                ContentType = photo.ContentType,
+                FileSize = photo.Length
+            });
+        }
+
+        if (photoFiles.Count > 0)
+            await _ticketService.SaveCompletionPhotosAsync(ticketId, photoFiles);
     }
 }
