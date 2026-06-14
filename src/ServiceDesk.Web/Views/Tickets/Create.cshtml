@@ -66,7 +66,7 @@
                            value="@(Model?.ServicePointId)" />
                     <div class="position-relative" id="spSearchWrapper">
                         <input type="text" class="form-control" id="servicePointSearch"
-                               placeholder="Начните вводить адрес..." autocomplete="off" />
+                               placeholder="Начните вводить адрес точки обслуживания или новый адрес..." autocomplete="off" />
                         <div id="servicePointList"
                              class="list-group position-absolute w-100 shadow"
                              style="z-index: 1050; display: none; max-height: 250px; overflow-y: auto;">
@@ -77,6 +77,9 @@
 
                     @if (!string.IsNullOrEmpty(yandexApiKey))
                     {
+                        <div class="form-text">
+                            Выберите существующую точку из списка или введите новый адрес — подсказки с карты появятся в том же списке.
+                        </div>
                         <div class="mt-2">
                             <button type="button" class="btn btn-outline-primary btn-sm" id="btnShowMap">
                                 <i class="bi bi-geo-alt"></i> Указать новый адрес на карте
@@ -90,12 +93,6 @@
 
                         <!-- Блок карты (скрыт по умолчанию) -->
                         <div id="mapContainer" class="mt-2" style="display: none;">
-                            <div class="mb-2 position-relative">
-                                <input type="text" id="addressSearch" class="form-control"
-                                       placeholder="Введите адрес для поиска..." autocomplete="off" />
-                                <div id="suggestList" class="list-group position-absolute w-100 shadow"
-                                     style="z-index: 1050; display: none; max-height: 250px; overflow-y: auto;"></div>
-                            </div>
                             <div id="yandexMap" style="width: 100%; height: 350px; border-radius: 8px;"></div>
                             <div id="selectedAddress" class="mt-2 text-muted small" style="display: none;">
                                 <i class="bi bi-geo-alt-fill"></i> <span id="addressText"></span>
