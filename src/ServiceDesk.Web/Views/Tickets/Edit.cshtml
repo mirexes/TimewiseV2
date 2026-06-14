@@ -17,7 +17,7 @@
         <h5 class="mb-0">Редактирование заявки @ViewBag.TicketNumber</h5>
     </div>
     <div class="card-body">
-        <form asp-action="Edit" method="post">
+        <form asp-action="Edit" method="post" enctype="multipart/form-data">
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="Id" />
             <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
@@ -92,6 +92,34 @@
                     <label asp-for="Deadline" class="form-label">Дедлайн (необязательно)</label>
                     <input asp-for="Deadline" type="datetime-local" class="form-control" />
                 </div>
+
+                <!-- Фото акта выполненных работ -->
+                <div class="col-12">
+                    @{
+                        var existingActPhotos = ViewBag.CompletionPhotos as IEnumerable<TicketPhotoDto>
+                            ?? Enumerable.Empty<TicketPhotoDto>();
+                    }
+                    <label class="form-label">Фото акта выполненных работ</label>
+                    @if (existingActPhotos.Any())
+                    {
+                        <div class="row g-2 mb-2">
+                            @foreach (var photo in existingActPhotos)
+                            {
+                                <div class="col-4 col-md-3">
+                                    <a href="@photo.FilePath" target="_blank">
+                                        <img src="@photo.FilePath" alt="@photo.FileName"
+                                             class="img-fluid rounded shadow-sm"
+                                             style="width:100%;height:100px;object-fit:cover;" />
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    }
+                    <input type="file" name="completionPhotos" id="editCompletionPhotos"
+                           class="form-control" multiple accept="image/*" />
+                    <div class="form-text">Можно выбрать несколько фото — они добавятся к акту</div>
+                    <div id="editCompletionPhotoPreview" class="row g-2 mt-2"></div>
+                </div>
             </div>
 
             <div class="mt-4">
@@ -110,4 +138,26 @@
         <script src="https://api-maps.yandex.ru/2.1/?apikey=@yandexApiKey&lang=ru_RU&load=package.full"></script>
     }
     <script src="~/js/ticket-create.js" asp-append-version="true"></script>
+    <script>
+        // Превью выбранных фото акта перед сохранением
+        (function () {
+            var input = document.getElementById('editCompletionPhotos');
+            if (!input) return;
+            input.addEventListener('change', function () {
+                var preview = document.getElementById('editCompletionPhotoPreview');
+                preview.innerHTML = '';
+                Array.from(this.files).forEach(function (file) {
+                    if (!file.type.startsWith('image/')) return;
+                    var col = document.createElement('div');
+                    col.className = 'col-4 col-md-3';
+                    var img = document.createElement('img');
+                    img.className = 'img-fluid rounded';
+                    img.style.cssText = 'height:100px;width:100%;object-fit:cover;';
+                    img.src = URL.createObjectURL(file);
+                    col.appendChild(img);
+                    preview.appendChild(col);
+                });
+            });
+        })();
+    </script>
 }
