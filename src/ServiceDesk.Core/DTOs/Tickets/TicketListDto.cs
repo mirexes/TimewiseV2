@@ -15,6 +15,10 @@ public class TicketListDto
     public string Description { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
     public string? EngineerName { get; set; }
+
+    /// <summary>Имя клиента (организации), к которой относится заявка</summary>
+    public string? ClientName { get; set; }
+
     public DateTime CreatedAt { get; set; }
     public DateTime? Deadline { get; set; }
 

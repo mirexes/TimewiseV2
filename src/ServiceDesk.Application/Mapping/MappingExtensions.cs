@@ -26,6 +26,7 @@ public static class MappingExtensions
             Description = ticket.Description,
             Address = ticket.ServicePoint?.Address ?? "",
             EngineerName = ticket.AssignedEngineer?.FullName,
+            ClientName = ticket.Client?.Name,
             CreatedAt = ticket.CreatedAt,
             Deadline = ticket.Deadline,
             WorkCompletedAt = ticket.WorkCompletedAt,
