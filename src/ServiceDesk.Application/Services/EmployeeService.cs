@@ -35,23 +35,6 @@ public class EmployeeService : IEmployeeService
         // но не выходя за пределы месяца
         var effectiveEnd = now < periodEnd ? now : periodEnd;
 
-        // Выездной персонал — техники, инженеры, главные инженеры
-        var employees = await _db.Users
-            .Where(u => u.IsActive && (u.Role == UserRole.Technician
-                || u.Role == UserRole.Engineer || u.Role == UserRole.ChiefEngineer))
-            .OrderBy(u => u.LastName).ThenBy(u => u.FirstName)
-            .Select(u => new { u.Id, u.LastName, u.FirstName, u.MiddleName, u.Role })
-            .ToListAsync();
-
-        var stats = employees.ToDictionary(
-            u => u.Id,
-            u => new EmployeeWorkStatsDto
-            {
-                EmployeeId = u.Id,
-                EmployeeName = $"{u.LastName} {u.FirstName} {u.MiddleName}".Trim(),
-                RoleName = RoleName(u.Role)
-            });
-
         // Записи смены статусов заявок за месяц
         var logs = await _db.AuditLogs
             .Where(a => a.EntityType == "Ticket" && a.Action == AuditAction.StatusChanged
@@ -65,6 +48,44 @@ public class EmployeeService : IEmployeeService
             .Where(t => ticketIds.Contains(t.Id) && t.AssignedEngineerId.HasValue)
             .Select(t => new { t.Id, EngineerId = t.AssignedEngineerId!.Value })
             .ToDictionaryAsync(t => t.Id, t => t.EngineerId);
+
+        // Завершённые за месяц заявки (по назначенному исполнителю)
+        var completed = await _db.Tickets
+            .Where(t => t.AssignedEngineerId.HasValue
+                && (t.Status == TicketStatus.Completed || t.Status == TicketStatus.CompletedRemotely)
+                && t.WorkCompletedAt.HasValue
+                && t.WorkCompletedAt >= periodStart && t.WorkCompletedAt < periodEnd)
+            .GroupBy(t => t.AssignedEngineerId!.Value)
+            .Select(g => new { EngineerId = g.Key, Count = g.Count() })
+            .ToListAsync();
+
+        // Базовый состав — выездной персонал (показываем всегда, даже без наработки)
+        var baseEmployees = await _db.Users
+            .Where(u => u.IsActive && (u.Role == UserRole.Technician
+                || u.Role == UserRole.Engineer || u.Role == UserRole.ChiefEngineer))
+            .Select(u => new { u.Id, u.LastName, u.FirstName, u.MiddleName, u.Role })
+            .ToListAsync();
+
+        // Идентификаторы всех, у кого есть активность за месяц (любая роль исполнителя)
+        var activeIds = new HashSet<int>(ticketEngineer.Values);
+        activeIds.UnionWith(completed.Select(c => c.EngineerId));
+
+        // Добираем данные тех исполнителей, кого нет в базовом составе
+        var baseIds = baseEmployees.Select(e => e.Id).ToHashSet();
+        var extraIds = activeIds.Where(id => !baseIds.Contains(id)).ToList();
+        var extraUsers = await _db.Users
+            .Where(u => extraIds.Contains(u.Id))
+            .Select(u => new { u.Id, u.LastName, u.FirstName, u.MiddleName, u.Role })
+            .ToListAsync();
+
+        var stats = baseEmployees.Concat(extraUsers).ToDictionary(
+            u => u.Id,
+            u => new EmployeeWorkStatsDto
+            {
+                EmployeeId = u.Id,
+                EmployeeName = $"{u.LastName} {u.FirstName} {u.MiddleName}".Trim(),
+                RoleName = RoleName(u.Role)
+            });
 
         // Реконструкция временных интервалов по каждой заявке
         foreach (var group in logs.GroupBy(l => l.EntityId))
@@ -102,16 +123,7 @@ public class EmployeeService : IEmployeeService
             if (handled) s.HandledTickets++;
         }
 
-        // Завершённые за месяц заявки
-        var completed = await _db.Tickets
-            .Where(t => t.AssignedEngineerId.HasValue
-                && (t.Status == TicketStatus.Completed || t.Status == TicketStatus.CompletedRemotely)
-                && t.WorkCompletedAt.HasValue
-                && t.WorkCompletedAt >= periodStart && t.WorkCompletedAt < periodEnd)
-            .GroupBy(t => t.AssignedEngineerId!.Value)
-            .Select(g => new { EngineerId = g.Key, Count = g.Count() })
-            .ToListAsync();
-
+        // Количество завершённых заявок за месяц
         foreach (var c in completed)
             if (stats.TryGetValue(c.EngineerId, out var s))
                 s.CompletedTickets = c.Count;
@@ -142,6 +154,11 @@ public class EmployeeService : IEmployeeService
         UserRole.Technician => "Техник",
         UserRole.Engineer => "Инженер",
         UserRole.ChiefEngineer => "Главный инженер",
+        UserRole.Logist => "Логист",
+        UserRole.ManagerTimewise => "Менеджер Timewise",
+        UserRole.Client => "Клиент",
+        UserRole.ManagerClient => "Менеджер клиента",
+        UserRole.Moderator => "Модератор",
         _ => role.ToString()
     };
 }
